@@ -13,7 +13,7 @@ A(eye(100)==1) = 0;
 % A(A < 0.1) = 0; 
 
 % do permutations
-[allV,diagnostics] = expectedEigsUnd(A,40);
+[allV,diagnostics] = expectedEigsUnd(A,N);
 
 % get bounds on configuration model eigenvalues
 bnds95 = prctile(allV,[2.5,97.5]); % 95% confidence interval on eigenvalue distribution for null model
@@ -31,7 +31,8 @@ xlabel('Eigenvalue')
 ylabel('Frequency')
 title('Random weighted graph')
 
-[V,D] = eig(A);
+Bdata = A - expectedA(A);
+[V,D] = eig(Bdata);
 egs = sort(diag(D),'descend');
 
 % number of communities
