@@ -27,6 +27,17 @@ line([bnds99(2) bnds99(2)],[0 m],'Color','r')
 xlabel('Eigenvalue')
 ylabel('Frequency')
 
+% compare to M-P bounds
+B = A - expectedA(A);
+s = std(B(:));
+c = 1; % ratio of MxN matrix
+MP_low =(s^2)*(1-sqrt(c))^2;
+MP_high =(s^2)*(1+sqrt(c))^2;
+
+line([MP_low MP_low],[0 m],'Color',[0.6 0.6 0.6])
+line([MP_high MP_high],[0 m],'Color',[0.6 0.6 0.6])
+
+
 %% compare to data eigenvalues
 
 [V,D] = eig(A);

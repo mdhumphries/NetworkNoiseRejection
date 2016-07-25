@@ -21,16 +21,16 @@ function [allV,varargout] = expectedEigsUnd(A,N,varargin)
 %
 % Notes: 
 % (1) assumes A is connected;
-% (2) null model here is not precisely configuration model: rather, it
-% simply permutes the actual weights in A, realising only a discrete
-% sub-set of all possible configuration model realisations.
 %
 % ChangeLog:
 % 17/6/2016: added diagnostics
 % 23/6/2016: added conversion scale options; added check for integer
 % weights
-%
-% Mark Humphries 23/6/2016
+% 25/7/2016: changed to computation of B* = P* - P as basic model   
+%            added Parallel Computing Toolbox support for main loop
+%            fixed bug: now returns correct eigenvalues
+% 
+% Mark Humphries 25/7/2016
 
 n = size(A,1);
 
@@ -47,7 +47,7 @@ if nargin >= 3
         conversion = 1./minW;
     end
 else
-    conversion = 100; % into integer number of edges - replace this: with quantisation necessary to get smallest weight to 1?
+    conversion = 100; % into integer number of edges
 end
 
 % check if weights are already integers
@@ -55,19 +55,36 @@ if ~any(rem(A(:),1))  % then is integers for all weights
     conversion = 1;
 end
 
-diagnostics.conversion = conversion; % store
 
 A_int = round(A*conversion);  % rough guide: multi-edge network
 
-
-stubs = sum(A_int);  % how many tubs?
+stubs = sum(A_int);  % how many stubs?
 m_int = sum(stubs)/2; % so how many loops to match all stubs?
 
 P_appear = stubs ./ sum(stubs);
 C_appear = cumsum(stubs ./ sum(stubs));
 
-allV = [];
-for iN = 1:N
+% weighted configuration model {expectation]
+P = expectedA(A);
+
+% initialise structs to full storage size, allowing parfor to slice
+% appropriately
+Pstar = emptyStruct({'Egs'},[N,1]);
+
+fieldnames = {'conversion','kAp','minW','maxW','dK','dKN','dmax'};
+diagnostics = emptyStruct(fieldnames, [N,1]);
+
+% detect parallel toolbox, and enable if present
+blnParallel = license('test','Distrib_Computing_Toolbox');
+
+if blnParallel
+    nCores = feature('numCores');
+    if isempty(gcp('nocreate'))
+        parpool('local',nCores-1);  % run on all except 1: don't cripple the machine...
+    end
+end
+
+parfor iN = 1:N
     
     % generate random weighted configuration model
 %     Aperm = zeros(n);
@@ -100,9 +117,8 @@ for iN = 1:N
     
     % all computation time is taken by this random number generation, due
     % to needing to huge number of random edges and store them - make this faster if possible.
-    tic
     X1 = discreteinvrnd(P_appear,m_int,1); % source nodes
-    toc
+    
     % X2 = X1(randperm(m_int));  % much faster, but would this strongly
     % bias sampling?? 
     X2 = discreteinvrnd(P_appear,m_int,1); % target nodes
@@ -117,9 +133,10 @@ for iN = 1:N
     Aperm = Aperm ./ conversion;
     
     %% diagnostics: how far does random model depart?
-    diagnostics(iN).kAp = sum(Aperm);
-    diagnostics(iN).minW = min(Aperm);
-    diagnostics(iN).maxW = max(Aperm);    
+    diagnostics(iN).conversion = conversion; % store
+    diagnostics(iN).kAp = sum(Aperm);  % degree
+    diagnostics(iN).minW = min(Aperm); % minimum weight
+    diagnostics(iN).maxW = max(Aperm);    % maximum weight
     
  
     % figure; ecdf(kA); hold on; ecdf(kAp); title('Degree distributions of original and permuted network')
@@ -131,10 +148,14 @@ for iN = 1:N
     % figure; ecdf(dKN); title('ECDF of error as proportion of original degree')
     
     %% get eigenvalues
-    [V,D] = eig(A - Aperm);
-    egs = diag(V);
-    allV = [allV; egs];
+    % P is null model for A, assuming A = P + noise
+    % B* = P* - P
+    Pstar(iN).Egs = eig(Aperm - P);
+    
+    % keyboard
 end
 
+allV = [Pstar.Egs];
+allV = allV(:);
 varargout{1} = diagnostics;
 
