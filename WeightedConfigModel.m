@@ -21,7 +21,7 @@ function [allV,varargout] = WeightedConfigModel(A,N,varargin)
 %
 % Notes: 
 % (1) assumes A is connected;
-% (2) Add negative weights as separate option: can split into (+) and (-) groups, and assign % links, then weights	
+% (2) To Do: Add negative weights as separate option: can split into (+) and (-) groups, and assign % links, then weights	
 %
 % ChangeLog:
 % 17/6/2016: added diagnostics
@@ -40,16 +40,16 @@ sA = sum(A);  % original strength distribution
 kA = sum(A>0);  % original degree distribution
 
 % catch errors
-sAc = sum(A’); 
+sAc = sum(A'); 
 if sA ~= sAc
-	warning(‘Directed networks will be converted to undirected networks’);
-	A = (A + A’) / 2; % convert to undirected
+	warning('Directed networks will be converted to undirected networks');
+	A = (A + A') / 2; % convert to undirected
 	sA = sum(A); 
 	kA = sum(A>0);
 end
 
 if any(A < 0)
-	error(‘WCM only defined for positive weights - for now…’)
+	error('WCM only defined for positive weights - for now')
 end
 
 % values for diagnostic checking
@@ -91,62 +91,29 @@ blnParallel = license('test','Distrib_Computing_Toolbox');
 if blnParallel
     nCores = feature('numCores');
     if isempty(gcp('nocreate'))
-        parpool('local',nCores-1);  % run on all except 1: don't cripple the machine...
+        parpool('local',nCores);  % run on all
     end
 end
 
 parfor iN = 1:N
 
-%% Step 1: create links
-K = sum(kA);
-m_int = K/2; % so how many loops to match all stubs?
-
-% DO RANDOMISATION BELOW ON ONLY LINKS
-
-%% Step 2: make weights
-S = sum(sA);
-
-stubs = sum(A_int);  % how many stubs?
-m_int = sum(stubs)/2; % so how many loops to match all stubs?
-
-P_appear = stubs ./ sum(stubs);
-C_appear = cumsum(stubs ./ sum(stubs));
-
-% DO RANDOMISATION CONSTRAINED TO LINKED NODE PAIRS
-
+    %% Step 1: create links
+    K = sum(kA);  % total number of links
+    % m_int = K/2; % so how many loops to match all stubs?
+   
+    pnode = expectedA(A>0); % probability of link between each pair of nodes
     
-    % generate random weighted configuration model
-%     Aperm = zeros(n);
-%     tic
-%     rem_stubs = stubs;
-%     for iM = 1:m_int
-%         ixs = [0 0];
-%         allowed = find(rem_stubs > 0);
-%         while ixs(1) == ixs(2)
-%             % pick pair at random
-%             ixs = ceil(rand(1,2) * numel(allowed));
-%         end
-%         ix1 = allowed(ixs(1)); ix2 = allowed(ixs(2));
-%         rem_stubs(ix1) = rem_stubs(ix1) - 1;
-%         rem_stubs(ix2) = rem_stubs(ix2) - 1; 
-%         Aperm(ix1,ix2) = Aperm(ix1,ix2) + 1; % edge counting
-%         Aperm(ix2,ix1) = Aperm(ix1,ix2);  % symmetry
-%         if sum(rem_stubs > 0) == 1    % if only 1 is left, then quit
-%             break
-%         end
-%     end
-%     toc
+    Aperm(triu(pnode) < rand) = 1;  % add link to all that pass test
+    Aperm = Aperm + Aperm'; 
     
-    % generate random weighted expected-degree model
-    % keyboard
-    % slower than a loop...
-%     tic
-%     X1 = arrayfun(@(x) find(x < C_appear,1),rand(m_int,1)); 
-%     toc
+    keyboard
     
+    % CHECK: direct P-connect test; or pair stubs at random?
+    
+    % random stubs:
     % all computation time is taken by this random number generation, due
     % to needing to huge number of random edges and store them - make this faster if possible.
-    X1 = discreteinvrnd(P_appear,m_int,1); % source nodes
+    X1 = discreteinvrnd(P_appear,m_int,1); % choose pairs
     
     % X2 = X1(randperm(m_int));  % much faster, but would this strongly
     % bias sampling?? 
@@ -156,10 +123,46 @@ C_appear = cumsum(stubs ./ sum(stubs));
     for iM = 1:m_int
         Atemp(X1(iM),X2(iM)) = Atemp(X1(iM),X2(iM)) + 1;
     end
-    Aperm = Atemp + Atemp'; 
+    Aperm = Atemp + Atemp'; % here: A is set of links
+    
+    %% Step 2: make weights
+    S = sum(sA);  % total weights
+    
+    if S ~= K  % then is weighted network    
+        % RESTRICT STUBS TO THE LINKED NODES
+        stubs = sum(A_int);  % how many stubs?
+        m_int = sum(stubs)/2; % so how many loops to match all stubs?
 
-    % convert back...
-    Aperm = Aperm ./ conversion;
+        P_appear = stubs ./ sum(stubs);
+        C_appear = cumsum(stubs ./ sum(stubs));
+
+        % DO RANDOMISATION CONSTRAINED TO LINKED NODE PAIRS
+
+
+        % generate random weighted expected-degree model
+        % keyboard
+        % slower than a loop...
+    %     tic
+    %     X1 = arrayfun(@(x) find(x < C_appear,1),rand(m_int,1)); 
+    %     toc
+
+        % all computation time is taken by this random number generation, due
+        % to needing to huge number of random edges and store them - make this faster if possible.
+        X1 = discreteinvrnd(P_appear,m_int,1); % source nodes
+
+        % X2 = X1(randperm(m_int));  % much faster, but would this strongly
+        % bias sampling?? 
+        X2 = discreteinvrnd(P_appear,m_int,1); % target nodes
+
+        Atemp = zeros(n);
+        for iM = 1:m_int
+            Atemp(X1(iM),X2(iM)) = Atemp(X1(iM),X2(iM)) + 1;
+        end
+        Aperm = Atemp + Atemp'; 
+        
+        % convert back...
+        Aperm = Aperm ./ conversion;
+    end
     
     %% diagnostics: how far does random model depart?
     diagnostics(iN).conversion = conversion; % store
