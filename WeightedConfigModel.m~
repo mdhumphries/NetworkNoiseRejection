@@ -104,9 +104,6 @@ for iN = 1:N
     pnode = expectedA(A>0); % probability of link between each pair of nodes
     
     Aperm= rand(n,n) < triu(pnode,1);  % add link to all that pass test
-    Aperm = Aperm + Aperm'; 
-    
-    
     
     % CHECK: direct P-connect test; or pair stubs at random?
     
@@ -142,12 +139,13 @@ for iN = 1:N
         P = P ./ sum(P); % P(link is placed between each pair)
         
         % randomly generate pairs of links
-        nLinks = Sint - numel(ixpairs);  % total links - [already placed]
+        nLinks = Sint/2 - numel(ixpairs);  % total links - [already placed]
         X1 = discreteinvrnd(P,nLinks,1); % randomly sampled indices of pairs
         
-        temp = Aperm;
+        temp = Aperm; ctr = 0;
         for iM = 1:nLinks
             temp(ixpairs(X1(iM))) = temp(ixpairs(X1(iM))) + 1;
+            ctr = ctr + 1;
         end
         
         keyboard
@@ -166,6 +164,9 @@ for iN = 1:N
         Aperm = Aperm ./ conversion;
     end
     
+    % complete network: undirected
+    Aperm = Aperm + Aperm'; 
+
     %% diagnostics: how far does random model depart?
     diagnostics(iN).conversion = conversion; % store
     diagnostics(iN).sAp = sum(Aperm);  % degree

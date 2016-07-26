@@ -103,7 +103,7 @@ for iN = 1:N
    
     pnode = expectedA(A>0); % probability of link between each pair of nodes
     
-    Aperm= rand(n,n) < triu(pnode,1);  % add link to all that pass test
+    Aperm= real(rand(n,n) < triu(pnode,1));  % add link to all that pass test
     
     % CHECK: direct P-connect test; or pair stubs at random?
     
@@ -130,34 +130,22 @@ for iN = 1:N
     if S ~= K  % then is weighted network    
         % RESTRICT STUBS TO THE LINKED NODES
         
-        ixpairs = find(triu(Aperm,1) > 0);   % linear indices of linked pairs
+        ixpairs = find(triu(Aperm,1)>0);   % linear indices of linked pairs
         % get as (i,j)
         [i,j] = ind2sub([n,n],ixpairs);
         
         % get P(link) in order.... 
-        P = sA(i) .* sA(j);
-        P = P ./ sum(P); % P(link is placed between each pair)
+        Plink = sA(i) .* sA(j);
+        Plink = Plink ./ sum(Plink); % P(link is placed between each pair)
         
         % randomly generate pairs of links
         nLinks = Sint/2 - numel(ixpairs);  % total links - [already placed]
-        X1 = discreteinvrnd(P,nLinks,1); % randomly sampled indices of pairs
+        X1 = discreteinvrnd(Plink,nLinks,1); % randomly sampled indices of pairs
         
-        temp = Aperm;
         for iM = 1:nLinks
-            temp(ixpairs(X1(iM))) = temp(ixpairs(X1(iM))) + 1;
+            Aperm(ixpairs(X1(iM))) = Aperm(ixpairs(X1(iM))) + 1;
         end
         
-        keyboard
-        
-        % assign
-        
-        
-
-        Atemp = zeros(n);
-        for iM = 1:m_int
-            Atemp(X1(iM),X2(iM)) = Atemp(X1(iM),X2(iM)) + 1;
-        end
-        Aperm = Atemp + Atemp'; 
         
         % convert back...
         Aperm = Aperm ./ conversion;
