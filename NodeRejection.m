@@ -1,13 +1,14 @@
-function [D,varargout] = NodeRejection(B,allV,I,varargin)
+function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 
 % NODEREJECTION separates nodes into "signal" and "noise"
-% D = NODEREJECTION(B,V,I) splits the nodes in a network into signal 
+% D = NODEREJECTION(B,E,I,V) splits the nodes in a network into signal 
 % and noise components, given: 
-%       B: the modularity matrix of the network, defined using a null model (e.g Weighted Configuration Model)
-%       V: the null-model eigenvalue distribution (from e.g. expectedEigsUnd) 
+%       B: the (nxn) modularity matrix of the network, defined using a null model (e.g Weighted Configuration Model)
+%       E: the null-model eigenvalue distribution (from e.g. WeightedConfigModel) 
 %       I: specified rejection interval (propotion: 0.05, for 95%; 0.01 for
 %       99%, and so on); if I is specified as an n-length array {I1,I2,...,In], 
-%       then a decompositin will be returned for each I  
+%       then a decompositin will be returned for each I 
+%       V: the null model set of eigenvectors (n x n x #repeats of null model; 1 eigenvector per column)
 %
 % Returns: D, an n-length struct array with fields:
 %               .ixSignal: the node indices in the signal component of the
@@ -18,28 +19,33 @@ function [D,varargout] = NodeRejection(B,allV,I,varargin)
 % ... = NODEREJECTION(...,Options) passes finds the "noise" nodes by
 % weighting X:
 %           'none': uses Euclidean distance of projection from the origin
-%           [Default]
-%           'linear': weights projections by the eigenvalues of each eigenvector
+%           'linear': weights projections by the eigenvalues of each
+%           eigenvector [Default]
 %           'sqrt': weights projections by the square root of the
 %           eigenvalues of each eigenvector
 %
 % Notes: 
-% (1) determines the number of "noise" nodes for each rejection interval;
-% then finds those nodes by the shortest projections into the
-% low-dimensional space of the data projections
+% (1) determines the low dimensional space for projecting the network for the specified rejection interval;
+% then finds the sampling distribution of null model projections (or norm)
+% of each node in that space
+% Retains all nodes that exceed the mean+2SEM of their sampling distribution
 %    
 % (2) The projections can be weighted according to the eigenvalues (see
 % above)
 %
 % ChangeLog:
 % 25/7/2016: initial version
-%
-% Mark Humphries 25/7/2016
+% 26/7/2016: node rejection now based on sampling distribution of the
+% projections
+% Mark Humphries 26/7/2016
 
 % sort out options
-Options.Weight = 'none';
+Options.Weight = 'linear';
 
-if nargin > 3
+N = size(Vmodel,3); 
+n = size(Vmodel,1);
+
+if nargin > 4
     if isstruct(Options) 
         tempopts = varargin{1}; 
         fnames = fieldnames(tempopts);
@@ -50,43 +56,51 @@ if nargin > 3
 end
 
 % compute eigenvalues & vectors of modularity matrix
-[V,D] = eig(B);
-egs = diag(D);
-n = size(B,1);
+[V,egs] = eig(B,'vector');
 
 % get node rejections....
 D = emptyStruct({'ixSignal','ixNoise'},[numel(I) 1]);
 for i = 1:numel(I)
-    % find bounds, and calculate numbers to reject
+    % find bounds, and calculate dimensions to retain
     prctI = [I(i)/2*100 100-I(i)/2*100]; % rejection interval as symmetric percentile bounds
-    bnds = prctile(allV,prctI); % confidence interval on eigenvalue distribution for null model
-
-    %%%% find all eigenvalues outside of bounds
+    bnds = prctile(Emodel,prctI); % confidence interval on eigenvalue distribution for null model
     ixpos = find(egs >= bnds(2));
-    ixneg = find(egs <= bnds(1));  % use for rejection
-    Tsignal = numel(ixpos) + numel(ixneg);  % total number of core nodes
-
+    
     % how many to test?    
     Vpos = V(:,ixpos);      % corresponding set of eigenvectors in data-space
 
-    %% project and reject
+    %% project data
+    VmodelW = zeros(n,N);
     switch Options.Weight
         case 'none'
             % Euclidean distance
             Vweighted = Vpos; 
+            for iN = 1:N
+                VmodelW(:,iN) = sqrt(sum(Vmodel(:,ixpos,iN).^2,2));
+            end
         case 'linear'
-            Vweighted = Vpos .* repmat(egs(ixpos)',n,1);  %weight by eigenvalues
+            egMat = repmat(egs(ixpos)',n,1);
+            Vweighted = Vpos .* egMat;  %weight by eigenvalues
+            for iN = 1:N
+                VmodelW(:,iN) = sqrt(sum((egMat.*Vmodel(:,ixpos,iN)).^2,2));
+            end
         case 'sqrt'
-            Vweighted = Vpos .* repmat((sqrt(egs(ixpos)))',n,1);
+            egMat = repmat((sqrt(egs(ixpos)))',n,1);
+            Vweighted = Vpos .* egMat;
+            for iN = 1:N
+                VmodelW(:,iN) = sqrt(sum((egMat.*Vmodel(:,ixpos,iN)).^2,2));
+            end          
         otherwise
             error('Unknown weighting option')
     end
     
-    % do projections, and divide
+    % do projections
     lengths = sqrt(sum(Vweighted.^2,2));  % length of projection into space
-    [~,I] = sort(lengths,'descend');
-    D(i).ixSignal = sort(I(1:Tsignal),'ascend');  % the T retained nodes, in ID order
-    D(i).ixNoise = sort(I(Tsignal+1:end),'ascend'); % removed nodes, in ID order
+    mModel = mean(VmodelW,2); 
+    semModel = std(VmodelW,[],2) / sqrt(N);
+    
+    D(i).ixSignal = find(lengths >= mModel + 2.*semModel);  % the retained node
+    D(i).ixNoise = find(lengths < mModel + 2.*semModel); % removed nodes
 end
 
 

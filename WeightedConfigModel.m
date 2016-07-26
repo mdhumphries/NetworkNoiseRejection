@@ -1,10 +1,10 @@
 function [E,varargout] = WeightedConfigModel(A,N,varargin)
 
 % WEIGHTEDCONFIGMODEL expected eigenvalue distribution for weighted configuration model
-% E = WEIGHTEDCONFIGMODEL(A,N) takes the weighted, undirected adjacency matrix A and creates N
+% E = WEIGHTEDCONFIGMODEL(A,N) takes the weighted, undirected (n x n) adjacency matrix A and creates N
 % random realisations of the modularity matrix B by randomly generating a 
 % null model approximating the configuration model P.
-% Returns E, the distribution of all eigenvalues for all random modularity
+% Returns E, an nxN matrix of all n eigenvalues for all N random modularity
 % matrices.
 % 
 % ... = WEIGHTEDCONFIGMODEL(..,C) sets the conversion factor C; i.e. the amount
@@ -33,6 +33,7 @@ function [E,varargout] = WeightedConfigModel(A,N,varargin)
 %            added Parallel Computing Toolbox support for main loop
 %            fixed bug: now returns correct eigenvalues
 % 26/7/2016: Full WCM model: two-step generative model	 
+%            Returns eigenvectors for all generated null models
 %
 % Mark Humphries 26/7/2016
 
@@ -77,8 +78,8 @@ end
 % convert network into multi-edge version
 A_int = round(A*conversion); 
 
-% weighted configuration model {expectation]
-P = expectedA(A);  % CHECK THIS
+% weighted configuration model [expectation]
+P = expectedA(A);  
 
 % initialise structs to full storage size, allowing parfor to slice
 % appropriately
@@ -130,6 +131,7 @@ parfor iN = 1:N
         
         X1 = discreteinvrnd(Plink,nLinks,1); % randomly sampled indices of pairs
         
+        % add up the links
         for iM = 1:nLinks
             Aperm(ixpairs(X1(iM))) = Aperm(ixpairs(X1(iM))) + 1;
         end
@@ -171,12 +173,14 @@ end
 % ExpWCM = Aall ./ N;
 % keyboard
 
-E = [Pstar.Egs];
-E = E(:);
+% E = [Pstar.Egs];
+% E = E(:);
 varargout{1} = diagnostics;
 
 V = zeros(n,n,N);
+E = zeros(n,N);
 for iN = 1:N
+    E(:,iN) = Pstar(iN).Egs;
     V(:,:,iN) = Pstar(iN).V;
 end
 

@@ -13,11 +13,12 @@ load('Test_Scripts/Sep2711da01_40_120s_Sxy_Gaussian_1s')
 A = Sxyall{1};
 
 % get expected distribution of eigenvalues under null model (here, WCM)
-[allV,diagnostics] = expectedEigsUnd(A,N);
+% [Emodel,diagnostics] = expectedEigsUnd(A,N);
+[Emodel,diagnostics,Vmodel] = WeightedConfigModel(A,N);
 
 % decompose nodes into signal and noise
 B = A - expectedA(A);  % modularity matrix using null model
-D = NodeRejection(B,allV,alpha);
+D = NodeRejection(B,Emodel(:),alpha,Vmodel); % UNIT TEST THIS
 
 % new signal matrix
 Asignal = A(D.ixSignal,D.ixSignal);
