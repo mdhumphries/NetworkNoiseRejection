@@ -124,7 +124,7 @@ parfor iN = 1:N
         % randomly generate pairs of links
         nLinks = round(Sint/2) - numel(ixpairs);  % total links - [already placed]
         
-        keyboard
+        % keyboard
         
         X1 = discreteinvrnd(Plink,nLinks,1); % randomly sampled indices of pairs
         
