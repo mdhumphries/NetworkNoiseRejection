@@ -97,7 +97,7 @@ end
 
 
 parfor iN = 1:N
-
+% for iN = 1:N
     %% Step 1: create links
     K = sum(kA);  % total number of links
    
@@ -122,7 +122,10 @@ parfor iN = 1:N
         Plink = Plink ./ sum(Plink); % P(link is placed between each pair)
         
         % randomly generate pairs of links
-        nLinks = Sint/2 - numel(ixpairs);  % total links - [already placed]
+        nLinks = round(Sint/2) - numel(ixpairs);  % total links - [already placed]
+        
+        keyboard
+        
         X1 = discreteinvrnd(Plink,nLinks,1); % randomly sampled indices of pairs
         
         for iM = 1:nLinks
