@@ -1,23 +1,25 @@
-function [allV,varargout] = WeightedConfigModel(A,N,varargin)
+function [E,varargout] = WeightedConfigModel(A,N,varargin)
 
 % WEIGHTEDCONFIGMODEL expected eigenvalue distribution for weighted configuration model
-% V = WEIGHTEDCONFIGMODEL(A,N) takes the weighted, undirected adjacency matrix A and creates N
+% E = WEIGHTEDCONFIGMODEL(A,N) takes the weighted, undirected adjacency matrix A and creates N
 % random realisations of the modularity matrix B by randomly generating a 
 % null model approximating the configuration model P.
-% Returns V, the distribution of all eigenvalues for all random modularity
+% Returns E, the distribution of all eigenvalues for all random modularity
 % matrices.
 % 
-% V = WEIGHTEDCONFIGMODEL(..,C) sets the conversion factor C; i.e. the amount
+% ... = WEIGHTEDCONFIGMODEL(..,C) sets the conversion factor C; i.e. the amount
 % by which the weighted adjacency matrix is scaled to get integer weights.
 % C = 'all' sets the conversion factor large enough that the minimum weight
 % is converted to 1.
 %
-% [..,D] = WEIGHTEDCONFIGMODEL(...) returns a struct D, containing diagnostic
-% measurements of the accuracy of the null model for each of the N repeats, with fields
-%       D(i).sAp = strength distribution of the ith repeat
-%       D(i).dS = absolute difference between data and ith model strength distributions 
-%       D(i).dSN = absolute difference, normalised per node to its strength
-%       in the data (i.e. to measure the error relative to magnitude)
+% [..,D,V] = WEIGHTEDCONFIGMODEL(...) returns:
+%           a struct D, containing diagnostic measurements of the accuracy of the null model 
+%           for each of the N repeats, with fields
+%           D(i).sAp = strength distribution of the ith repeat
+%           D(i).dS = absolute difference between data and ith model strength distributions 
+%           D(i).dSN = absolute difference, normalised per node to its strength
+%               in the data (i.e. to measure the error relative to magnitude)
+%           an nxnxN matrix V, containing all of the nxn eigenvector matrices of the N repeats            
 %
 % Notes: 
 % (1) assumes A is connected;
@@ -80,7 +82,7 @@ P = expectedA(A);  % CHECK THIS
 
 % initialise structs to full storage size, allowing parfor to slice
 % appropriately
-Pstar = emptyStruct({'Egs','A'},[N,1]);
+Pstar = emptyStruct({'Egs','A','V'},[N,1]);
 
 fieldnames = {'conversion','sAp','minW','maxW','dS','dSN','dmax'};
 diagnostics = emptyStruct(fieldnames, [N,1]);
@@ -157,7 +159,7 @@ parfor iN = 1:N
     %% get eigenvalues
     % P is null model for A, assuming A = P + noise
     % B* = P* - P
-    Pstar(iN).Egs = eig(Aperm - P);
+    [Pstar(iN).V,Pstar(iN).Egs] = eig(Aperm - P,'vector');
     % Pstar(iN).A = Aperm;
     % keyboard
 end
@@ -169,7 +171,14 @@ end
 % ExpWCM = Aall ./ N;
 % keyboard
 
-allV = [Pstar.Egs];
-allV = allV(:);
+E = [Pstar.Egs];
+E = E(:);
 varargout{1} = diagnostics;
+
+V = zeros(n,n,N);
+for iN = 1:N
+    V(:,:,iN) = Pstar(iN).V;
+end
+
+varargout{2} = V;
 
