@@ -27,7 +27,7 @@ Asignal = A(D.ixSignal,D.ixSignal);
 % consensus modularity
 [C,Qmax,Ccon,Qc,N,Q] = allevsplitConTransitive(Asignal);
 
-% plot sorted into group order
+%% plot sorted into group order
 [srt,I] = sort(Ccon,'ascend');
 lines = [0; find(diff(srt)==1); numel(C)]+0.5;
 figure

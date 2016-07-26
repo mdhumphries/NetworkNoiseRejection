@@ -80,7 +80,7 @@ P = expectedA(A);  % CHECK THIS
 
 % initialise structs to full storage size, allowing parfor to slice
 % appropriately
-Pstar = emptyStruct({'Egs'},[N,1]);
+Pstar = emptyStruct({'Egs','A'},[N,1]);
 
 fieldnames = {'conversion','sAp','minW','maxW','dS','dSN','dmax'};
 diagnostics = emptyStruct(fieldnames, [N,1]);
@@ -95,8 +95,8 @@ if blnParallel
     end
 end
 
-% parfor iN = 1:N
-for iN = 1:N
+
+parfor iN = 1:N
 
     %% Step 1: create links
     K = sum(kA);  % total number of links
@@ -105,22 +105,6 @@ for iN = 1:N
     
     Aperm= real(rand(n,n) < triu(pnode,1));  % add link to all that pass test
     
-    % CHECK: direct P-connect test; or pair stubs at random?
-    
-%     % random stubs:
-%     % all computation time is taken by this random number generation, due
-%     % to needing to huge number of random edges and store them - make this faster if possible.
-%     X1 = discreteinvrnd(P_appear,m_int,1); % choose pairs
-%     
-%     % X2 = X1(randperm(m_int));  % much faster, but would this strongly
-%     % bias sampling?? 
-%     X2 = discreteinvrnd(P_appear,m_int,1); % target nodes
-% 
-%     Atemp = zeros(n);
-%     for iM = 1:m_int
-%         Atemp(X1(iM),X2(iM)) = Atemp(X1(iM),X2(iM)) + 1;
-%     end
-%     Aperm = Atemp + Atemp'; % here: A is set of links
     
     %% Step 2: make weights
     S = sum(sA);  % total weights
@@ -128,7 +112,6 @@ for iN = 1:N
     sAint = sum(A_int); % integer strength
     Sint = sum(sAint); % integer total strength
     if S ~= K  % then is weighted network    
-        % RESTRICT STUBS TO THE LINKED NODES
         
         ixpairs = find(triu(Aperm,1)>0);   % linear indices of linked pairs
         % get as (i,j)
@@ -145,8 +128,7 @@ for iN = 1:N
         for iM = 1:nLinks
             Aperm(ixpairs(X1(iM))) = Aperm(ixpairs(X1(iM))) + 1;
         end
-        
-        
+             
         % convert back...
         Aperm = Aperm ./ conversion;
     end
@@ -173,9 +155,16 @@ for iN = 1:N
     % P is null model for A, assuming A = P + noise
     % B* = P* - P
     Pstar(iN).Egs = eig(Aperm - P);
-    
+    % Pstar(iN).A = Aperm;
     % keyboard
 end
+
+% Aall = zeros(n);
+% for iN = 1:N
+%   Aall = Aall + Pstar(iN).A;
+% end
+% ExpWCM = Aall ./ N;
+% keyboard
 
 allV = [Pstar.Egs];
 allV = allV(:);

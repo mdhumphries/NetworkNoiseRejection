@@ -13,7 +13,7 @@ A(eye(100)==1) = 0;
 % A(A < 0.1) = 0; 
 
 % do permutations
-[allV,diagnostics] = expectedEigsUnd(A,N);
+% [allV,diagnostics] = expectedEigsUnd(A,N);
 [allV,diagnostics] = WeightedConfigModel(A,N);
 
 % get bounds on configuration model eigenvalues
