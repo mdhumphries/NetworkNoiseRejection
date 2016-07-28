@@ -3,7 +3,7 @@ function  [Dspace,ixpos,Dn] = LowDSpace(B,Emodel,I)
 % LOWDSPACE find and return low-dimensional axes for network
 % [D,X,N] = LOWDSPACE(B,E,I) finds the P low-dimensional axes for the network, given: 
 %       B: the (nxn) modularity matrix of the data network, defined using a null model (e.g Weighted Configuration Model)
-%       E: the null-model eigenvalue distribution (from e.g. WeightedConfigModel) 
+%       E: the null-model eigenvalue distribution (n x #repeats of model) (from e.g. WeightedConfigModel) 
 %       I: specified rejection interval (scalar)
 %
 %  Returns:
@@ -23,7 +23,7 @@ function  [Dspace,ixpos,Dn] = LowDSpace(B,Emodel,I)
 [egs,ix] = sort(egs,'descend'); % sort eigenvalues into descending order 
 V = V(:,ix);  % sort eigenvectors accordingly
 prctI = [I/2*100 100-I/2*100]; % rejection interval as symmetric percentile bounds
-bnds = prctile(Emodel,prctI); % confidence interval on eigenvalue distribution for null model
+bnds = prctile(Emodel(:),prctI); % confidence interval on eigenvalue distribution for null model
 ixpos = find(egs >= bnds(2)); % eigenvalues exceeding these bounds
 Dn = numel(ixpos);   % number of retained dimensions          
 Dspace = V(:,ixpos);  % axes of retained dimensions

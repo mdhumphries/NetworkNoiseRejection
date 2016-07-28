@@ -4,7 +4,7 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 % D = NODEREJECTION(B,E,I,V) splits the nodes in a network into signal 
 % and noise components, given: 
 %       B: the (nxn) modularity matrix of the network, defined using a null model (e.g Weighted Configuration Model)
-%       E: the null-model eigenvalue distribution (from e.g. WeightedConfigModel) 
+%       E: the null-model eigenvalue distribution (n x #repeats of null model) (from e.g. WeightedConfigModel) 
 %       I: specified rejection interval (propotion: 0.05, for 95%; 0.01 for
 %       99%, and so on); if I is specified as an n-length array {I1,I2,...,In], 
 %       then a decompositin will be returned for each I 
@@ -40,7 +40,7 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 % 26/7/2016: node rejection now based on sampling distribution of the
 %               projections
 % 28/7/2016: return the dimensionality of the data projection
-%
+%               fixed weighted projection bug for the null models
 % Mark Humphries 
 
 % sort out options
@@ -82,13 +82,19 @@ for i = 1:numel(I)
         case 'linear'
             egMat = repmat(egs(ixpos)',n,1);
             Vweighted = Vpos .* egMat;  %weight by eigenvalues
+            % now do the same for each model repeat: projection, weighted
+            % by eigenvalues
             for iN = 1:N
+                egMat = repmat(Emodel(ixpos,iN)',n,1);
                 VmodelW(:,iN) = sqrt(sum((egMat.*Vmodel(:,ixpos,iN)).^2,2));
             end
         case 'sqrt'
+            % weight by square root of eigenvalue: cf Zhang & Newman 2015
+            % Phys Rev E
             egMat = repmat((sqrt(egs(ixpos)))',n,1);
             Vweighted = Vpos .* egMat;
             for iN = 1:N
+                egMat = repmat((sqrt(Emodel(ixpos,iN)))',n,1);
                 VmodelW(:,iN) = sqrt(sum((egMat.*Vmodel(:,ixpos,iN)).^2,2));
             end          
         otherwise

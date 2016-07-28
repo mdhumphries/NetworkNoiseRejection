@@ -5,12 +5,13 @@
 clear all; close all
 
 % analysis parameters
-N = 20;        % repeats of permutation
+N = 100;        % repeats of permutation
 alpha = 0.05;  % rejection region for noise
 options.Weight = 'linear'; % 'linear' is default
 
 % load data
 load('Networks/Lesmis.mat');
+% load('Networks/dolphins.mat');
 A = full(Problem.A);
 
 % get expected distribution of eigenvalues under null model (here, WCM)
@@ -34,7 +35,7 @@ ylabel('Eigenvalues')
 [Dspace,Dn] = LowDSpace(B,Emodel(:),alpha); % to just obtain low-dimensional projection
 
 % node rejection within low-dimensional projection
-R = NodeRejection(B,Emodel(:),alpha,Vmodel,options); % N.B. also calls function to find projections
+R = NodeRejection(B,Emodel,alpha,Vmodel,options); % N.B. also calls function to find projections
 
 % new signal matrix
 Asignal = A(R.ixSignal,R.ixSignal);
@@ -49,24 +50,20 @@ Aconnected = A(ixConnectedSignal,ixConnectedSignal);  % subset of original matri
 % consensus modularity
 % [C,Qmax,Ccon,Qc,N,Q] = allevsplitConTransitive(Asignal);
 [C,Qmax,Ccon,Qc,N,~] = allevsplitConTransitive(Aconnected);
+% [C2,Qmax2,Ccon2,Qc2,N,~] = allevsplitConTransitive(Aconnected);
 
 % [Cfull,Qmaxfull,Cconfull,Qcfull,Nfull,~] = allevsplitConTransitive(A);
 
+% Louvain algorithm
+[allC,allQ,allCn,allIters] = LouvainCommunityUDnondeterm(Aconnected,5,1);  % run 5 times; return 1st level of hierarchy only
+
 %% plot sorted into group order
-[srt,I] = sort(C,'ascend');
-lines = [0; find(diff(srt)==1); numel(C)]+0.5;
 
-% [srt,I] = sort(Cfull,'ascend');
-% lines = [0; find(diff(srt)==1); numel(Cfull)]+0.5;
+H = plotClusterMap(Aconnected,Ccon);
+title('Consensus clustering')
 
-figure
-% imagesc(Asignal(I,I);
-imagesc(Aconnected(I,I));
-% imagesc(A(I,I));
-
-% draw outline box around each cluster
-for i=2:numel(lines)
-    line([lines(i-1) lines(i) lines(i) lines(i-1); lines(i) lines(i) lines(i-1) lines(i-1)],...
-         [lines(i-1) lines(i-1) lines(i) lines(i); lines(i-1) lines(i) lines(i) lines(i-1)],...,
-         'Color',[1 1 1],'LineWidth',1)
+for i=1:numel(allC)
+    CLou = allC{i}{1};  % Repeat#, Level of Hierarchy
+    HL = plotClusterMap(Aconnected,CLou);
+    title(['Louvain ' num2str(i)])
 end
