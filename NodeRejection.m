@@ -15,6 +15,8 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 %               network
 %               .ixNoise: the node indices in the noise component of the
 %               network
+%               .N: the number of retained eigenvectors according to I(i) -
+%               for use in e.g. estimating the maximum number of communties as N+1
 %
 % ... = NODEREJECTION(...,Options) passes finds the "noise" nodes by
 % weighting X:
@@ -36,8 +38,10 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 % ChangeLog:
 % 25/7/2016: initial version
 % 26/7/2016: node rejection now based on sampling distribution of the
-% projections
-% Mark Humphries 26/7/2016
+%               projections
+% 28/7/2016: return the dimensionality of the data projection
+%
+% Mark Humphries 
 
 % sort out options
 Options.Weight = 'linear';
@@ -55,27 +59,24 @@ if nargin > 4
     end
 end
 
-% compute eigenvalues & vectors of modularity matrix
-[V,egs] = eig(B,'vector');
+% compute eigenvalues of modularity matrix
+egs = sort(eig(B),'descend');
 
 % get node rejections....
 D = emptyStruct({'ixSignal','ixNoise'},[numel(I) 1]);
 for i = 1:numel(I)
     % find bounds, and calculate dimensions to retain
-    prctI = [I(i)/2*100 100-I(i)/2*100]; % rejection interval as symmetric percentile bounds
-    bnds = prctile(Emodel,prctI); % confidence interval on eigenvalue distribution for null model
-    ixpos = find(egs >= bnds(2));
+    [Vpos,ixpos,~] = LowDSpace(B,Emodel,I(i));
     
-    % how many to test?    
-    Vpos = V(:,ixpos);      % corresponding set of eigenvectors in data-space
-
-    %% project data
+    %% project data and model
     VmodelW = zeros(n,N);
     switch Options.Weight
         case 'none'
             % Euclidean distance
-            Vweighted = Vpos; 
-            for iN = 1:N
+            Vweighted = Vpos;   % data
+            % for each model network, project into the same P dimensions
+            % (top P eigenvalues)
+            for iN = 1:N   
                 VmodelW(:,iN) = sqrt(sum(Vmodel(:,ixpos,iN).^2,2));
             end
         case 'linear'
@@ -99,8 +100,13 @@ for i = 1:numel(I)
     mModel = mean(VmodelW,2); 
     semModel = std(VmodelW,[],2) / sqrt(N);
     
+    % split into signal and noise node sets
     D(i).ixSignal = find(lengths >= mModel + 2.*semModel);  % the retained node
     D(i).ixNoise = find(lengths < mModel + 2.*semModel); % removed nodes
+    
+%     D(i).ixSignal = find(lengths >= mModel); % + 2.*semModel);  % the retained node
+%     D(i).ixNoise = find(lengths < mModel); % + 2.*semModel); % removed nodes
+
 end
 
 

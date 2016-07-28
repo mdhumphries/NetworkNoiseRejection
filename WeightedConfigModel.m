@@ -162,6 +162,8 @@ parfor iN = 1:N
     % P is null model for A, assuming A = P + noise
     % B* = P* - P
     [Pstar(iN).V,Pstar(iN).Egs] = eig(Aperm - P,'vector');
+    [Pstar(iN).Egs,ix] = sort(Pstar(iN).Egs,'descend'); % ensure eigenvalues are sorted in order
+    Pstar(iN).V = Pstar(iN).V(:,ix); % also sort eigenvectors
     % Pstar(iN).A = Aperm;
     % keyboard
 end
