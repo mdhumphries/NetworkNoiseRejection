@@ -27,7 +27,8 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 %                'L2': L2-norm AKA the Euclidean distance from the origin in the defined sub-space
 %                       [defaut]
 %                'L1': L1-norm AKA the sum of absolute values of the vector
-%                'Lmax':  
+%                'Lmax': L-infinity norm AKA the maximum value
+%
 %           .Weights: passes finds the "noise" nodes by weighting X:
 %               'linear': weights projections by the eigenvalues of each
 %               eigenvector [Default]
@@ -92,7 +93,7 @@ for i = 1:numel(I)
             for iN = 1:N   
                 VmodelW(:,iN) = sqrt(sum(Vmodel(:,ixpos,iN).^2,2));
             end
-        case 'linear'
+        case 'linear'  % default
             egMat = repmat(egs(ixpos)',n,1);
             Vweighted = Vpos .* egMat;  %weight by eigenvalues
             % now do the same for each model repeat: projection, weighted
@@ -116,7 +117,7 @@ for i = 1:numel(I)
     
     % norms
     switch Options.Norm
-        case 'L2'
+        case 'L2'  % default
             lengths = sqrt(sum(Vweighted.^2,2));  % L2: Euclidean distance
             for iN = 1:N   
                 VmodelW(:,iN) = sqrt(sum(VmodelW(:,iN).^2,2));
@@ -126,6 +127,12 @@ for i = 1:numel(I)
             for iN = 1:N   
                 VmodelW(:,iN) = sum(abs(VmodelW(:,iN)),2);
             end
+        case 'Lmax'
+            lengths = max(abs(Vweighted),[],2);  % L infinity: maximum absolute value
+            for iN = 1:N   
+                VmodelW(:,iN) = max(abs(VmodelW(:,iN)),[],2);
+            end
+       
         otherwise
              error('Unknown Norm')
     end

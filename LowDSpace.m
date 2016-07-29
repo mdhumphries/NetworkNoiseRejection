@@ -22,9 +22,13 @@ function  [Dspace,ixpos,Dn] = LowDSpace(B,Emodel,I)
 [V,egs] = eig(B,'vector');  % eigenspectra of data modularity matrix
 [egs,ix] = sort(egs,'descend'); % sort eigenvalues into descending order 
 V = V(:,ix);  % sort eigenvectors accordingly
+
+% rejection interval on distribution
 prctI = [I/2*100 100-I/2*100]; % rejection interval as symmetric percentile bounds
 bnds = prctile(Emodel(:),prctI); % confidence interval on eigenvalue distribution for null model
 ixpos = find(egs >= bnds(2)); % eigenvalues exceeding these bounds
+
+% return answers
 Dn = numel(ixpos);   % number of retained dimensions          
 Dspace = V(:,ixpos);  % axes of retained dimensions
 

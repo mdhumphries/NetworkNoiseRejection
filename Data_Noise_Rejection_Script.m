@@ -4,8 +4,10 @@
 
 clear all; close all
 
+addpath('Traud_Mucha_Porter_CommunityVisualisation/');
+
 % analysis parameters
-N = 100;        % repeats of permutation
+N = 2;        % repeats of permutation
 alpha = 0.05;  % rejection region for noise
 options.Weight = 'linear'; % 'linear' is default
 options.Norm = 'L2'; % L2 is default
@@ -39,6 +41,19 @@ R = NodeRejection(B,Emodel,alpha,Vmodel,options); % N.B. also calls function to 
 
 % new signal matrix
 Asignal = A(R.ixSignal,R.ixSignal);
+
+%% visualise signal and noise parts
+
+% needs  MATLAB BGL Toolbox on your path
+bglpath = genpath('/Users/mqbssmhg/Dropbox/My Toolboxes/Graph_theory/matlab_bgl/');  % generate path to local BGL and all its subdirectories
+addpath(bglpath); % add to current MATLAB path
+
+scores = zeros(size(A,1),1);
+scores(R.ixSignal) = 1;
+
+xynew = Kamada(A,0.01);
+
+graphplot2D(xynew,A,[],scores);
 
 %% analyse new signal matrix
 
