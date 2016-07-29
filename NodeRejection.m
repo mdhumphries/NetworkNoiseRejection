@@ -17,14 +17,24 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 %               network
 %               .N: the number of retained eigenvectors according to I(i) -
 %               for use in e.g. estimating the maximum number of communties as N+1
+%               .Difference.Raw: a vector of differences between the data
+%               values and model-derived threshold values for each node (data-model)
+%               .Difference.Norm: as .Raw, but normalised by the model
+%               value (-> expressed as a proportion of the model)
 %
-% ... = NODEREJECTION(...,Options) passes finds the "noise" nodes by
-% weighting X:
-%           'none': uses Euclidean distance of projection from the origin
-%           'linear': weights projections by the eigenvalues of each
-%           eigenvector [Default]
-%           'sqrt': weights projections by the square root of the
-%           eigenvalues of each eigenvector
+% ... = NODEREJECTION(...,Options) is a struct that sets analysis options:
+%           .Norm: defines the vector norm used to identify noise nodes:
+%                'L2': L2-norm AKA the Euclidean distance from the origin in the defined sub-space
+%                       [defaut]
+%                'L1': L1-norm AKA the sum of absolute values of the vector
+%                'Lmax':  
+%           .Weights: passes finds the "noise" nodes by weighting X:
+%               'linear': weights projections by the eigenvalues of each
+%               eigenvector [Default]
+%               'none': no weighting by eigenvalues
+%               'sqrt': weights projections by the square root of the
+%               eigenvalues of each eigenvector
+%
 %
 % Notes: 
 % (1) determines the low dimensional space for projecting the network for the specified rejection interval;
@@ -41,14 +51,17 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 %               projections
 % 28/7/2016: return the dimensionality of the data projection
 %               fixed weighted projection bug for the null models
+% 29/7/2016: added Norm options; returned difference between model and data  
 % Mark Humphries 
 
 % sort out options
 Options.Weight = 'linear';
+Options.Norm = 'L2';
 
 N = size(Vmodel,3); 
 n = size(Vmodel,1);
 
+% update option field values
 if nargin > 4
     if isstruct(Options) 
         tempopts = varargin{1}; 
@@ -72,7 +85,7 @@ for i = 1:numel(I)
     VmodelW = zeros(n,N);
     switch Options.Weight
         case 'none'
-            % Euclidean distance
+            % no weighting
             Vweighted = Vpos;   % data
             % for each model network, project into the same P dimensions
             % (top P eigenvalues)
@@ -101,14 +114,34 @@ for i = 1:numel(I)
             error('Unknown weighting option')
     end
     
-    % do projections
-    lengths = sqrt(sum(Vweighted.^2,2));  % length of projection into space
+    % norms
+    switch Options.Norm
+        case 'L2'
+            lengths = sqrt(sum(Vweighted.^2,2));  % L2: Euclidean distance
+            for iN = 1:N   
+                VmodelW(:,iN) = sqrt(sum(VmodelW(:,iN).^2,2));
+            end
+        case 'L1'
+            lengths = sum(abs(Vweighted),2);  % L1: absolute sum
+            for iN = 1:N   
+                VmodelW(:,iN) = sum(abs(VmodelW(:,iN)),2);
+            end
+        otherwise
+             error('Unknown Norm')
+    end
+
+    
+    % summarise model projections
     mModel = mean(VmodelW,2); 
     semModel = std(VmodelW,[],2) / sqrt(N);
     
+    % differences
+    D(i).Difference.Raw = lengths - (mModel + 2.*semModel);
+    D(i).Difference.Norm = D(i).Difference.Raw ./ (mModel + 2.*semModel);
+    
     % split into signal and noise node sets
-    D(i).ixSignal = find(lengths >= mModel + 2.*semModel);  % the retained node
-    D(i).ixNoise = find(lengths < mModel + 2.*semModel); % removed nodes
+    D(i).ixSignal = find(D(i).Difference.Raw >= 0);  % the retained node
+    D(i).ixNoise = find(D(i).Difference.Raw < 0); % removed nodes
     
 %     D(i).ixSignal = find(lengths >= mModel); % + 2.*semModel);  % the retained node
 %     D(i).ixNoise = find(lengths < mModel); % + 2.*semModel); % removed nodes

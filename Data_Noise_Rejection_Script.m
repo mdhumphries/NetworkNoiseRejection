@@ -8,6 +8,7 @@ clear all; close all
 N = 100;        % repeats of permutation
 alpha = 0.05;  % rejection region for noise
 options.Weight = 'linear'; % 'linear' is default
+options.Norm = 'L2'; % L2 is default
 
 % load data
 load('Networks/Lesmis.mat');
@@ -15,7 +16,6 @@ load('Networks/Lesmis.mat');
 A = full(Problem.A);
 
 % get expected distribution of eigenvalues under null model (here, WCM)
-% [Emodel,diagnostics] = expectedEigsUnd(A,N);
 [Emodel,diagnostics,Vmodel] = WeightedConfigModel(A,N);
 
 % decompose nodes into signal and noise
