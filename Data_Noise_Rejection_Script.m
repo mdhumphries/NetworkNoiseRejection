@@ -1,13 +1,30 @@
 %% template script for applying complete work-flow to one data network, using one choice of null model
 % data network: correlations between firing in Aplysia recording
 % null model: weighted configuration model
+%
+% Visualisations need:
+% (1) Traud-Mucha-Porter toolbox (included in GitHub)
+% (2) MATLAB BGL Toolbox:
+%           Win32, Win64, Mac32, Linux: https://www.cs.purdue.edu/homes/dgleich/packages/matlab_bgl/ 
+%           Mac64: http://www.cs.purdue.edu/homes/dgleich/packages/matlab_bgl/old/matlab_bgl_4.0_osx64.zip
 
 clear all; close all
+blnViz = 1;  % if MATLAB BGL installed, appropriate for platform:
 
-addpath('Traud_Mucha_Porter_CommunityVisualisation/');
+if blnViz
+    % Traud Mucha Porter visualisation tools
+    addpath('Traud_Mucha_Porter_CommunityVisualisation/');
+
+    % needs MATLAB BGL Toolbox on your path - change to your local path
+    % here:
+    bglpath = genpath('/Users/mqbssmhg/Dropbox/My Toolboxes/Graph_theory/matlab_bglOSX64/');  % generate path to local BGL and all its subdirectories
+    
+    % add to current MATLAB path
+    addpath(bglpath); 
+end
 
 % analysis parameters
-N = 2;        % repeats of permutation
+N = 100;        % repeats of permutation
 alpha = 0.05;  % rejection region for noise
 options.Weight = 'linear'; % 'linear' is default
 options.Norm = 'L2'; % L2 is default
@@ -43,17 +60,21 @@ R = NodeRejection(B,Emodel,alpha,Vmodel,options); % N.B. also calls function to 
 Asignal = A(R.ixSignal,R.ixSignal);
 
 %% visualise signal and noise parts
+if blnViz
+    n = size(A,1);
+    xynew = fruchterman_reingold_force_directed_layout(sparse(A));
+    syms = repmat('o',n,1);
 
-% needs  MATLAB BGL Toolbox on your path
-bglpath = genpath('/Users/mqbssmhg/Dropbox/My Toolboxes/Graph_theory/matlab_bgl/');  % generate path to local BGL and all its subdirectories
-addpath(bglpath); % add to current MATLAB path
-
-scores = zeros(size(A,1),1);
-scores(R.ixSignal) = 1;
-
-xynew = Kamada(A,0.01);
-
-graphplot2D(xynew,A,[],scores);
+    colors = repmat([0 0 0],n,1);
+    colors(R.ixNoise,:) = colors(R.ixNoise,:) + 0.6;  % gray for noise 
+    figure
+    graphplot2D(xynew,A,1,colors,syms,10);
+    axis off
+    allh = get(gca,'Children');
+    set(allh,'MarkerEdgeColor',[0 0 0])
+    set(allh,'LineWidth',0.2)
+    title('Signal/Noise split')
+end
 
 %% analyse new signal matrix
 
@@ -61,6 +82,19 @@ graphplot2D(xynew,A,[],scores);
 kAsignal = sum(Asignal>0);
 ixConnectedSignal = R.ixSignal(kAsignal > 1);  % more than 1 link
 Aconnected = A(ixConnectedSignal,ixConnectedSignal);  % subset of original matrix
+
+if blnViz
+    % visualise Aconnected
+    colors = repmat([0 0 0],n,1)+0.6;
+    colors(ixConnectedSignal,:) = 0;  % black for signal, connected 
+    figure
+    graphplot2D(xynew,A,1,colors,syms,10);
+    axis off
+    allh = get(gca,'Children');
+    set(allh,'MarkerEdgeColor',[0 0 0])
+    set(allh,'LineWidth',0.5)
+    title('Connected Signal/Noise split')
+end
 
 % consensus modularity
 % [C,Qmax,Ccon,Qc,N,Q] = allevsplitConTransitive(Asignal);
