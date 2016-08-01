@@ -43,6 +43,8 @@ bnds = M+CIs; % confidence interval on maximum eigenvalue for null model
 
 % return dimensions
 ixpos = find(egs >= bnds); % eigenvalues exceeding these bounds
+
+% return answers
 Dn = numel(ixpos);   % number of retained dimensions          
 Dspace = V(:,ixpos);  % axes of retained dimensions
 mci = [M CIs];
