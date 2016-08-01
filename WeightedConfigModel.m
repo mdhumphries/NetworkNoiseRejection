@@ -116,6 +116,7 @@ parfor iN = 1:N
     Sint = sum(sAint); % integer total strength
     if S ~= K  % then is weighted network    
         
+        % disp('Weighted network')
         ixpairs = find(triu(Aperm,1)>0);   % linear indices of linked pairs
         % get as (i,j)
         [i,j] = ind2sub([n,n],ixpairs);

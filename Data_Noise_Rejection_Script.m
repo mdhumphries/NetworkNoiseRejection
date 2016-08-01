@@ -6,7 +6,8 @@ clear all; close all
 
 % analysis parameters
 N = 100;        % repeats of permutation
-alpha = 0.05;  % rejection region for noise
+alpha = 0.95;  % confidence interval on estimate of maxiumum eigenvalue for null model
+options.Weight = 'linear'; % 'linear' is default
 options.Weight = 'linear'; % 'linear' is default
 
 % load data
@@ -32,7 +33,7 @@ xlabel('P')
 ylabel('Eigenvalues')
 
 % find low-dimensional projection
-[Dspace,Dn] = LowDSpace(B,Emodel(:),alpha); % to just obtain low-dimensional projection
+[Dspace,Ix,Dn,EigEst] = LowDSpace(B,Emodel,alpha); % to just obtain low-dimensional projection
 
 % node rejection within low-dimensional projection
 R = NodeRejection(B,Emodel,alpha,Vmodel,options); % N.B. also calls function to find projections
