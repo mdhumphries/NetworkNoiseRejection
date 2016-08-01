@@ -17,7 +17,8 @@ if blnViz
 
     % needs MATLAB BGL Toolbox on your path - change to your local path
     % here:
-    bglpath = genpath('/Users/mqbssmhg/Dropbox/My Toolboxes/Graph_theory/matlab_bglOSX64/');  % generate path to local BGL and all its subdirectories
+    % bglpath = genpath('/Users/mqbssmhg/Dropbox/My Toolboxes/Graph_theory/matlab_bglOSX64/');  % generate path to local BGL and all its subdirectories
+    bglpath = genpath('C:\Users\mqbssmhg.DS\Dropbox\My Toolboxes\Graph_theory\matlab_bgl\');
     
     % add to current MATLAB path
     addpath(bglpath); 
@@ -26,7 +27,6 @@ end
 % analysis parameters
 N = 100;        % repeats of permutation
 alpha = 0.95;  % confidence interval on estimate of maxiumum eigenvalue for null model
-options.Weight = 'linear'; % 'linear' is default
 options.Weight = 'linear'; % 'linear' is default
 options.Norm = 'L2'; % L2 is default
 
