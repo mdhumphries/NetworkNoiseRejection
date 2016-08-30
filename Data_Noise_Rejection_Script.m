@@ -37,19 +37,45 @@ WCMOptions.NoLoops = 1;
 options.Weight = 'linear'; % 'linear' is default
 options.Norm = 'L2'; % L2 is default
 
-% % load data
-% load('Networks/Lesmis.mat');
+% % load Newman network data
+% % load('Networks/Lesmis.mat');
 % % load('Networks/dolphins.mat');
-% A = full(Problem.A);
-% % Generate node labels for later visualisation to work
-% nodelabels = Problem.aux.nodename;
+load('Networks/polblogs.mat');
+A = full(Problem.A);
 
-% SBM generation
-A_SBM = test_noise_rejection_planted_noise(50,2,'low',0.2);
-A = A_SBM.adjacency;
+% Generate node labels for later visualisation to work
+nodelabels = Problem.aux.nodename;
+
+
+% % SBM generation
+% A_SBM = test_noise_rejection_planted_noise(50,2,'low',0.2);
+% A = A_SBM.adjacency;
+% nodelabels = num2str(A_SBM.membership);
+% A = round(A);
+
+% % Star Wars
+% load('Networks/StarWarsNetworkAll.mat')
+% A = StarWars.A;
+% nodelabels = StarWars.Nodes;
+% nodelabels = nodelabels';
+
+% Ensure no self loops
 A(find(eye(length(A)))) = 0;
-nodelabels = num2str(A_SBM.membership);
-A = round(A);
+
+% Strip out zero elements
+nz_e = find(sum(A)); % nonzero_elements
+A = A(nz_e,nz_e);
+nodelabels = nodelabels(nz_e,:);
+
+% Ensure A is symetric
+A = (A + A')/2;
+
+% Image plot of A, with labels
+imagesc(A);
+set(gca,'Xtick',1:length(A));
+set(gca,'Xticklabel',nodelabels);
+set(gca,'XTickLabelRotation',90);
+
 
 % get expected distribution of eigenvalues under null model (here, WCM)
 
@@ -225,7 +251,7 @@ title('Consensus clustering');
 numConnected = length(Aconnected);
 [srt,I] = sort(Ccon,'ascend');
 set(gca,'Xtick',1:numConnected);
-set(gca,'Xticklabel',nodelabels(I,:));
+set(gca,'Xticklabel',nodelabels(ixConnectedSignal(I),:));
 set(gca,'XTickLabelRotation',90);
 
 
@@ -236,6 +262,6 @@ for i=1:numel(allC)
     % Add node labels
     [srt,I] = sort(CLou,'ascend');
     set(gca,'Xtick',1:numConnected);
-    set(gca,'Xticklabel',nodelabels(I,:));
+    set(gca,'Xticklabel',nodelabels(ixConnectedSignal(I),:));
     set(gca,'XTickLabelRotation',90);
 end
