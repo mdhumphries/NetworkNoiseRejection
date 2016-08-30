@@ -5,8 +5,7 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 % and noise components, given: 
 %       B: the (nxn) modularity matrix of the network, defined using a null model (e.g Weighted Configuration Model)
 %       E: the null-model eigenvalue distribution (n x #repeats of null model) (from e.g. WeightedConfigModel) 
-%       I: specified rejection interval (propotion: 0.05, for 95%; 0.01 for
-%       99%, and so on); if I is specified as an n-length array {I1,I2,...,In], 
+%       I: specified confidence interval on the maximum eigenvalue (eg I = 0.95 for 95%); if I is specified as an n-length array {I1,I2,...,In], 
 %       then a decompositin will be returned for each I 
 %       V: the null model set of eigenvectors (n x n x #repeats of null model; 1 eigenvector per column)
 %

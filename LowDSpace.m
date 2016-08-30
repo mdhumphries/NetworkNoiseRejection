@@ -5,7 +5,7 @@ function  [Dspace,ixpos,Dn,mci] = LowDSpace(B,Emodel,I)
 %       B: the (nxn) modularity matrix of the data network, defined using a null model (e.g Weighted Configuration Model)
 %       E: the null-model eigenvalue distribution (n x #repeats of model) (from e.g. WeightedConfigModel) 
 %       I: specified confidence interval on the maximum eigenvalue
-%       (scalar)[enter 0 to just use the mean estimate]
+%       (scalar)[e.g. 0.95; enter 0 to just use the mean estimate]
 %
 %  Returns:
 %       D: the n x P matrix of retained eigenvectors
