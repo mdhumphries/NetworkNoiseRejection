@@ -1,4 +1,4 @@
-function network=test_noise_rejection_planted_noise(nodes_group,num_groups, mix,frac_periphery)
+function network=test_noise_rejection_planted_noise(nodes_group,num_groups, mix,frac_periphery,options)
 %%% generate weighted stochastic block model network for testing noise
 %%% rejection
 %%%
@@ -7,13 +7,23 @@ function network=test_noise_rejection_planted_noise(nodes_group,num_groups, mix,
 %%%     num_groups: no. of communities
 %%%     mix: 'low', 'medium', 'high'
 %%%     periphery: fraction of nodes relative to core that are peripheral
+%%%     options
+%%%           weight_dist: struct with following fields
+%%%                  ingroup
+%%%                  outgroup
+%%%                  periphery_periphery
+%%%                  periphery_core
 %%% 
 %%% Outputs:
 %%%     network: struct with following fields
 %%%                  adjacency: adjacency matrix
 %%%                  membership: community index [0:num_groups-1], peripheral nodes represented by -1 
 %%% EXAMPLE: 
-%%%      test_noise_rejection_planted_noise(50,2, 'low',0.2)  produces
+%%%      test_noise_rejection_planted_noise(50,2, 'low',0.2, options) 
+%%%      where 
+%%%      options.weight_dist=struct('ingroup', [100,20], 'outgroup', [1,0.02],...
+%%%        'periphery_periphery', [1,0.02], 'periphery_core', [10,2]);
+%%%      produces
 %%%      network with 2 communities, each with 50 nodes and low mixing
 %%%      between the communities and 0.2 * (50 * 2) peripheral noise nodes
 %%%     
@@ -26,6 +36,10 @@ if nargin==0,
     num_groups=2;
     mix='low';
     frac_periphery=0.5;
+    
+    weight_dist=struct('ingroup', [100,20], 'outgroup', [1,0.02],...
+        'periphery_periphery', [1,0.02], 'periphery_core', [10,2]);
+     
 end
 %%
 % R = [1,2,3,3;
@@ -45,40 +59,46 @@ end
 num_periphery=floor(frac_periphery* (num_groups * nodes_group)); 
 
 %num_core=nodes_group-num_periphery;
-
-
-
 group_sizes=[nodes_group*ones(num_groups,1); num_periphery];
 num_nodes=sum(group_sizes);
-
-
-
 
 %% edge existence probability
 theta_e=ones(4,1);
 
 %% weight distribution probability
 %theta_w=zeros(numel(unique(R)),2);
+if isfield(options, 'weight_dist')
+    weight_dist=options.weight_dist;
+    core_core=weight_dist.ingroup;
+    group_group=weight_dist.outgroup;
+    periphery_periphery=weight_dist.periphery_periphery;
+    periphery_core=weight_dist.periphery_core;
+    
+else
 
-if strcmp(mix,'low')
-    core_core=[100, 20];
-    periphery_core=core_core/10;
-    periphery_periphery=core_core/100;
-    group_group=core_core/100;
-    
-elseif strcmp(mix, 'medium')
-    core_core=[100, 20];
-    periphery_core=core_core/10;
-    periphery_periphery=core_core/10;
-    group_group=periphery_periphery;
-    
-elseif strcmp(mix, 'high')
-    core_core=[100, 20];
-    periphery_core=core_core/1.5;
-    periphery_periphery=core_core/2;a
-    group_group=core_core/2;
-    
+
+    if strcmp(mix,'low')
+        core_core=[100, 20];
+        periphery_core=core_core/10;
+        periphery_periphery=core_core/100;
+        group_group=core_core/100;
+        
+    elseif strcmp(mix, 'medium')
+        core_core=[100, 20];
+        periphery_core=core_core/10;
+        periphery_periphery=core_core/10;
+        group_group=periphery_periphery;
+        
+    elseif strcmp(mix, 'high')
+        core_core=[100, 20];
+        periphery_core=core_core/1.5;
+        periphery_periphery=core_core/2;a
+        group_group=core_core/2;
+        
+    end
 end
+
+
 
 % theta_w=[periphery_periphery;periphery_core;
 %         group_group;core_core];
