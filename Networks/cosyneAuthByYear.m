@@ -1,0 +1,1 @@
+% Load cosyne authorship data and strip out author matrix for each year

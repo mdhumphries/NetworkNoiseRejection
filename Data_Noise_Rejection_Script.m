@@ -27,7 +27,13 @@ blnViz = 1;  % if MATLAB BGL installed, appropriate for platform:
 
 % analysis parameters
 N = 100;        % repeats of permutation
-alpha = 0.95;  % confidence interval on estimate of maxiumum eigenvalue for null model
+alpha = 0;  % confidence interval on estimate of maxiumum eigenvalue for null model
+
+% WCM model options
+WCMOptions.Expected = 1;
+WCMOptions.NoLoops = 1;
+
+% NodeRejection options
 options.Weight = 'linear'; % 'linear' is default
 options.Norm = 'L2'; % L2 is default
 
@@ -41,17 +47,20 @@ options.Norm = 'L2'; % L2 is default
 % SBM generation
 A_SBM = test_noise_rejection_planted_noise(50,2,'low',0.2);
 A = A_SBM.adjacency;
+A(find(eye(length(A)))) = 0;
 nodelabels = num2str(A_SBM.membership);
-
-
-tic
 A = round(A);
+
 % get expected distribution of eigenvalues under null model (here, WCM)
-[Emodel,diagnostics,Vmodel] = WeightedConfigModel(A,N,1);
+
+% [Emodel,diagnostics,Vmodel] = WeightedConfigModel(A,N);
+
+[Emodel,diagnostics,Vmodel,ExpWCM] = WeightedConfigModel(A,N,1,WCMOptions);
 
 
-% decompose nodes into signal and noise
-B = A - expectedA(A);  % modularity matrix using chosen null model
+%% decompose nodes into signal and noise
+% B = A - expectedA(A);  % modularity matrix using chosen null model
+B = A - ExpWCM;  % modularity matrix using chosen null model
 
 % compare data and model
 Edata = eig(B);
@@ -71,7 +80,7 @@ R = NodeRejection(B,Emodel,alpha,Vmodel,options); % N.B. also calls function to 
 
 % new signal matrix
 Asignal = A(R.ixSignal,R.ixSignal);
-toc
+
 
 %% visualise signal and noise parts
 if blnViz
@@ -120,6 +129,64 @@ end
 %     text(i,R.Difference.Norm(i),Problem.aux.nodename(i,:));%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
 % end
 
+%% Compare to node degree - no correlation
+% Degree of original adjacency matrix
+degree_A = sum(A);
+
+% Z-score
+degree_A = zscore(degree_A);
+
+% Sort and plot
+[sort_degree_A,degreeIdx_A] = sort(degree_A);
+figure
+subplot(1,2,1);
+plot(sort_degree_A)
+title('A degree distribution')
+for i = 1:length(A); 
+    text(i,sort_degree_A(i),nodelabels(degreeIdx_A(i),:));%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
+end
+
+% Degree of nodes in modularity matrix
+degree_B = sum(B);
+
+% Z-score
+degree_B = zscore(degree_B);
+
+% Sort and plot
+[sort_degree_B,degreeIdx_B] = sort(degree_B);
+subplot(1,2,2);
+plot(sort_degree_B);
+title('B degree distribution')
+for i = 1:length(A); 
+    text(i,sort_degree_B(i),nodelabels(degreeIdx_B(i),:));%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
+end
+
+%% Directly compare degree with lowD projection norm
+figure; hold all
+for i = 1:length(A);
+    plot([1,2,3],[degree_A(i),R.Difference.Norm(i),degree_B(i)],'color',[0.5,0.5,0.5])
+    text(3,degree_B(i),nodelabels(i,:));
+end
+plot(ones(length(A),1),degree_A,'.')
+plot(2*ones(length(A),1),R.Difference.Norm,'.')
+plot(3*ones(length(A),1),degree_B,'.')
+set(gca,'XTick',[1,2,3])
+set(gca,'XTickLabels',{'A degree','Eig projection','B degree'})
+xlim([0,4])
+
+%% Scatter plot of degree vs lowD projection norm
+figure;hold all
+colormap lines
+cmap = colormap;
+
+plot(R.Difference.Norm,degree_A,'.','color',cmap(1,:))
+plot(R.Difference.Norm,degree_B,'.','color',cmap(2,:))
+
+% %% Scatter plot of A degree vs B degree
+% clf;
+% plot(degree_A,degree_B,'.','color',cmap(3,:))
+
+
 %% analyse new signal matrix
 
 % % first: remove any nodes without connections
@@ -132,7 +199,7 @@ if blnViz
     colors = repmat([0 0 0],n,1)+0.6;
     colors(ixConnectedSignal,:) = 0;  % black for signal, connected 
     figure
-    graphplot2D(xynew,A,1,colors,syms,10);
+    graphplot2D(xynew,A,10,colors,syms,10);
     axis off
     allh = get(gca,'Children');
     set(allh,'MarkerEdgeColor',[0 0 0])
@@ -141,9 +208,9 @@ if blnViz
 end
 
 % consensus modularity
-% [C,Qmax,Ccon,Qc,N,Q] = allevsplitConTransitive(Asignal);
-[C,Qmax,Ccon,Qc,N,~] = allevsplitConTransitive(Aconnected);
-% [C2,Qmax2,Ccon2,Qc2,N,~] = allevsplitConTransitive(Aconnected);
+% [C,Qmax,Ccon,Qc,Ngrps,Q] = allevsplitConTransitive(Asignal);
+[C,Qmax,Ccon,Qc,Ngrps,~] = allevsplitConTransitive(Aconnected);
+% [C2,Qmax2,Ccon2,Qc2,Ngrps,~] = allevsplitConTransitive(Aconnected);
 
 % [Cfull,Qmaxfull,Cconfull,Qcfull,Nfull,~] = allevsplitConTransitive(A);
 
