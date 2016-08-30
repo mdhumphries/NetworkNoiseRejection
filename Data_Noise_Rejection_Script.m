@@ -24,6 +24,7 @@ blnViz = 1;  % if MATLAB BGL installed, appropriate for platform:
 %     addpath(bglpath); 
 % end
 
+
 % analysis parameters
 N = 100;        % repeats of permutation
 alpha = 0.95;  % confidence interval on estimate of maxiumum eigenvalue for null model

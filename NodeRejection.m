@@ -5,8 +5,7 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 % and noise components, given: 
 %       B: the (nxn) modularity matrix of the network, defined using a null model (e.g Weighted Configuration Model)
 %       E: the null-model eigenvalue distribution (n x #repeats of null model) (from e.g. WeightedConfigModel) 
-%       I: specified rejection interval (propotion: 0.05, for 95%; 0.01 for
-%       99%, and so on); if I is specified as an n-length array {I1,I2,...,In], 
+%       I: specified confidence interval on the maximum eigenvalue (eg I = 0.95 for 95%); if I is specified as an n-length array {I1,I2,...,In], 
 %       then a decompositin will be returned for each I 
 %       V: the null model set of eigenvectors (n x n x #repeats of null model; 1 eigenvector per column)
 %
@@ -140,11 +139,12 @@ for i = 1:numel(I)
     
     % summarise model projections
     mModel = mean(VmodelW,2); 
-    semModel = std(VmodelW,[],2) / sqrt(N);
-    
+    % semModel = std(VmodelW,[],2) / sqrt(N);
+    CIModel = CIfromSEM(std(VmodelW,[],2),ones(size(mModel,1),1)*N,I);
+  
     % differences
-    D(i).Difference.Raw = lengths - (mModel + 2.*semModel);
-    D(i).Difference.Norm = D(i).Difference.Raw ./ (mModel + 2.*semModel);
+    D(i).Difference.Raw = lengths - (mModel + CIModel);
+    D(i).Difference.Norm = D(i).Difference.Raw ./ (mModel + CIModel);
     
     % split into signal and noise node sets
     D(i).ixSignal = find(D(i).Difference.Raw >= 0);  % the retained node
