@@ -27,6 +27,8 @@ function network=test_noise_rejection_planted_noise(nodes_group,num_groups, mix,
 %%%      network with 2 communities, each with 50 nodes and low mixing
 %%%      between the communities and 0.2 * (50 * 2) peripheral noise nodes
 %%%     
+%%%      test_noise_rejection_planted_noise([60 40 82],3,'low', 0.3, options)
+%%%      produces network with  3 communities of sizes 60, 40 and 82
 
 % addpath('./WSBM_v1.2/analysis tools/')
 
@@ -56,10 +58,17 @@ end
 %num_groups=2;
 
 %nodes_group=floor(N/num_groups);
-num_periphery=floor(frac_periphery* (num_groups * nodes_group)); 
+if numel(nodes_group)>1
+    num_periphery=floor(frac_periphery * sum(nodes_group));
+    group_sizes=[nodes_group'; num_periphery];
+    num_groups=numel(nodes_group);
+else
+    num_periphery=floor(frac_periphery* (num_groups * nodes_group)); 
 
-%num_core=nodes_group-num_periphery;
-group_sizes=[nodes_group*ones(num_groups,1); num_periphery];
+    %num_core=nodes_group-num_periphery;
+    group_sizes=[nodes_group*ones(num_groups,1); num_periphery];
+end
+
 num_nodes=sum(group_sizes);
 
 %% edge existence probability
