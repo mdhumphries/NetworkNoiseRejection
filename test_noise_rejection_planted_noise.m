@@ -27,6 +27,8 @@ function network=test_noise_rejection_planted_noise(nodes_group,num_groups, mix,
 %%%      network with 2 communities, each with 50 nodes and low mixing
 %%%      between the communities and 0.2 * (50 * 2) peripheral noise nodes
 %%%     
+%%%      test_noise_rejection_planted_noise([60 40 82],3,'low', 0.3, options)
+%%%      produces network with  3 communities of sizes 60, 40 and 82
 
 addpath('./WSBM_v1.2/analysis tools/')
 
