@@ -43,7 +43,6 @@ options.Norm = 'L2'; % L2 is default
 load('Networks/polblogs.mat');
 A = full(Problem.A);
 
-<<<<<<< HEAD
 % Generate node labels for later visualisation to work
 nodelabels = Problem.aux.nodename;
 
@@ -76,11 +75,6 @@ imagesc(A);
 set(gca,'Xtick',1:length(A));
 set(gca,'Xticklabel',nodelabels);
 set(gca,'XTickLabelRotation',90);
-
-=======
-% load('Networks/StarWarsNetworkAll.mat')
-% A = StarWars.A;
->>>>>>> c4e99c51a06819a68f4e006d39e297e0d0bae11d
 
 % get expected distribution of eigenvalues under null model (here, WCM)
 
