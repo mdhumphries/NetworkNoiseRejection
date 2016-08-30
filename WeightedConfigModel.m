@@ -116,6 +116,7 @@ for iN = 1:N
     Sint = sum(sAint); % integer total strength
     if S ~= K  % then is weighted network    
         
+        % disp('Weighted network')
         ixpairs = find(triu(Aperm,1)>0);   % linear indices of linked pairs
         % get as (i,j)
         [i,j] = ind2sub([n,n],ixpairs);
@@ -162,6 +163,8 @@ for iN = 1:N
     % P is null model for A, assuming A = P + noise
     % B* = P* - P
     [Pstar(iN).V,Pstar(iN).Egs] = eig(Aperm - P,'vector');
+    [Pstar(iN).Egs,ix] = sort(Pstar(iN).Egs,'descend'); % ensure eigenvalues are sorted in order
+    Pstar(iN).V = Pstar(iN).V(:,ix); % also sort eigenvectors
     % Pstar(iN).A = Aperm;
     % keyboard
 end
