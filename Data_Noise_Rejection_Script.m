@@ -11,18 +11,18 @@
 clear all; close all
 blnViz = 1;  % if MATLAB BGL installed, appropriate for platform:
 
-if blnViz
-    % Traud Mucha Porter visualisation tools
-    addpath('Traud_Mucha_Porter_CommunityVisualisation/');
-
-    % needs MATLAB BGL Toolbox on your path - change to your local path
-    % here:
-    % bglpath = genpath('/Users/mqbssmhg/Dropbox/My Toolboxes/Graph_theory/matlab_bglOSX64/');  % generate path to local BGL and all its subdirectories
-    bglpath = genpath('C:\Users\mqbssmhg.DS\Dropbox\My Toolboxes\Graph_theory\matlab_bgl\');
-    
-    % add to current MATLAB path
-    addpath(bglpath); 
-end
+% if blnViz
+%     % Traud Mucha Porter visualisation tools
+%     addpath('Traud_Mucha_Porter_CommunityVisualisation/');
+% 
+%     % needs MATLAB BGL Toolbox on your path - change to your local path
+%     % here:
+%     % bglpath = genpath('/Users/mqbssmhg/Dropbox/My Toolboxes/Graph_theory/matlab_bglOSX64/');  % generate path to local BGL and all its subdirectories
+%     bglpath = genpath('C:\Users\mqbssmhg.DS\Dropbox\My Toolboxes\Graph_theory\matlab_bgl\');
+%     
+%     % add to current MATLAB path
+%     addpath(bglpath); 
+% end
 
 % analysis parameters
 N = 100;        % repeats of permutation
@@ -76,6 +76,36 @@ if blnViz
     set(allh,'LineWidth',0.2)
     title('Signal/Noise split')
 end
+
+%% Add node labels to graph
+for i = 1:length(A); 
+    txt(i) = text(xynew(i,1),xynew(i,2),Problem.aux.nodename(i,:));%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
+end
+
+%% Remove node labels
+for i = 1:length(A); txt(i).Color = 'none';end
+
+%% Plot lowD projection of each node, with labels, sorted by magnitude
+figure
+[sorted_norms,SNIdx] = sort(R.Difference.Norm); % SNIdx = Sorted Norm Index
+
+stem(1:numel(R.ixNoise),sorted_norms(1:numel(R.ixNoise)));
+hold all
+stem(numel(R.ixNoise)+1:numel(R.Difference.Norm),sorted_norms(numel(R.ixNoise)+1:end))
+
+for i = 1:length(A); 
+    text(i,sorted_norms(i),Problem.aux.nodename(SNIdx(i),:));%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
+end
+
+% Unsorted version
+% figure
+% stem(R.ixSignal,R.Difference.Norm(R.ixSignal))
+% hold all
+% stem(R.ixNoise,R.Difference.Norm(R.ixNoise))
+% 
+% for i = 1:length(A); 
+%     text(i,R.Difference.Norm(i),Problem.aux.nodename(i,:));%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
+% end
 
 %% analyse new signal matrix
 
