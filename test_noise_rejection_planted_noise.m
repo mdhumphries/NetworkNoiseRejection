@@ -1,16 +1,22 @@
-function network=test_noise_rejection(nodes_group,num_groups, mix,frac_periphery)
+function network=test_noise_rejection_planted_noise(nodes_group,num_groups, mix,frac_periphery)
 %%% generate weighted stochastic block model network for testing noise
 %%% rejection
 %%%
 %%% Inputs:
-%%%     N: no. of neurons
-%%%     
+%%%     nodes_group: no. of nodes /group
+%%%     num_groups: no. of communities
 %%%     mix: 'low', 'medium', 'high'
-%%%     periphery: fraction of nodes in a community that are peripheral
+%%%     periphery: fraction of nodes relative to core that are peripheral
 %%% 
 %%% Outputs:
 %%%     network: struct with following fields
-%%%
+%%%                  adjacency: adjacency matrix
+%%%                  membership: community index [0:num_groups-1], peripheral nodes represented by -1 
+%%% EXAMPLE: 
+%%%      test_noise_rejection_planted_noise(50,2, 'low',0.2)  produces
+%%%      network with 2 communities, each with 50 nodes and low mixing
+%%%      between the communities and 0.2 * (50 * 2) peripheral noise nodes
+%%%     
 
 addpath('./WSBM_v1.2/analysis tools/')
 
@@ -111,6 +117,7 @@ membership=zeros(num_nodes,1);
 for i=0:num_groups-1
     membership(i*nodes_group+1:(i+1)*nodes_group,1)=i;
 end
+membership(num_groups*nodes_group+1:end)=-1;
 network.membership=membership;
 
 
