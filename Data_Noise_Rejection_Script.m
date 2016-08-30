@@ -37,9 +37,12 @@ options.Weight = 'linear'; % 'linear' is default
 options.Norm = 'L2'; % L2 is default
 
 % load data
-load('Networks/Lesmis.mat');
+% load('Networks/Lesmis.mat');
 % load('Networks/dolphins.mat');
-A = full(Problem.A);
+% A = full(Problem.A);
+
+load('Networks/StarWarsNetworkAll.mat')
+A = StarWars.A;
 
 % get expected distribution of eigenvalues under null model (here, WCM)
 % [Emodel,diagnostics,Vmodel] = WeightedConfigModel(A,N);
