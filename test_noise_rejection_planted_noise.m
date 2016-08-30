@@ -19,9 +19,9 @@ function network=test_noise_rejection_planted_noise(nodes_group,num_groups, mix,
 %%%                  adjacency: adjacency matrix
 %%%                  membership: community index [0:num_groups-1], peripheral nodes represented by -1 
 %%% EXAMPLE: 
-%%%      test_noise_rejection_planted_noise(50,2, 'low',0.2, weight_dist) 
+%%%      test_noise_rejection_planted_noise(50,2, 'low',0.2, options) 
 %%%      where 
-%%%      weight_dist=struct('ingroup', [100,20], 'outgroup', [1,0.02],...
+%%%      options.weight_dist=struct('ingroup', [100,20], 'outgroup', [1,0.02],...
 %%%        'periphery_periphery', [1,0.02], 'periphery_core', [10,2]);
 %%%      produces
 %%%      network with 2 communities, each with 50 nodes and low mixing
