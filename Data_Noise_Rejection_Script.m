@@ -26,7 +26,13 @@ end
 
 % analysis parameters
 N = 100;        % repeats of permutation
-alpha = 0.95;  % confidence interval on estimate of maxiumum eigenvalue for null model
+alpha = 0;  % confidence interval on estimate of maxiumum eigenvalue for null model
+
+% WCM model options
+WCMOptions.Expected = 1;
+WCMOptions.NoLoops = 1;
+
+% NodeRejection options
 options.Weight = 'linear'; % 'linear' is default
 options.Norm = 'L2'; % L2 is default
 
@@ -36,10 +42,13 @@ load('Networks/Lesmis.mat');
 A = full(Problem.A);
 
 % get expected distribution of eigenvalues under null model (here, WCM)
-[Emodel,diagnostics,Vmodel] = WeightedConfigModel(A,N);
+% [Emodel,diagnostics,Vmodel] = WeightedConfigModel(A,N);
 
-% decompose nodes into signal and noise
-B = A - expectedA(A);  % modularity matrix using chosen null model
+[Emodel,diagnostics,Vmodel,ExpWCM] = WeightedConfigModel(A,N,[],WCMOptions);
+
+%% decompose nodes into signal and noise
+% B = A - expectedA(A);  % modularity matrix using chosen null model
+B = A - ExpWCM;  % modularity matrix using chosen null model
 
 % compare data and model
 Edata = eig(B);
@@ -98,9 +107,9 @@ if blnViz
 end
 
 % consensus modularity
-% [C,Qmax,Ccon,Qc,N,Q] = allevsplitConTransitive(Asignal);
-[C,Qmax,Ccon,Qc,N,~] = allevsplitConTransitive(Aconnected);
-% [C2,Qmax2,Ccon2,Qc2,N,~] = allevsplitConTransitive(Aconnected);
+% [C,Qmax,Ccon,Qc,Ngrps,Q] = allevsplitConTransitive(Asignal);
+[C,Qmax,Ccon,Qc,Ngrps,~] = allevsplitConTransitive(Aconnected);
+% [C2,Qmax2,Ccon2,Qc2,Ngrps,~] = allevsplitConTransitive(Aconnected);
 
 % [Cfull,Qmaxfull,Cconfull,Qcfull,Nfull,~] = allevsplitConTransitive(A);
 
