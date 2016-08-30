@@ -31,13 +31,24 @@ alpha = 0.95;  % confidence interval on estimate of maxiumum eigenvalue for null
 options.Weight = 'linear'; % 'linear' is default
 options.Norm = 'L2'; % L2 is default
 
-% load data
-load('Networks/Lesmis.mat');
-% load('Networks/dolphins.mat');
-A = full(Problem.A);
+% % load data
+% load('Networks/Lesmis.mat');
+% % load('Networks/dolphins.mat');
+% A = full(Problem.A);
+% % Generate node labels for later visualisation to work
+% nodelabels = Problem.aux.nodename;
 
+% SBM generation
+A_SBM = test_noise_rejection_planted_noise(50,2,'low',0.2);
+A = A_SBM.adjacency;
+nodelabels = num2str(A_SBM.membership);
+
+
+tic
+A = round(A);
 % get expected distribution of eigenvalues under null model (here, WCM)
-[Emodel,diagnostics,Vmodel] = WeightedConfigModel(A,N);
+[Emodel,diagnostics,Vmodel] = WeightedConfigModel(A,N,1);
+
 
 % decompose nodes into signal and noise
 B = A - expectedA(A);  % modularity matrix using chosen null model
@@ -60,6 +71,7 @@ R = NodeRejection(B,Emodel,alpha,Vmodel,options); % N.B. also calls function to 
 
 % new signal matrix
 Asignal = A(R.ixSignal,R.ixSignal);
+toc
 
 %% visualise signal and noise parts
 if blnViz
@@ -70,7 +82,7 @@ if blnViz
     colors = repmat([0 0 0],n,1);
     colors(R.ixNoise,:) = colors(R.ixNoise,:) + 0.6;  % gray for noise 
     figure
-    graphplot2D(xynew,A,1,colors,syms,10);
+    graphplot2D(xynew,A,10,colors,syms,10);
     axis off
     allh = get(gca,'Children');
     set(allh,'MarkerEdgeColor',[0 0 0])
@@ -80,7 +92,7 @@ end
 
 %% Add node labels to graph
 for i = 1:length(A); 
-    txt(i) = text(xynew(i,1),xynew(i,2),Problem.aux.nodename(i,:));%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
+    txt(i) = text(xynew(i,1),xynew(i,2),nodelabels(i,:));%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
 end
 
 %% Remove node labels
@@ -95,7 +107,7 @@ hold all
 stem(numel(R.ixNoise)+1:numel(R.Difference.Norm),sorted_norms(numel(R.ixNoise)+1:end))
 
 for i = 1:length(A); 
-    text(i,sorted_norms(i),Problem.aux.nodename(SNIdx(i),:));%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
+    text(i,sorted_norms(i),nodelabels(SNIdx(i),:));%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
 end
 
 % Unsorted version
@@ -141,10 +153,22 @@ end
 %% plot sorted into group order
 
 H = plotClusterMap(Aconnected,Ccon);
-title('Consensus clustering')
+title('Consensus clustering');
+% Add node labels
+numConnected = length(Aconnected);
+[srt,I] = sort(Ccon,'ascend');
+set(gca,'Xtick',1:numConnected);
+set(gca,'Xticklabel',nodelabels(I,:));
+set(gca,'XTickLabelRotation',90);
+
 
 for i=1:numel(allC)
     CLou = allC{i}{1};  % Repeat#, Level of Hierarchy
     HL = plotClusterMap(Aconnected,CLou);
-    title(['Louvain ' num2str(i)])
+    title(['Louvain ' num2str(i)]);
+    % Add node labels
+    [srt,I] = sort(CLou,'ascend');
+    set(gca,'Xtick',1:numConnected);
+    set(gca,'Xticklabel',nodelabels(I,:));
+    set(gca,'XTickLabelRotation',90);
 end
