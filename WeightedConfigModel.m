@@ -7,19 +7,28 @@ function [E,varargout] = WeightedConfigModel(A,N,varargin)
 % Returns E, an nxN matrix of all n eigenvalues for all N random modularity
 % matrices.
 % 
-% ... = WEIGHTEDCONFIGMODEL(..,C) sets the conversion factor C; i.e. the amount
-% by which the weighted adjacency matrix is scaled to get integer weights.
-% C = 'all' sets the conversion factor large enough that the minimum weight
-% is converted to 1.
-%
-% [..,D,V] = WEIGHTEDCONFIGMODEL(...) returns:
-%           a struct D, containing diagnostic measurements of the accuracy of the null model 
+% ... = WEIGHTEDCONFIGMODEL(..,C,OPTIONS) sets optional settings:
+%       C: sets the conversion factor C; i.e. the amount by which the 
+%           weighted adjacency matrix is scaled to get integer weights.
+%           C = 'all' sets the conversion factor large enough that the minimum weight
+%           is converted to 1. Set C = [] to omit.
+%       OPTIONS: struct of options:
+%           .Expected = {0,1}: if specified (=1), uses the ensemble of generated
+%           configuration models to estimate the expected model. Useful for
+%           non-standard configuration models. [default = 0]
+%           .NoLoops = {0,1}: if specified (=1), prevents self-loops in the
+%           generated random models [default = 1]
+%   
+% [..,D,V,X] = WEIGHTEDCONFIGMODEL(...) returns:
+%           D: a struct, containing diagnostic measurements of the accuracy of the null model 
 %           for each of the N repeats, with fields
 %           D(i).sAp = strength distribution of the ith repeat
 %           D(i).dS = absolute difference between data and ith model strength distributions 
 %           D(i).dSN = absolute difference, normalised per node to its strength
 %               in the data (i.e. to measure the error relative to magnitude)
-%           an nxnxN matrix V, containing all of the nxn eigenvector matrices of the N repeats            
+%           V: an nxnxN matrix, containing all of the nxn eigenvector matrices of the N repeats            
+%           X: the nxn matrix for the expected configuration model: only
+%           returned if Options.Expected = 1;
 %
 % Notes: 
 % (1) assumes A is connected;
@@ -34,8 +43,10 @@ function [E,varargout] = WeightedConfigModel(A,N,varargin)
 %            fixed bug: now returns correct eigenvalues
 % 26/7/2016: Full WCM model: two-step generative model	 
 %            Returns eigenvectors for all generated null models
+% 30/8/2016: Option to return expected network
+%            Option to eliminate self-loops
 %
-% Mark Humphries 26/7/2016
+% Mark Humphries 30/8/2016
 
 n = size(A,1);
 
@@ -55,6 +66,20 @@ if any(A < 0)
 	error('WCM only defined for positive weights - for now')
 end
 
+% update option field values
+Options.Expected = 0;
+Options.NoLoops = 1;
+
+if nargin >= 4
+    if isstruct(Options) 
+        tempopts = varargin{2}; 
+        fnames = fieldnames(tempopts);
+        for i = 1:length(fnames)
+            Options = setfield(Options,fnames{i},getfield(tempopts,fnames{i}));
+        end
+    end
+end
+
 % values for diagnostic checking
 minW = min(min(A(A>0)));
 maxW = max(max(A));
@@ -62,6 +87,7 @@ maxW = max(max(A));
 % quantisation steps
 if nargin >= 3
     conversion = varargin{1};
+    if isempty(conversion) conversion = 1; end
     if strfind(conversion,'all')
         % the scale so that minimum non-zero weight is 1
         conversion = 1./minW;
@@ -85,8 +111,8 @@ P = expectedA(A);
 % appropriately
 Pstar = emptyStruct({'Egs','A','V'},[N,1]);
 
-fieldnames = {'conversion','sAp','minW','maxW','dS','dSN','dmax'};
-diagnostics = emptyStruct(fieldnames, [N,1]);
+fields = {'conversion','sAp','minW','maxW','dS','dSN','dmax'};
+diagnostics = emptyStruct(fields, [N,1]);
 
 % detect parallel toolbox, and enable if present
 blnParallel = license('test','Distrib_Computing_Toolbox');
@@ -106,9 +132,13 @@ parfor iN = 1:N
    
     pnode = expectedA(A>0); % probability of link between each pair of nodes
     
-    Aperm= real(rand(n,n) < triu(pnode,1));  % add link to all that pass test
+    if Options.NoLoops
+        Aperm = real(rand(n,n) < triu(pnode,1));  % don't include diagonal: no self-loops (slightly underestimates degree)
+    else
+        Aperm = real(rand(n,n) < triu(pnode,0));  % include diagonal: allow self-loops
+    end
     
-    
+    % keyboard
     %% Step 2: make weights
     S = sum(sA);  % total weights
     
@@ -159,27 +189,38 @@ parfor iN = 1:N
     diagnostics(iN).dmax =  max(A) - diagnostics(iN).maxW;
     % figure; ecdf(dSN); title('ECDF of error as proportion of original degree')
     
-    %% get eigenvalues
-    % P is null model for A, assuming A = P + noise
-    % B* = P* - P
-    [Pstar(iN).V,Pstar(iN).Egs] = eig(Aperm - P,'vector');
-    [Pstar(iN).Egs,ix] = sort(Pstar(iN).Egs,'descend'); % ensure eigenvalues are sorted in order
-    Pstar(iN).V = Pstar(iN).V(:,ix); % also sort eigenvectors
-    % Pstar(iN).A = Aperm;
+    if Options.Expected 
+        Pstar(iN).A = Aperm;  % store permuted network
+    else
+        %% go ahead and get eigenvalues
+        % P is null model for A, assuming A = P + noise
+        % B* = P* - P
+        [Pstar(iN).V,Pstar(iN).Egs] = eig(Aperm - P,'vector');
+        [Pstar(iN).Egs,ix] = sort(Pstar(iN).Egs,'descend'); % ensure eigenvalues are sorted in order
+        Pstar(iN).V = Pstar(iN).V(:,ix); % also sort eigenvectors
+
+    end
+   
     % keyboard
 end
 
-% Aall = zeros(n);
-% for iN = 1:N
-%   Aall = Aall + Pstar(iN).A;
-% end
-% ExpWCM = Aall ./ N;
-% keyboard
+if Options.Expected 
+    % generate expected matrix
+    Aall = zeros(n);
+    for iN = 1:N
+      Aall = Aall + Pstar(iN).A;
+    end
+    ExpWCM = Aall ./ N;
+    varargout{3} = ExpWCM;
+    % now compute eigenvalues
+    for iN = 1:N
+        [Pstar(iN).V,Pstar(iN).Egs] = eig(Pstar(iN).A - ExpWCM,'vector');
+        [Pstar(iN).Egs,ix] = sort(Pstar(iN).Egs,'descend'); % ensure eigenvalues are sorted in order
+        Pstar(iN).V = Pstar(iN).V(:,ix); % also sort eigenvectors
+    end
+end
 
-% E = [Pstar.Egs];
-% E = E(:);
-varargout{1} = diagnostics;
-
+% now collapse all eigenvalues and vectors into matrix
 V = zeros(n,n,N);
 E = zeros(n,N);
 for iN = 1:N
@@ -187,5 +228,6 @@ for iN = 1:N
     V(:,:,iN) = Pstar(iN).V;
 end
 
+varargout{1} = diagnostics;
 varargout{2} = V;
 
