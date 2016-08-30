@@ -23,4 +23,4 @@ Vs = 1-(1-I)/2;  % confidence interval is symmetric around the mean
 
 tvalue = tinv(Vs,N);
 
-CI = tvalue * SD ./ sqrt(N);
+CI = tvalue .* SD ./ sqrt(N);

@@ -139,11 +139,12 @@ for i = 1:numel(I)
     
     % summarise model projections
     mModel = mean(VmodelW,2); 
-    semModel = std(VmodelW,[],2) / sqrt(N);
-    
+    % semModel = std(VmodelW,[],2) / sqrt(N);
+    CIModel = CIfromSEM(std(VmodelW,[],2),ones(size(mModel,1),1)*N,I);
+  
     % differences
-    D(i).Difference.Raw = lengths - (mModel + 2.*semModel);
-    D(i).Difference.Norm = D(i).Difference.Raw ./ (mModel + 2.*semModel);
+    D(i).Difference.Raw = lengths - (mModel + CIModel);
+    D(i).Difference.Norm = D(i).Difference.Raw ./ (mModel + CIModel);
     
     % split into signal and noise node sets
     D(i).ixSignal = find(D(i).Difference.Raw >= 0);  % the retained node
