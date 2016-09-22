@@ -11,18 +11,18 @@
 clear all; close all
 blnViz = 1;  % if MATLAB BGL installed, appropriate for platform:
 
-% if blnViz
-%     % Traud Mucha Porter visualisation tools
-%     addpath('Traud_Mucha_Porter_CommunityVisualisation/');
-% 
-%     % needs MATLAB BGL Toolbox on your path - change to your local path
-%     % here:
-%     % bglpath = genpath('/Users/mqbssmhg/Dropbox/My Toolboxes/Graph_theory/matlab_bglOSX64/');  % generate path to local BGL and all its subdirectories
-%     bglpath = genpath('C:\Users\mqbssmhg.DS\Dropbox\My Toolboxes\Graph_theory\matlab_bgl\');
-%     
-%     % add to current MATLAB path
-%     addpath(bglpath); 
-% end
+if blnViz
+    % Traud Mucha Porter visualisation tools
+    addpath('Traud_Mucha_Porter_CommunityVisualisation/');
+
+    % needs MATLAB BGL Toolbox on your path - change to your local path
+    % here:
+    % bglpath = genpath('/Users/mqbssmhg/Dropbox/My Toolboxes/Graph_theory/matlab_bglOSX64/');  % generate path to local BGL and all its subdirectories
+    bglpath = genpath('C:\Users\mqbssmhg.DS\Dropbox\My Toolboxes\Graph_theory\matlab_bgl\');
+    
+    % add to current MATLAB path
+    addpath(bglpath); 
+end
 
 
 % analysis parameters
@@ -38,9 +38,9 @@ options.Weight = 'linear'; % 'linear' is default
 options.Norm = 'L2'; % L2 is default
 
 % % load Newman network data
-% % load('Networks/Lesmis.mat');
+load('Networks/Lesmis.mat');
 % % load('Networks/dolphins.mat');
-load('Networks/polblogs.mat');
+% load('Networks/polblogs.mat');
 A = full(Problem.A);
 
 % Generate node labels for later visualisation to work
@@ -139,10 +139,15 @@ figure
 stem(1:numel(R.ixNoise),sorted_norms(1:numel(R.ixNoise)));
 hold all
 stem(numel(R.ixNoise)+1:numel(R.Difference.Norm),sorted_norms(numel(R.ixNoise)+1:end))
+xlabel('Nodes')
+ylabel('Projection (normalised to null model)')
 
+% EDIT HERE: text labels 90 rotated: up for y>0; down for y<0
 for i = 1:length(A); 
     text(i,sorted_norms(i),nodelabels(SNIdx(i),:));%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
 end
+
+
 
 % Unsorted version
 % figure
@@ -251,9 +256,9 @@ plotorder = ixConnectedSignal(Ix);
 % Add node labels
 numConnected = length(Aconnected);
 [srt,I] = sort(Ccon,'ascend');
-set(gca,'Xtick',1:numConnected);
-set(gca,'Xticklabel',nodelabels(plotorder,:));
-set(gca,'XTickLabelRotation',90);
+set(gca,'Ytick',1:numConnected);
+set(gca,'Yticklabel',nodelabels(plotorder,:));
+% set(gca,'XTickLabelRotation',90);
 
 for i=1:numel(allC)
     CLou = allC{i}{1};  % Repeat#, Level of Hierarchy
@@ -261,7 +266,7 @@ for i=1:numel(allC)
     title(['Louvain ' num2str(i)]);
     % Add node labels
     [srt,I] = sort(CLou,'ascend');
-    set(gca,'Xtick',1:numConnected);
-    set(gca,'Xticklabel',nodelabels(plotorder,:));
-    set(gca,'XTickLabelRotation',90);
+    set(gca,'Ytick',1:numConnected);
+    set(gca,'Yticklabel',nodelabels(plotorder,:));
+    % set(gca,'XTickLabelRotation',90);
 end
