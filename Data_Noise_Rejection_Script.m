@@ -10,6 +10,7 @@
 
 clear all; close all
 blnViz = 1;  % if MATLAB BGL installed, appropriate for platform:
+fontsize = 6;
 
 if blnViz
     % Traud Mucha Porter visualisation tools
@@ -17,9 +18,11 @@ if blnViz
 
     % needs MATLAB BGL Toolbox on your path - change to your local path
     % here:
-    % bglpath = genpath('/Users/mqbssmhg/Dropbox/My Toolboxes/Graph_theory/matlab_bglOSX64/');  % generate path to local BGL and all its subdirectories
-    bglpath = genpath('C:\Users\mqbssmhg.DS\Dropbox\My Toolboxes\Graph_theory\matlab_bgl\');
-    
+    if ismac
+        bglpath = genpath('/Users/mqbssmhg/Dropbox/My Toolboxes/Graph_theory/matlab_bglOSX64/');  % generate path to local BGL and all its subdirectories
+    else
+        bglpath = genpath('C:\Users\mqbssmhg.DS\Dropbox\My Toolboxes\Graph_theory\matlab_bgl\');
+    end
     % add to current MATLAB path
     addpath(bglpath); 
 end
@@ -38,13 +41,13 @@ options.Weight = 'linear'; % 'linear' is default
 options.Norm = 'L2'; % L2 is default
 
 % % load Newman network data
-load('Networks/Lesmis.mat');
+% load('Networks/Lesmis.mat');
 % % load('Networks/dolphins.mat');
 % load('Networks/polblogs.mat');
-A = full(Problem.A);
+% A = full(Problem.A);
 
 % Generate node labels for later visualisation to work
-nodelabels = Problem.aux.nodename;
+% nodelabels = Problem.aux.nodename;
 
 
 % % SBM generation
@@ -54,10 +57,11 @@ nodelabels = Problem.aux.nodename;
 % A = round(A);
 
 % % Star Wars
-% load('Networks/StarWarsNetworkAll.mat')
-% A = StarWars.A;
-% nodelabels = StarWars.Nodes;
-% nodelabels = nodelabels';
+load('Networks/StarWarsNetworkAll.mat')
+% load('Networks/StarWarsNetworkEp4.mat')
+A = StarWars.A;
+nodelabels = StarWars.Nodes;
+nodelabels = nodelabels';
 
 % Ensure no self loops
 A(find(eye(length(A)))) = 0;
@@ -72,9 +76,9 @@ A = (A + A')/2;
 
 % Image plot of A, with labels
 imagesc(A);
-set(gca,'Xtick',1:length(A));
-set(gca,'Xticklabel',nodelabels);
-set(gca,'XTickLabelRotation',90);
+set(gca,'Ytick',1:length(A));
+set(gca,'Yticklabel',nodelabels,'Fontsize',fontsize);
+% set(gca,'XTickLabelRotation',90);
 
 % get expected distribution of eigenvalues under null model (here, WCM)
 
@@ -126,11 +130,11 @@ end
 
 %% Add node labels to graph
 for i = 1:length(A); 
-    txt(i) = text(xynew(i,1),xynew(i,2),nodelabels(i,:));%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
+    txt(i) = text(xynew(i,1),xynew(i,2),nodelabels(i,:),'Fontsize',fontsize);%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
 end
 
 %% Remove node labels
-for i = 1:length(A); txt(i).Color = 'none';end
+% for i = 1:length(A); txt(i).Color = 'none';end
 
 %% Plot lowD projection of each node, with labels, sorted by magnitude
 figure
@@ -144,7 +148,7 @@ ylabel('Projection (normalised to null model)')
 
 % EDIT HERE: text labels 90 rotated: up for y>0; down for y<0
 for i = 1:length(A); 
-    text(i,sorted_norms(i),nodelabels(SNIdx(i),:));%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
+    text(i,sorted_norms(i),nodelabels(SNIdx(i),:),'Fontsize',fontsize);%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
 end
 
 
@@ -173,7 +177,7 @@ subplot(1,2,1);
 plot(sort_degree_A)
 title('A degree distribution')
 for i = 1:length(A); 
-    text(i,sort_degree_A(i),nodelabels(degreeIdx_A(i),:));%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
+    text(i,sort_degree_A(i),nodelabels(degreeIdx_A(i),:),'Fontsize',fontsize);%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
 end
 
 % Degree of nodes in modularity matrix
@@ -188,14 +192,14 @@ subplot(1,2,2);
 plot(sort_degree_B);
 title('B degree distribution')
 for i = 1:length(A); 
-    text(i,sort_degree_B(i),nodelabels(degreeIdx_B(i),:));%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
+    text(i,sort_degree_B(i),nodelabels(degreeIdx_B(i),:),'Fontsize',fontsize);%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
 end
 
 %% Directly compare degree with lowD projection norm
 figure; hold all
 for i = 1:length(A);
     plot([1,2,3],[degree_A(i),R.Difference.Norm(i),degree_B(i)],'color',[0.5,0.5,0.5])
-    text(3,degree_B(i),nodelabels(i,:));
+    text(3,degree_B(i),nodelabels(i,:),'Fontsize',fontsize);
 end
 plot(ones(length(A),1),degree_A,'.')
 plot(2*ones(length(A),1),R.Difference.Norm,'.')
@@ -255,18 +259,54 @@ plotorder = ixConnectedSignal(Ix);
 
 % Add node labels
 numConnected = length(Aconnected);
-[srt,I] = sort(Ccon,'ascend');
 set(gca,'Ytick',1:numConnected);
-set(gca,'Yticklabel',nodelabels(plotorder,:));
+set(gca,'Yticklabel',nodelabels(plotorder,:),'Fontsize',fontsize);
 % set(gca,'XTickLabelRotation',90);
 
 for i=1:numel(allC)
     CLou = allC{i}{1};  % Repeat#, Level of Hierarchy
-    HL = plotClusterMap(Aconnected,CLou);
+    [H,Ix] = plotClusterMap(Aconnected,CLou,[],'S');
+    plotorder = ixConnectedSignal(Ix);
     title(['Louvain ' num2str(i)]);
     % Add node labels
-    [srt,I] = sort(CLou,'ascend');
     set(gca,'Ytick',1:numConnected);
-    set(gca,'Yticklabel',nodelabels(plotorder,:));
+    set(gca,'Yticklabel',nodelabels(plotorder,:),'Fontsize',fontsize);
     % set(gca,'XTickLabelRotation',90);
+    for j = i+1:numel(allC)
+        CLou2 = allC{j}{1};  % Repeat#, Level of Hierarchy
+        VI_Louvain(i,j) = VIpartitions(CLou,CLou2) ./ log(numConnected);
+    end
 end
+
+%% without noise rejection
+
+[Cfull,Qmaxfull,Cconfull,Qcfull,Nfull,~] = allevsplitConTransitive(A);
+
+[H,Ix] = plotClusterMap(A,Cconfull,[],'S');
+title('Consensus clustering of all')
+plotorder = Ix;
+
+% Add node labels
+[srt,I] = sort(Cconfull,'ascend');
+set(gca,'Ytick',1:numel(nz_e));
+set(gca,'Yticklabel',nodelabels(plotorder,:),'Fontsize',fontsize);
+
+
+% Louvain algorithm
+[C_L_full,Q_L_full,Cn_L_full,Iters_L_full] = LouvainCommunityUDnondeterm(A,5,1);  % run 5 times; return 1st level of hierarchy only
+
+for i=1:numel(C_L_full)
+    CLou = C_L_full{i}{1};  % Repeat#, Level of Hierarchy
+    [HL,Ix] = plotClusterMap(A,CLou,[],'S');
+    title(['Full Louvain ' num2str(i)]);
+    plotorder = Ix;
+    % Add node labels
+    % [srt,I] = sort(CLou,'ascend');
+    set(gca,'Ytick',1:numel(nz_e));
+    set(gca,'Yticklabel',nodelabels(plotorder,:),'Fontsize',fontsize);
+    for j = i+1:numel(C_L_full)
+        CLou2 = C_L_full{j}{1};  % Repeat#, Level of Hierarchy
+        VI_LouvainFull(i,j) = VIpartitions(CLou,CLou2) ./ log(numel(nz_e));
+    end
+end
+
