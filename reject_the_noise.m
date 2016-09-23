@@ -9,7 +9,7 @@ function signal_nodes = reject_the_noise(A,filename)
 % Prepare A for Noise Rejection
 [newA,nz_e] = prep_A(A);
 
-N = 100;        % repeats of permutation
+N = ceil(20000/length(A));        % repeats of permutation. Aiming to get ~20000 samples.
 alpha = 0;      % confidence interval on estimate of maxiumum eigenvalue for null model
 
 % WCM model options

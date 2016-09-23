@@ -4,7 +4,7 @@
 network_list = {'adjnoun';'celegansneural';'dolphins';'karate';...
     'lesmis';'polblogs';'power';'cosyneFinalData';'cond-mat';'cond-mat-2005';};
 
-for i = 1:length(network_list)
+for i = 7:length(network_list)
     display(['Processing ',network_list{i},'.....'])
     
     load(['Networks/',network_list{i},'.mat']);
@@ -14,11 +14,11 @@ for i = 1:length(network_list)
     reject_the_noise(A,network_list{i});
 end
 
-% Process Star Wars network separately due to different file format
+%% Process Star Wars network separately due to different file format
 load('Networks/StarWarsNetworkAll.mat')
 
 A = StarWars.A;
 
-A = full(Problem.A);
+A = full(A);
 
-reject_the_noise(A,'StarWars')
+reject_the_noise(A,'StarWars');

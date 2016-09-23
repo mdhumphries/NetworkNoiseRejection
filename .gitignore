@@ -50,3 +50,6 @@ Temporary Items
 *.m~
 
 *.m~
+
+# Mat's python hacking that's not ready for public consumption
+graph_tool
