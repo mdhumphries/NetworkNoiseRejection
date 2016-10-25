@@ -38,9 +38,7 @@ function [E,varargout] = RndPoissonConfigModel(A,N,varargin)
 %
 % Notes: 
 % (1) assumes A is connected;
-% (2) Don't need conversion of real-valued weights into multi-edges: just
-% use weight distribution directly
-% (3) To Do: Add negative weights as separate option: can split into (+) and (-) groups, and assign 
+% (2) To Do: Add negative weights as separate option: can split into (+) and (-) groups, and assign 
 % links, then weights	
 %
 % ChangeLog:
@@ -233,4 +231,5 @@ end
 
 varargout{1} = diagnostics;
 varargout{2} = V;
-varargout{3} = A;
+% 3 is assigned to the expected WCM above
+varargout{4} = A;

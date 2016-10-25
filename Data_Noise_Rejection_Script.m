@@ -62,10 +62,10 @@ nodelabels = Problem.aux.nodename;
 
 % % Star Wars
 % load('Networks/StarWarsNetworkAll.mat')
-load('Networks/StarWarsNetworkEp5.mat')
-A = StarWars.A;
-nodelabels = StarWars.Nodes;
-nodelabels = nodelabels';
+% load('Networks/StarWarsNetworkEp5.mat')
+% A = StarWars.A;
+% nodelabels = StarWars.Nodes;
+% nodelabels = nodelabels';
 
 % Ensure no self loops
 A(find(eye(length(A)))) = 0;

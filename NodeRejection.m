@@ -20,6 +20,10 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 %               values and model-derived threshold values for each node (data-model)
 %               .Difference.Norm: as .Raw, but normalised by the model
 %               value (-> expressed as a proportion of the model)
+%               .NegDiff.Raw: a vector of differences for each node between
+%               data and model-derived lower bound (any data < lower bound
+%               is interesting)
+%               .NegDiff.Raw: as .Raw but normalised as above
 %
 % ... = NODEREJECTION(...,Options) is a struct that sets analysis options:
 %           .Norm: defines the vector norm used to identify noise nodes:
@@ -52,6 +56,9 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 % 28/7/2016: return the dimensionality of the data projection
 %               fixed weighted projection bug for the null models
 % 29/7/2016: added Norm options; returned difference between model and data  
+% 25/10/2016: added checking of lower bound threshold too (assumes there is
+% one...)
+%
 % Mark Humphries 
 
 % sort out options
@@ -149,6 +156,10 @@ for i = 1:numel(I)
     % split into signal and noise node sets
     D(i).ixSignal = find(D(i).Difference.Raw >= 0);  % the retained node
     D(i).ixNoise = find(D(i).Difference.Raw < 0); % removed nodes
+    
+    % also store negative projections - only of use if we use CI > 0
+    D(i).NegDiff.Raw = lengths - (mModel - CIModel);
+    D(i).NegDiff.Norm = D(i).NegDiff.Raw ./ (mModel - CIModel);
     
 %     D(i).ixSignal = find(lengths >= mModel); % + 2.*semModel);  % the retained node
 %     D(i).ixNoise = find(lengths < mModel); % + 2.*semModel); % removed nodes
