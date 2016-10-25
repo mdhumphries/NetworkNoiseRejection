@@ -28,7 +28,7 @@ function [E,varargout] = WeightedConfigModel(A,N,varargin)
 %               in the data (i.e. to measure the error relative to magnitude)
 %           V: an nxnxN matrix, containing all of the nxn eigenvector matrices of the N repeats            
 %           X: the nxn matrix for the expected configuration model: only
-%           returned if Options.Expected = 1;
+%           returned if Options.Expected = 1;%
 %
 % Notes: 
 % (1) assumes A is connected;
@@ -115,18 +115,18 @@ fields = {'conversion','sAp','minW','maxW','dS','dSN','dmax'};
 diagnostics = emptyStruct(fields, [N,1]);
 
 % detect parallel toolbox, and enable if present
-% blnParallel = license('test','Distrib_Computing_Toolbox');
-% 
-% if blnParallel
-%     nCores = feature('numCores');
-%     if isempty(gcp('nocreate'))
-%         parpool('local',nCores);  % run on all
-%     end
-% end
+blnParallel = license('test','Distrib_Computing_Toolbox');
+
+if blnParallel
+    nCores = feature('numCores');
+    if isempty(gcp('nocreate'))
+        parpool('local',nCores);  % run on all
+    end
+end
 
 
-% parfor iN = 1:N
-for iN = 1:N
+parfor iN = 1:N
+% for iN = 1:N
     %% Step 1: create links
     K = sum(kA);  % total number of links
    
@@ -147,7 +147,7 @@ for iN = 1:N
     if S ~= K  % then is weighted network    
         
         % disp('Weighted network')
-        ixpairs = find(triu(Aperm,1)>0);   % linear indices of linked pairs
+        ixpairs = find(triu(Aperm,0)>0);   % linear indices of linked pairs
         % get as (i,j)
         [i,j] = ind2sub([n,n],ixpairs);
         
