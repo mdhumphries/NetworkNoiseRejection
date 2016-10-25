@@ -76,8 +76,11 @@ parfor iN = 1:N;
     Aperm(ixpairs) = xfull;
 
     Aperm = Aperm + Aperm'; %/nrep;
-
-
+    
+    %% check for integer-valued network
+    if round(A) == A;
+        Aperm = round(Aperm);
+    end
     %% diagnostics: how far does random model depart?
     diagnostics(iN).sAp = sum(Aperm);  % degree
     diagnostics(iN).minW = min(Aperm); % minimum weight
