@@ -57,8 +57,8 @@ options.Norm = 'L2'; % L2 is default
 % A = round(A);
 
 % % Star Wars
-load('Networks/StarWarsNetworkAll.mat')
-% load('Networks/StarWarsNetworkEp4.mat')
+% load('Networks/StarWarsNetworkAll.mat')
+load('Networks/StarWarsNetworkEp5.mat')
 A = StarWars.A;
 nodelabels = StarWars.Nodes;
 nodelabels = nodelabels';
