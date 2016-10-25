@@ -36,18 +36,22 @@ alpha = 0;  % confidence interval on estimate of maxiumum eigenvalue for null mo
 WCMOptions.Expected = 1;
 WCMOptions.NoLoops = 1;
 
+% Poisson model options
+PoissOptions.Expected = 1;
+PoissOptions.NoLoops = 1;
+
 % NodeRejection options
 options.Weight = 'linear'; % 'linear' is default
 options.Norm = 'L2'; % L2 is default
 
 % % load Newman network data
-% load('Networks/Lesmis.mat');
-% % load('Networks/dolphins.mat');
+load('Networks/Lesmis.mat'); C = 1;  % conversion factor of 1
+% load('Networks/dolphins.mat');
 % load('Networks/polblogs.mat');
-% A = full(Problem.A);
+A = full(Problem.A);
 
 % Generate node labels for later visualisation to work
-% nodelabels = Problem.aux.nodename;
+nodelabels = Problem.aux.nodename;
 
 
 % % SBM generation
@@ -57,11 +61,11 @@ options.Norm = 'L2'; % L2 is default
 % A = round(A);
 
 % % Star Wars
-% load('Networks/StarWarsNetworkAll.mat')
-load('Networks/StarWarsNetworkEp5.mat')
-A = StarWars.A;
-nodelabels = StarWars.Nodes;
-nodelabels = nodelabels';
+% % load('Networks/StarWarsNetworkAll.mat')
+% load('Networks/StarWarsNetworkEp5.mat')
+% A = StarWars.A;
+% nodelabels = StarWars.Nodes;
+% nodelabels = nodelabels';
 
 % Ensure no self loops
 A(find(eye(length(A)))) = 0;
@@ -84,7 +88,9 @@ set(gca,'Yticklabel',nodelabels,'Fontsize',fontsize);
 
 % [Emodel,diagnostics,Vmodel] = WeightedConfigModel(A,N);
 
-[Emodel,diagnostics,Vmodel,ExpWCM] = WeightedConfigModel(A,N,1,WCMOptions);
+% [Emodel,diagnostics,Vmodel,ExpWCM] = WeightedConfigModel(A,N,C,WCMOptions);
+
+[Emodel,diagnostics,Vmodel,ExpWCM] = RndPoissonConfigModel(A,N,C,PoissOptions);
 
 
 %% decompose nodes into signal and noise
