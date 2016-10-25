@@ -67,6 +67,16 @@ nodelabels = Problem.aux.nodename;
 % nodelabels = StarWars.Nodes;
 % nodelabels = nodelabels';
 
+% COSYNE
+load('Networks/cosyneFinalData.mat')
+A = adjMatrix;
+m = cellfun('length',cosyneData.authorHash);
+nodelabels = [];
+for i = 1:numel(cosyneData.authorHash)
+    l = numel(cosyneData.authorHash{i});
+    nodelabels = [nodelabels; cosyneData.authorHash{i} blanks(max(m) - l)];
+end
+
 % Ensure no self loops
 A(find(eye(length(A)))) = 0;
 
