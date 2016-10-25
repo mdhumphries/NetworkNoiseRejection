@@ -218,10 +218,13 @@ end
 % now collapse all eigenvalues and vectors into matrix
 V = zeros(n,n,N);
 E = zeros(n,N);
+A = zeros(n,n,N);
 for iN = 1:N
     E(:,iN) = Pstar(iN).Egs;
     V(:,:,iN) = Pstar(iN).V;
+    A(:,:,iN) = Pstar(iN).A;
 end
 
 varargout{1} = diagnostics;
 varargout{2} = V;
+varargout{3} = A;
