@@ -6,12 +6,18 @@ function [E,varargout] = RndPoissonConfigModel(A,N,varargin)
 % Returns E, an nxN matrix of all n eigenvalues for all N random modularity
 % matrices.
 %
+% NOTE: if the network has real-valued weights, then the weights are
+% converted into multi-edges (i.e. integer weights) by first scaling with
+% some factor C; default is 100. This is most appropriate when the weights are e.g.
+% correlation values in [0,1]. To omit, or customise, set optional
+% conversion factor as outlined below.
+%
 % ... = RNDPOISSCONFIGMODEL(..,C,OPTIONS) sets optional settings:
 %       C: sets the conversion factor C; i.e. the amount by which the 
 %           weighted adjacency matrix is scaled to get integer weights.
 %           C = 'all' sets the conversion factor large enough that the minimum weight
 %           is converted to 1. Set C = [] to omit.
-
+%
 %       OPTIONS: struct of options:
 %           .Expected = {0,1}: if specified (=1), uses the ensemble of generated
 %           configuration models to estimate the expected model. Useful for
