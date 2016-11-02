@@ -37,8 +37,15 @@ for count_peri=1:numel(fraction_periphery_grid)
             performance=sum(true_members==signal_nodes)/numel(true_members);
             
             communites_estimated_core=network.membership(signal_nodes==1) +1;
+            
+            
             adj_estimated_core=network.adjacency(signal_nodes==1, signal_nodes==1);
-            estimated_communities=allevsplitConTransitive(adj_estimated_core);
+            %estimated_communities=allevsplitConTransitive(adj_estimated_core);
+            estimated_communities=LouvainCommunityUDnondeterm(adj_estimated_core,5);
+            t2=estimated_communities{1};
+            estimated_communities=t2{1};
+            
+            
             
             nmi=MIpartitions(estimated_communities,communites_estimated_core);
             

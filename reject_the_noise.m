@@ -21,7 +21,7 @@ options.Weight = 'linear'; % 'linear' is default
 options.Norm = 'L2'; % L2 is default
 
 % get expected distribution of eigenvalues under null model (here, WCM)
-[Emodel,diagnostics,Vmodel,ExpWCM] = WeightedConfigModel(newA,N,'all',WCMOptions);
+[Emodel,diagnostics,Vmodel,ExpWCM] = RndPoissonConfigModel(newA,N,1,WCMOptions);
 
 % Decompose into signal and noise
 B = newA - ExpWCM;  % modularity matrix using chosen null model
