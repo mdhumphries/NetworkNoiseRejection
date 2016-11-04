@@ -27,7 +27,7 @@ for count_peri=1:numel(fraction_periphery_grid)
             %generate planted noise network
             options.weight_dist=struct('ingroup', cc, 'outgroup', mixing,...
                 'periphery_periphery', pp, 'periphery_core', noise);
-            network=test_noise_rejection_planted_noise(50,2, 'low',fraction_periphery, options);
+            network=test_noise_rejection_planted_noise(50,3, 'low',fraction_periphery, options);
             % unit analyses
             
             signal_nodes=reject_the_noise(network.adjacency,'temp_planted_noise');
@@ -41,9 +41,11 @@ for count_peri=1:numel(fraction_periphery_grid)
             
             adj_estimated_core=network.adjacency(signal_nodes==1, signal_nodes==1);
             %estimated_communities=allevsplitConTransitive(adj_estimated_core);
-            estimated_communities=LouvainCommunityUDnondeterm(adj_estimated_core,5);
-            t2=estimated_communities{1};
-            estimated_communities=t2{1};
+%             estimated_communities=LouvainCommunityUDnondeterm(adj_estimated_core,5);
+%             t2=estimated_communities{1};
+%             estimated_communities=t2{1};
+            estimated_communities = multiwaySpectCommDet(adj_estimated_core);
+            
             
             
             

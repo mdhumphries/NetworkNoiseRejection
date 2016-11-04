@@ -1,39 +1,45 @@
-function [bestNoOfGroups, bestPartition] = multiwaySpectCommDet(varargin)
+function [bestPartition] = multiwaySpectCommDet(varargin)
 % Implementation of: X Zhang, MEJ Newman (2015), Multiway spectral community
 % detection in networks, Phys Rev E, (92)052808. This function tests for up
-% to 50 possible groups and the best number is that of the knee of the
-% approximated modularity. This implementation considers that, for a given
-% tested number of groups, membership convergence is reached when 97 % or
-% more vertices stopped swapping group membership.
+% to 50 possible groups and the best number (not reported outside) is that 
+% of the knee of the approximated modularity. This implementation considers 
+% that, for a given tested number of groups, membership convergence is 
+% reached when 97 % or more vertices stopped swapping group membership.
 % 
 % Syntax...
 % ... if ground truth is known:
-% [NoGroups, partition] = multiwaySpectCommDet(Adj, groupMemb)
+% partition = multiwaySpectCommDet(Adj, groupMemb)
 %
 % ... if there's no known ground truth:
-% [NoGroups, partition] = multiwaySpectCommDet(Adj)
+% partition = multiwaySpectCommDet(Adj)
 %
 % Where:
 % Adj: binary (symmetric) adjacency matrix. The algorithm assumes an  
-%      undirected, unweighted network.
-% groupMemb: vector of indices of the groups to which each vertex belongs.
-%      Its length must be the same as that of any of the dimensions of Adj.
-% NoGroups: best number of groups detected.
-% partition: vector of indices, up to NoGroups, reporting the best
-%      partition found.
+%      undirected, unweighted network, but in practice it works well with
+%      weights.
+% groupMemb: Ground-truth partition, i.e. vector of indices of the groups  
+%      to which each vertex belongs. Its length must be the same as that of 
+%      any of the dimensions of Adj.
+% partition: Found partition. Vector of indices, up to maxGroups, reporting 
+%      the best partition found.
 % 
 % Ver. 1.0, Javier Caballero, 24-Oct-2016
+% Ver. 1.01, Javier Caballero, 04-Nov-2016
+
 
 %% SET UP DATA
-% get ground-truth membership vector if given
+% adjacency matrix
 A_adjMat = varargin{1};
+
+% ground-truth membership vector if given
 if length(varargin) > 1
     g_iGroupsVerts = varargin{2};
 end
 
 % remove any auto-connections
 if sum(diag(A_adjMat)) > 0
-     warning(['Removed ' num2str(sum(diag(A_adjMat)))...
+    % give heads-up
+     warning(['Removed ' num2str(sum(diag(A_adjMat ~= 0)))...
          ' self-edges from the '...
          'adjacency matrix.'])
     A_adjMat = abs(triu(A_adjMat) - tril(A_adjMat)); 
@@ -233,15 +239,15 @@ while k_currentNoGroups < maxGroups
         
         % break if maximum iterations reached
         if maxIter == NoIterations
-            % warn only if more than 3 % of nodes kept swapping their group
-            % membership
-            if finalPctMembSwapping(k_currentNoGroups) > 3
-                warning(['When testing for ' num2str(k_currentNoGroups)...
-                    ' groups, and after ' num2str(NoIterations) ' iterations, '...
-                    num2str(finalPctMembSwapping(k_currentNoGroups))...
-                    '% of vertices kept changing their membership. '...
-                    'Breaking the loop and continuing.'])
-            end
+%             % warn only if more than 3 % of nodes kept swapping their group
+%             % membership
+%             if finalPctMembSwapping(k_currentNoGroups) > 3
+%                 warning(['When testing for ' num2str(k_currentNoGroups)...
+%                     ' groups, and after ' num2str(NoIterations) ' iterations, '...
+%                     num2str(finalPctMembSwapping(k_currentNoGroups))...
+%                     '% of vertices kept changing their membership. '...
+%                     'Breaking the loop and continuing.'])
+%             end
             break
         end
     end
@@ -291,8 +297,8 @@ bestPartition(unconnectVerts == 0) = dummy;
 
 % report results in command window
 disp(' ')
-disp('RESULTS')
-disp('-------')
+disp('MULTIWAY SPECTRAL COMMUNITY DETECTION RESULTS')
+disp('---------------------------------------------')
 % if we know the ground truth
 if indGroundTruth == 1
     disp('GROUND TRUTH')
