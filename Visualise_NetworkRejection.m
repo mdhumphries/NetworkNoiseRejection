@@ -5,7 +5,7 @@
 %           Win32, Win64, Mac32, Linux: https://www.cs.purdue.edu/homes/dgleich/packages/matlab_bgl/ 
 %           Mac64: http://www.cs.purdue.edu/homes/dgleich/packages/matlab_bgl/old/matlab_bgl_4.0_osx64.zip
 %
-% Mark Humphries 28/2/2017
+% Mark Humphries, Mat Evans 28/2/2017
 
 clear all; close all
 

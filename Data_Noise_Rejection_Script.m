@@ -1,7 +1,7 @@
 %% template script for applying complete work-flow to one data network, using one choice of null model
 % data network: correlations between firing in Aplysia recording
 % null model: weighted configuration model
-%
+% Mark Humphries 28/2/2017
 
 clear all; close all
 

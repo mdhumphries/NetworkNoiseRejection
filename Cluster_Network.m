@@ -1,4 +1,5 @@
 %% script to cluster Full and Signal networks, and compare them
+% Mark Humphries, 28/2/2017
 clear all; close all;
 
 fname = 'Lesmis';
