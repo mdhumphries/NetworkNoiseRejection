@@ -44,10 +44,11 @@ PoissOptions.NoLoops = 1;
 options.Weight = 'linear'; % 'linear' is default
 options.Norm = 'L2'; % L2 is default
 
+%% load data-file
+fname = 'Lesmis.mat'; 
 % % load Newman network data
-load('Networks/Lesmis.mat'); C = 1;  % conversion factor of 1
-% load('Networks/dolphins.mat');
-% load('Networks/polblogs.mat');
+load(['Networks/' fname]); 
+C = 1;  % conversion factor of 1
 A = full(Problem.A);
 
 % Generate node labels for later visualisation to work
@@ -60,23 +61,25 @@ nodelabels = Problem.aux.nodename;
 % nodelabels = num2str(A_SBM.membership);
 % A = round(A);
 
-% % Star Wars
-% load('Networks/StarWarsNetworkAll.mat')
-% load('Networks/StarWarsNetworkEp5.mat')
+% % Star Wars: special case for pre-processing
+% fname = StarWarsNetworkEp5.mat;
+% load(['Networks/' fname]); 
 % A = StarWars.A;
 % nodelabels = StarWars.Nodes;
 % nodelabels = nodelabels';
 
-% COSYNE
-load('Networks/cosyneFinalData.mat')
-A = adjMatrix;
-m = cellfun('length',cosyneData.authorHash);
-nodelabels = [];
-for i = 1:numel(cosyneData.authorHash)
-    l = numel(cosyneData.authorHash{i});
-    nodelabels = [nodelabels; cosyneData.authorHash{i} blanks(max(m) - l)];
-end
+% COSYNE: special case for pre-processing
+% fname = 'cosyneFinalData.mat';
+% load(['Networks/' fname]); 
+% A = adjMatrix;
+% m = cellfun('length',cosyneData.authorHash);
+% nodelabels = [];
+% for i = 1:numel(cosyneData.authorHash)
+%     l = numel(cosyneData.authorHash{i});
+%     nodelabels = [nodelabels; cosyneData.authorHash{i} blanks(max(m) - l)];
+% end
 
+%% process adjacency matrix
 % Ensure no self loops
 A(find(eye(length(A)))) = 0;
 
@@ -94,7 +97,7 @@ set(gca,'Ytick',1:length(A));
 set(gca,'Yticklabel',nodelabels,'Fontsize',fontsize);
 % set(gca,'XTickLabelRotation',90);
 
-% get expected distribution of eigenvalues under null model (here, WCM)
+%% get expected distribution of eigenvalues under null model (here, WCM)
 
 % [Emodel,diagnostics,Vmodel] = WeightedConfigModel(A,N);
 
@@ -181,56 +184,56 @@ end
 
 %% Compare to node degree - no correlation
 % Degree of original adjacency matrix
-degree_A = sum(A);
+% degree_A = sum(A);
 
-% Z-score
-degree_A = zscore(degree_A);
-
-% Sort and plot
-[sort_degree_A,degreeIdx_A] = sort(degree_A);
-figure
-subplot(1,2,1);
-plot(sort_degree_A)
-title('A degree distribution')
-for i = 1:length(A); 
-    text(i,sort_degree_A(i),nodelabels(degreeIdx_A(i),:),'Fontsize',fontsize);%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
-end
+% % Z-score
+% degree_A = zscore(degree_A);
+% 
+% % Sort and plot
+% [sort_degree_A,degreeIdx_A] = sort(degree_A);
+% figure
+% subplot(1,2,1);
+% plot(sort_degree_A)
+% title('A degree distribution')
+% for i = 1:length(A); 
+%     text(i,sort_degree_A(i),nodelabels(degreeIdx_A(i),:),'Fontsize',fontsize);%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
+% end
 
 % Degree of nodes in modularity matrix
-degree_B = sum(B);
-
-% Z-score
-degree_B = zscore(degree_B);
-
-% Sort and plot
-[sort_degree_B,degreeIdx_B] = sort(degree_B);
-subplot(1,2,2);
-plot(sort_degree_B);
-title('B degree distribution')
-for i = 1:length(A); 
-    text(i,sort_degree_B(i),nodelabels(degreeIdx_B(i),:),'Fontsize',fontsize);%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
-end
+% degree_B = sum(B);
+% 
+% % Z-score
+% degree_B = zscore(degree_B);
+% 
+% % Sort and plot
+% [sort_degree_B,degreeIdx_B] = sort(degree_B);
+% subplot(1,2,2);
+% plot(sort_degree_B);
+% title('B degree distribution')
+% for i = 1:length(A); 
+%     text(i,sort_degree_B(i),nodelabels(degreeIdx_B(i),:),'Fontsize',fontsize);%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
+% end
 
 %% Directly compare degree with lowD projection norm
-figure; hold all
-for i = 1:length(A);
-    plot([1,2,3],[degree_A(i),R.Difference.Norm(i),degree_B(i)],'color',[0.5,0.5,0.5])
-    text(3,degree_B(i),nodelabels(i,:),'Fontsize',fontsize);
-end
-plot(ones(length(A),1),degree_A,'.')
-plot(2*ones(length(A),1),R.Difference.Norm,'.')
-plot(3*ones(length(A),1),degree_B,'.')
-set(gca,'XTick',[1,2,3])
-set(gca,'XTickLabels',{'A degree','Eig projection','B degree'})
-xlim([0,4])
+% figure; hold all
+% for i = 1:length(A);
+%     plot([1,2,3],[degree_A(i),R.Difference.Norm(i),degree_B(i)],'color',[0.5,0.5,0.5])
+%     text(3,degree_B(i),nodelabels(i,:),'Fontsize',fontsize);
+% end
+% plot(ones(length(A),1),degree_A,'.')
+% plot(2*ones(length(A),1),R.Difference.Norm,'.')
+% plot(3*ones(length(A),1),degree_B,'.')
+% set(gca,'XTick',[1,2,3])
+% set(gca,'XTickLabels',{'A degree','Eig projection','B degree'})
+% xlim([0,4])
 
 %% Scatter plot of degree vs lowD projection norm
-figure;hold all
-colormap lines
-cmap = colormap;
-
-plot(R.Difference.Norm,degree_A,'.','color',cmap(1,:))
-plot(R.Difference.Norm,degree_B,'.','color',cmap(2,:))
+% figure;hold all
+% colormap lines
+% cmap = colormap;
+% 
+% plot(R.Difference.Norm,degree_A,'.','color',cmap(1,:))
+% plot(R.Difference.Norm,degree_B,'.','color',cmap(2,:))
 
 % %% Scatter plot of A degree vs B degree
 % clf;
@@ -241,13 +244,13 @@ plot(R.Difference.Norm,degree_B,'.','color',cmap(2,:))
 
 % % first: remove any nodes without connections
 kAsignal = sum(Asignal>0);
-ixConnectedSignal = R.ixSignal(kAsignal > 1);  % more than 1 link
-Aconnected = A(ixConnectedSignal,ixConnectedSignal);  % subset of original matrix
+Connected.ixConnectedSignal = R.ixSignal(kAsignal > 1);  % more than 1 link
+Connected.A = A(Connected.ixConnectedSignal,Connected.ixConnectedSignal);  % subset of original matrix
 
 if blnViz
     % visualise Aconnected
     colors = repmat([0 0 0],n,1)+0.6;
-    colors(ixConnectedSignal,:) = 0;  % black for signal, connected 
+    colors(Connected.ixConnectedSignal,:) = 0;  % black for signal, connected 
     figure
     graphplot2D(xynew,A,10,colors,syms,10);
     axis off
@@ -259,57 +262,56 @@ end
 
 % consensus modularity
 % [C,Qmax,Ccon,Qc,Ngrps,Q] = allevsplitConTransitive(Asignal);
-[C,Qmax,Ccon,Qc,Ngrps,~] = allevsplitConTransitive(Aconnected);
+[Connected.QmaxCluster,Connected.Qmax,Connected.ConsCluster,Connected.ConsQ,Ngrps,~] = allevsplitConTransitive(Connected.A);
 
 % Louvain algorithm
-[allC,allQ,allCn,allIters] = LouvainCommunityUDnondeterm(Aconnected,5,1);  % run 5 times; return 1st level of hierarchy only
+[Connected.LouvCluster,Connected.LouvQ,allCn,allIters] = LouvainCommunityUDnondeterm(Connected.A,5,1);  % run 5 times; return 1st level of hierarchy only
 
 %% plot sorted into group order
 
-[H,Ix] = plotClusterMap(Aconnected,Ccon,[],'S');
+[H,Ix] = plotClusterMap(Connected.A,Connected.ConsCluster,[],'S');
 title('Consensus clustering')
-plotorder = ixConnectedSignal(Ix);
+plotorder = Connected.ixConnectedSignal(Ix);
 
 % Add node labels
-numConnected = length(Aconnected);
+numConnected = length(Connected.ixConnectedSignal);
 set(gca,'Ytick',1:numConnected);
 set(gca,'Yticklabel',nodelabels(plotorder,:),'Fontsize',fontsize);
 % set(gca,'XTickLabelRotation',90);
 
-for i=1:numel(allC)
-    CLou = allC{i}{1};  % Repeat#, Level of Hierarchy
-    [H,Ix] = plotClusterMap(Aconnected,CLou,[],'S');
-    plotorder = ixConnectedSignal(Ix);
+for i=1:numel(Connected.LouvCluster)
+    CLou = Connected.LouvCluster{i}{1};  % Repeat#, Level of Hierarchy
+    [H,Ix] = plotClusterMap(Connected.A,CLou,[],'S');
+    plotorder = Connected.ixConnectedSignal(Ix);
     title(['Louvain ' num2str(i)]);
     % Add node labels
     set(gca,'Ytick',1:numConnected);
     set(gca,'Yticklabel',nodelabels(plotorder,:),'Fontsize',fontsize);
     % set(gca,'XTickLabelRotation',90);
-    for j = i+1:numel(allC)
-        CLou2 = allC{j}{1};  % Repeat#, Level of Hierarchy
-        VI_Louvain(i,j) = VIpartitions(CLou,CLou2) ./ log(numConnected);
+    for j = i+1:numel(Connected.LouvCluster)
+        CLou2 = Connected.LouvCluster{j}{1};  % Repeat#, Level of Hierarchy
+        Connected.VI_Louvain(i,j) = VIpartitions(CLou,CLou2) ./ log(numConnected);
     end
 end
 
 %% without noise rejection
+[Full.QmaxCluster,Full.Qmax,Full.ConsCluster,Full.ConsQ,Ngrps,~] = allevsplitConTransitive(A);
 
-[Cfull,Qmaxfull,Cconfull,Qcfull,Nfull,~] = allevsplitConTransitive(A);
-
-[H,Ix] = plotClusterMap(A,Cconfull,[],'S');
+[H,Ix] = plotClusterMap(A,Full.ConsCluster,[],'S');
 title('Consensus clustering of all')
 plotorder = Ix;
 
 % Add node labels
-[srt,I] = sort(Cconfull,'ascend');
+[srt,I] = sort(Full.ConsCluster,'ascend');
 set(gca,'Ytick',1:numel(nz_e));
 set(gca,'Yticklabel',nodelabels(plotorder,:),'Fontsize',fontsize);
 
 
 % Louvain algorithm
-[C_L_full,Q_L_full,Cn_L_full,Iters_L_full] = LouvainCommunityUDnondeterm(A,5,1);  % run 5 times; return 1st level of hierarchy only
+[Full.LouvCluster,Full.LouvQ,allCn,allIters] = LouvainCommunityUDnondeterm(A,5,1);  % run 5 times; return 1st level of hierarchy only
 
-for i=1:numel(C_L_full)
-    CLou = C_L_full{i}{1};  % Repeat#, Level of Hierarchy
+for i=1:numel(Full.LouvCluster)
+    CLou = Full.LouvCluster{i}{1};  % Repeat#, Level of Hierarchy
     [HL,Ix] = plotClusterMap(A,CLou,[],'S');
     title(['Full Louvain ' num2str(i)]);
     plotorder = Ix;
@@ -317,9 +319,11 @@ for i=1:numel(C_L_full)
     % [srt,I] = sort(CLou,'ascend');
     set(gca,'Ytick',1:numel(nz_e));
     set(gca,'Yticklabel',nodelabels(plotorder,:),'Fontsize',fontsize);
-    for j = i+1:numel(C_L_full)
-        CLou2 = C_L_full{j}{1};  % Repeat#, Level of Hierarchy
-        VI_LouvainFull(i,j) = VIpartitions(CLou,CLou2) ./ log(numel(nz_e));
+    for j = i+1:numel(Full.LouvCluster)
+        CLou2 = Full.LouvCluster{j}{1};  % Repeat#, Level of Hierarchy
+        Full.VI_Louvain(i,j) = VIpartitions(CLou,CLou2) ./ log(numel(nz_e));
     end
 end
 
+%% save
+save(['Rejected_' fname],'R','Full','Connected','A','nodelabels')
