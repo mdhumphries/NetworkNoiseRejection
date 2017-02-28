@@ -260,9 +260,6 @@ end
 % consensus modularity
 % [C,Qmax,Ccon,Qc,Ngrps,Q] = allevsplitConTransitive(Asignal);
 [C,Qmax,Ccon,Qc,Ngrps,~] = allevsplitConTransitive(Aconnected);
-% [C2,Qmax2,Ccon2,Qc2,Ngrps,~] = allevsplitConTransitive(Aconnected);
-
-% [Cfull,Qmaxfull,Cconfull,Qcfull,Nfull,~] = allevsplitConTransitive(A);
 
 % Louvain algorithm
 [allC,allQ,allCn,allIters] = LouvainCommunityUDnondeterm(Aconnected,5,1);  % run 5 times; return 1st level of hierarchy only
