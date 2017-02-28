@@ -9,51 +9,44 @@
 %           Mac64: http://www.cs.purdue.edu/homes/dgleich/packages/matlab_bgl/old/matlab_bgl_4.0_osx64.zip
 
 clear all; close all
-blnViz = 1;  % if MATLAB BGL installed, appropriate for platform:
-fontsize = 6;
 
-if blnViz
-    % Traud Mucha Porter visualisation tools
-    addpath('Traud_Mucha_Porter_CommunityVisualisation/');
-
-    % needs MATLAB BGL Toolbox on your path - change to your local path
-    % here:
-    if ismac
-        bglpath = genpath('/Users/mqbssmhg/Dropbox/My Toolboxes/Graph_theory/matlab_bglOSX64/');  % generate path to local BGL and all its subdirectories
-    else
-        bglpath = genpath('C:\Users\mqbssmhg.DS\Dropbox\My Toolboxes\Graph_theory\matlab_bgl\');
-    end
-    % add to current MATLAB path
-    addpath(bglpath); 
-end
-
+% network to analyse
+fname = 'Lesmis.mat'; 
 
 % analysis parameters
-N = 100;        % repeats of permutation
-alpha = 0;  % confidence interval on estimate of maxiumum eigenvalue for null model
+pars.N = 100;           % repeats of permutation
+pars.alpha = 0;         % confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
+pars.Model = 'Poiss';   % or 'WCM' . % which null model
+pars.C = 1;             % conversion factor for real-valued weights (set=1 for integers)
 
-% WCM model options
-WCMOptions.Expected = 1;
-WCMOptions.NoLoops = 1;
-
-% Poisson model options
-PoissOptions.Expected = 1;
-PoissOptions.NoLoops = 1;
+% null model options
+optionsModel.Expected = 1;
+optionsModel.NoLoops = 1;
 
 % NodeRejection options
-options.Weight = 'linear'; % 'linear' is default
-options.Norm = 'L2'; % L2 is default
+optionsReject.Weight = 'linear'; % 'linear' is default
+optionsReject.Norm = 'L2'; % L2 is default
 
 %% load data-file
-fname = 'Lesmis.mat'; 
-% % load Newman network data
 load(['Networks/' fname]); 
-C = 1;  % conversion factor of 1
-A = full(Problem.A);
 
-% Generate node labels for later visualisation to work
-nodelabels = Problem.aux.nodename;
-
+if strfind('StarWars',fname)
+    A = StarWars.A;
+    nodelabels = StarWars.Nodes;
+    nodelabels = nodelabels';
+elseif strfind('cosyne',fname)
+    A = adjMatrix;
+    m = cellfun('length',cosyneData.authorHash);
+    nodelabels = [];
+    for i = 1:numel(cosyneData.authorHash)
+        l = numel(cosyneData.authorHash{i});
+        nodelabels = [nodelabels; cosyneData.authorHash{i} blanks(max(m) - l)];
+    end
+else
+    A = prep_A(Problem.A);
+    % Generate node labels for later visualisation to work
+    nodelabels = Problem.aux.nodename;
+end
 
 % % SBM generation
 % A_SBM = test_noise_rejection_planted_noise(50,2,'low',0.2);
@@ -61,40 +54,7 @@ nodelabels = Problem.aux.nodename;
 % nodelabels = num2str(A_SBM.membership);
 % A = round(A);
 
-% % Star Wars: special case for pre-processing
-% fname = StarWarsNetworkEp5.mat;
-% load(['Networks/' fname]); 
-% A = StarWars.A;
-% nodelabels = StarWars.Nodes;
-% nodelabels = nodelabels';
-
-% COSYNE: special case for pre-processing
-% fname = 'cosyneFinalData.mat';
-% load(['Networks/' fname]); 
-% A = adjMatrix;
-% m = cellfun('length',cosyneData.authorHash);
-% nodelabels = [];
-% for i = 1:numel(cosyneData.authorHash)
-%     l = numel(cosyneData.authorHash{i});
-%     nodelabels = [nodelabels; cosyneData.authorHash{i} blanks(max(m) - l)];
-% end
-
 %% process adjacency matrix
-% Ensure no self loops
-A(find(eye(length(A)))) = 0;
-
-% Strip out zero elements
-nz_e = find(sum(A)); % nonzero_elements
-A = A(nz_e,nz_e);
-nodelabels = nodelabels(nz_e,:);
-
-% Ensure A is symetric
-A = (A + A')/2;
-
-% Image plot of A, with labels
-imagesc(A);
-set(gca,'Ytick',1:length(A));
-set(gca,'Yticklabel',nodelabels,'Fontsize',fontsize);
 % set(gca,'XTickLabelRotation',90);
 
 %% get expected distribution of eigenvalues under null model (here, WCM)
@@ -326,4 +286,4 @@ for i=1:numel(Full.LouvCluster)
 end
 
 %% save
-save(['Rejected_' fname],'R','Full','Connected','A','nodelabels')
+save(['Rejected_' fname],'R','Full','Connected','A','nodelabels','pars','optionsModel','optionsReject')
