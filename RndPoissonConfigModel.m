@@ -20,12 +20,12 @@ function [E,varargout] = RndPoissonConfigModel(A,N,varargin)
 %
 %       OPTIONS: struct of options:
 %           .Expected = {0,1}: if specified (=1), uses the ensemble of generated
-%           configuration models to estimate the expected model. Useful for
-%           non-standard configuration models. [default = 0]
+%           null models to estimate the expected model. Useful for
+%           non-standard null models. [default = 0]
 %           .NoLoops = {0,1}: if specified (=1), prevents self-loops in the
 %           generated random models [default = 1]
 %   
-% [..,D,V,X] = RNDPOISSCONFIGMODEL(...) returns:
+% [..,D,V,X,ALL] = RNDPOISSCONFIGMODEL(...) returns:
 %           D: a struct, containing diagnostic measurements of the accuracy of the null model 
 %           for each of the N repeats, with fields
 %           D(i).sAp = strength distribution of the ith repeat
@@ -33,8 +33,9 @@ function [E,varargout] = RndPoissonConfigModel(A,N,varargin)
 %           D(i).dSN = absolute difference, normalised per node to its strength
 %               in the data (i.e. to measure the error relative to magnitude)
 %           V: an nxnxN matrix, containing all of the nxn eigenvector matrices of the N repeats            
-%           X: the nxn matrix for the expected configuration model: only
+%           X: the nxn matrix for the expected null model: only
 %           returned if Options.Expected = 1;
+%           ALL: the nxnxN matrix of every generated 
 %
 % Notes: 
 % (1) assumes A is connected;
@@ -210,10 +211,10 @@ if Options.Expected
       Aall = Aall + Pstar(iN).A;
     end
     ExpWCM = Aall ./ N;
-    varargout{3} = ExpWCM;
+    varargout{3} = ExpWCM;  % return this if asked
     % now compute eigenvalues
     for iN = 1:N
-        [Pstar(iN).V,Pstar(iN).Egs] = eig(Pstar(iN).A - ExpWCM,'vector');
+        [Pstar(iN).V,Pstar(iN).Egs] = eig(Pstar(iN).A - ExpWCM,'vector'); % difference between realisation and Expected model
         [Pstar(iN).Egs,ix] = sort(Pstar(iN).Egs,'descend'); % ensure eigenvalues are sorted in order
         Pstar(iN).V = Pstar(iN).V(:,ix); % also sort eigenvectors
     end
@@ -222,11 +223,11 @@ end
 % now collapse all eigenvalues and vectors into matrix
 V = zeros(n,n,N);
 E = zeros(n,N);
-A = zeros(n,n,N);
+if nargout >=5 A = zeros(n,n,N); end
 for iN = 1:N
     E(:,iN) = Pstar(iN).Egs;
     V(:,:,iN) = Pstar(iN).V;
-    A(:,:,iN) = Pstar(iN).A;
+    if nargout >=5 A(:,:,iN) = Pstar(iN).A; end
 end
 
 varargout{1} = diagnostics;
