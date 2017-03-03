@@ -5,7 +5,7 @@ function Q = computeQ(C,B,m)
 %   C: a column vector of group membership IDs (integer values, one per
 %   node)
 %   B: the modularity matrix
-%   M: the number of unique edges
+%   M: the number of unique edges or sum of unique weights (i.e. that undirected networks have had each link counted once only)
 %
 %   Reference:  Newman, M. E. J. (2006) "Finding community structure in
 %   networks using the eigenvectors of matrices". Phys Rev E, 74, 036104.
@@ -25,4 +25,4 @@ for loop = 1:ngrps
 end
 
 % compute modularity
-Q = trace(S' * B * S) / (2*m);
+Q = trace(S' * B * S) / m;  % note: assumes here that m is the sum of unique weights (i.e. that undirected networks have had each link counted once only)

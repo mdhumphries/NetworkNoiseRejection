@@ -47,7 +47,7 @@ for iD = 1:numel(Data)
                 try
                     allgrps = kmeansSweep(EmbedD,Mlist(iM),Treps(iT),dims{iOpt});
                 catch ME
-                    msg = sprintf(['\n Data' num2str(iD) ', Error' num2str(ErrCtr) ': ' ME.message ' \n Thrown by: M=' num2str(Mlist(iM)) ', Treps = ' num2str(Treps(iT)) ', dims = ' dims{iOpt}]); 
+                    msg = sprintf(['\n Data' num2str(iD) ', K-means Error' num2str(ErrCtr) ': \n' ME.message ' \n Thrown by: M=' num2str(Mlist(iM)) ', Treps = ' num2str(Treps(iT)) ', dims = ' dims{iOpt}]); 
                     disp(msg)
                     allgrps = [];
                     ErrCtr = ErrCtr+1;
@@ -64,6 +64,15 @@ for iD = 1:numel(Data)
                 end
             end
         end
+    end
+    
+    %% Q computation
+    m = sum(sum(Data{iD}))/2;  % sum of unique weights
+    try
+        Q = computeQ(Clustering(:,1),B,m);
+    catch ME
+        msg = sprintf(['\n Data' num2str(iD) ', Q compute Error: \n' ME.message ]); 
+        disp(msg)
     end
     
     %% 
