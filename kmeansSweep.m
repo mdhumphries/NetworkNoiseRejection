@@ -13,8 +13,13 @@ function allgrps = kmeansSweep(D,K,Treps,dims)
 %   (columns 1:K-1 are for K=2; columns K to 2*K-1 are for K=3 etc) 
 %
 % Mark Humphries 2/3/2017
+
+if K < 2
+    error('Specify at least K=2 groups')
+end
+
 [n,d] = size(D);
-if strfind(dims,'scale') && d >= K-1
+if any(strfind(dims,'scale')) && d < K-1
     error('Not enough embedding dimensions to scale to K')
 end
 
