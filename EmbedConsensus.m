@@ -1,4 +1,4 @@
-function [D,B,M] = EmbedConsensus(C)
+function [D,B,M,varargout] = EmbedConsensus(C)
 
 % EMBEDCONSENSUS low-dimensional projection and N groups in consensus matrix
 % [D,B,M] = EMBEDCONSENSUS(C) for the n*n consensus matrix C, with values
@@ -26,7 +26,7 @@ function [D,B,M] = EmbedConsensus(C)
 
 N = size(C,1);                     % number of objects 
 C = (C - mean(C(:))) ./ var(C(:)); % normalise to mean 0 and var=1
-H = (Cn+Cn')/2;                    % make Hermitian
+H = (C+C')/2;                    % make Hermitian
 
 [V,egs] = eig(H,'vector');         % get eigenvalues and vectors of C
 [egs,ix] = sort(egs,'descend');    % sort into descending order
@@ -47,5 +47,6 @@ for i=1:numel(ixE)
     B = B + egs(ixE(i)) * V(:,ixE(i))*V(:,ixE(i))';   
 end
 
+varargout{1} = egsNorm;
 
                 
