@@ -25,4 +25,4 @@ for loop = 1:ngrps
 end
 
 % compute modularity
-Q = trace(S' * B * S) / m;  % note: assumes here that m is the sum of unique weights (i.e. that undirected networks have had each link counted once only)
+Q = trace(S' * B * S) / (2*m);  % note: assumes here that m is the sum of unique weights (i.e. that undirected networks have had each link counted once only)

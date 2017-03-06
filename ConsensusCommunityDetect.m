@@ -1,6 +1,5 @@
 function [grps,Qmax,grpscon,Qcon,ctr,varargout] = ConsensusCommunityDetect(W,P,M,varargin)
-
-% A new version using the output of the noise-rejection process   
+ 
 % CONSENSUSCOMMUNITYDETECT partition signal network using eigenvectors of signal modularity matrix (with consensus)
 %   [C,Qmax,Ccon,Qc,N,Q] = CONSENSUSCOMMUNITYDETECT(W,P,M) splits the
 %   vertices of the nxn weighted signal network W into multiple groups, given
@@ -19,7 +18,7 @@ function [grps,Qmax,grpscon,Qcon,ctr,varargout] = ConsensusCommunityDetect(W,P,M
 %       specified group size (default is 50); uses either 'all' (default)
 %       or 'scaled' embedding dimensions for each tested K. See KMEANSSWEEP
 %
-%   [C,Qmax,Ccon,Qc,N,CLU] = CONSENSUSCOMMUNITYDETECT(...) where CLU is an optional output argument, 
+%   [...,CLU] = CONSENSUSCOMMUNITYDETECT(...) where CLU is an optional output argument, 
 %   returns every single clustering of the adjacency matrix A in the first
 %   pass (i.e. before the consensus) - this is useful for further
 %   post-processsing.
@@ -117,7 +116,7 @@ mQ = []; stdQ = [];
 B = W - P;          % initial modularity matrix, given data matrix W and specified null model P
 [V,~] = eig(B);   % eigenvectors of B - embedding dimensions
 
-C = kmeansSweep(V(:,1:M-1),M,nreps,dims);  % find groups in embedding dimensions
+C = kmeansSweep(V(:,1:M-1),2,M,nreps,dims);  % find groups in embedding dimensions: sweep from 2 to M
 
 for iQ = 1:size(C,2)
     Q(iQ) = computeQ(C(:,iQ),B,m); % compute modularity Q for each clustering
@@ -162,9 +161,9 @@ while ~blnConverged
             blnConverged = 1;
         else
             % find upper limit of groups
-            [D,B,M] = EmbedConsensus(Ccons);
+            [D,B,M] = EmbedConsensus(CCons);
             % do k-means sweep
-            C = kmeansSweep(D,M,nreps,dims);  % find groups in embedding dimensions
+            C = kmeansSweep(D,2,M,nreps,dims);  % find groups in embedding dimensions
  
             % compute Q
             for iQ = 1:size(C,2)

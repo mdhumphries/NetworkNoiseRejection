@@ -21,6 +21,17 @@ W(n/2+1:end,n/2+1:end) = Wblock;
 W(eye(n)==1) = 0; % remove self-connections
 Data{2} = W;
 
+% multiple groups
+Wblock = ones(n/4); 
+W = zeros(n);
+for iW = 1:4
+    ix = (1:n/4)+n/4*(iW-1);
+    W(ix,ix) = Wblock;
+end
+W(eye(n)==1) = 0; % remove self-connections
+Data{3} = W;
+
+
 %% parameter options
 dims = {'all','scale'};
 Treps = [0,1,10];
@@ -37,20 +48,21 @@ for iD = 1:numel(Data)
  
     % get embedding dimensions
     ixRetain = find(egs > egmin); 
-    M = min(4,numel(ixRetain)+1);  % how many groups? Gives huge numbers for noise, so force to tiny set of dimensions
-    ixRetain = 1:M-1;
+    L = 2;
+    U = min(4,numel(ixRetain)+1);  % how many groups? Gives huge numbers for noise, so force to tiny set of dimensions
+    ixRetain = 1:U-1;
     EmbedD = V(:,ixRetain);
     
     %% test k-means sweep
-    Mlist = [0,1,M,M+5];  % test passing of no groups, 1 group, matching groups, and more than dimensions
+    Ulist = [0,1,U,U+5];  % test passing of no groups, 1 group, matching groups, and more than dimensions
     ErrCtr = 1;
-    for iM = 1:numel(Mlist)
+    for iM = 1:numel(Ulist)
         for iT = 1:numel(Treps)
             for iOpt = 1:numel(dims)
                 try
-                    allgrps = kmeansSweep(EmbedD,Mlist(iM),Treps(iT),dims{iOpt});
+                    allgrps = kmeansSweep(EmbedD,L,Ulist(iM),Treps(iT),dims{iOpt});
                 catch ME
-                    msg = sprintf(['\n Data' num2str(iD) ', K-means Error' num2str(ErrCtr) ': \n' ME.message ' \n Thrown by: M=' num2str(Mlist(iM)) ', Treps = ' num2str(Treps(iT)) ', dims = ' dims{iOpt}]); 
+                    msg = sprintf(['\n Data' num2str(iD) ', K-means Error' num2str(ErrCtr) ': \n' ME.message ' \n Thrown by: M=' num2str(Ulist(iM)) ', Treps = ' num2str(Treps(iT)) ', dims = ' dims{iOpt}]); 
                     disp(msg)
                     allgrps = [];
                     ErrCtr = ErrCtr+1;
@@ -58,11 +70,11 @@ for iD = 1:numel(Data)
                 % sanity checks
                 if ~isempty(allgrps)
                     [r,c] = size(allgrps);
-                    if c ~= (Mlist(iM)-1)*Treps(iT) || r ~= n
+                    if c ~= (Ulist(iM)-1)*Treps(iT) || r ~= n
                         error('K-means sweep output is the wrong size')
                     end
                 end
-                if Mlist(iM) == M && Treps(iT) == max(Treps) && any(strfind(dims{iOpt},'all'))
+                if Ulist(iM) == U && Treps(iT) == max(Treps) && any(strfind(dims{iOpt},'all'))
                     Clustering{iD} = allgrps;  % use this for all next tests
                 end
             end
@@ -106,4 +118,6 @@ for iD = 1:numel(Data)
     hist(egsNorm{iD},x);
     title(['Data' num2str(iD) ' normalised eigenvalues']);
    
+    %% entire function
+    [grps{iD},Qmax(iD),grpscon{iD},Qcon(iD),ctr(iD),CLU{iD}] = ConsensusCommunityDetect(Data{iD},B{iD},U,Treps(end),dims{1});
 end
