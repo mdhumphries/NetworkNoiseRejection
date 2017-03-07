@@ -79,12 +79,20 @@ for iD = 1:numel(Data)
     pars = {Ccons{iD}};
     [blnExpected,PconE{iD}] = doUnitTest('nullmodelConsensusExpectation',pars);
 
-    %% embed consensus
+    %% embed consensus: Wishart
     pars = {Ccons{iD}};
     [blnExpected,newD{iD},newB{iD},newM{iD},egsNorm{iD}] = doUnitTest('EmbedConsensusWishart',pars);
     
+    %% embed consensus: Laplacian
     pars = {Ccons{iD},U(iD)};
     [blnExpected,newDlw{iD},egslw{iD}] = doUnitTest('ProjectLaplacian',pars);
+    
+    %% embed consensus: using null models
+    pars = {Ccons{iD},'expect'};
+    [blnExpected,Dexpect{iD},Bexpect{iD},Mexpect(iD)] = doUnitTest('EmbedConsensusNull',pars);
+    
+    pars = {Ccons{iD},'sweep',L:U(iD),ones(K,1)*max(Treps)};
+    [blnExpected,Dsweep{iD},Bsweep{iD},Msweep(iD)] = doUnitTest('EmbedConsensusNull',pars);
     
 %     x = min(egsNorm{iD})-dx:dx:max(egsNorm{iD})+dx;
 %     figure

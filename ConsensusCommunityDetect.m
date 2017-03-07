@@ -119,7 +119,8 @@ B = W - P;          % initial modularity matrix, given data matrix W and specifi
 [~,ix] = sort(egs,'descend');    % sort into descending order
 V = V(:,ix);                       % ditto the eigenvectors 
 
-C = kmeansSweep(V(:,1:M-1),2,M,nreps,dims);  % find groups in embedding dimensions: sweep from 2 to M
+% C = kmeansSweep(V(:,1:M-1),2,M,nreps,dims);  % find groups in embedding dimensions: sweep from 2 to M
+C = kmeansSweep(V(:,1:M),2,M,nreps,dims);  % find groups in embedding dimensions: sweep from 2 to M
 
 for iQ = 1:size(C,2)
     Q(iQ) = computeQ(C(:,iQ),B,m); % compute modularity Q for each clustering
@@ -175,7 +176,7 @@ while ~blnConverged
             C = kmeansSweep(D,M,M,nreps,dims);  % find groups in embedding dimensions
              
             % compute Q
-            Q = zeros(size(C,2));
+            Q = zeros(size(C,2),1);
             for iQ = 1:size(C,2)
                 Q(iQ) = computeQ(C(:,iQ),B,m); % compute modularity Q for each clustering using original modularity matrix
             end
