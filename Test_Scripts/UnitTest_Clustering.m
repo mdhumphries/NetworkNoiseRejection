@@ -9,14 +9,14 @@ dx = 0.05;
 dims = {'all','scale'};
 Treps = [0,1,10];
 
-load UnitTestClusteringData
+load UnitTestClusteringData.mat
 
-%% test data 
-for iD = 1:numel(Data)
-    n = size(Data{iD},1); 
-    % get modularity: do this with configuration model to get appropriate data
-    P{iD} = expectedA(Data{iD});
-    B{iD} = Data{iD} - P{iD};  % also catch expectedA errors here
+%% test TestData 
+for iD = 1:numel(TestData)
+    n = size(TestData(iD).W,1); 
+    % get modularity: do this with configuration model to get appropriate TestData
+    P{iD} = expectedA(TestData(iD).W);
+    B{iD} = TestData(iD).W - P{iD};  % also catch expectedA errors here
     
     % get eigenvalues & eigenvectors 
     [V,egs] = eig(B{iD},'vector');
@@ -54,7 +54,7 @@ for iD = 1:numel(Data)
     end
 
     %% Q computation
-    m = sum(sum(Data{iD}))/2;  % sum of unique weights
+    m = sum(sum(TestData(iD).W))/2;  % sum of unique weights
     pars = {Clustering{iD}(:,1),B{iD},m};
     [blnExpected,Q] = doUnitTest('computeQ',pars);
    
@@ -97,10 +97,10 @@ for iD = 1:numel(Data)
 %     x = min(egsNorm{iD})-dx:dx:max(egsNorm{iD})+dx;
 %     figure
 %     hist(egsNorm{iD},x);
-%     title(['Data' num2str(iD) ' normalised eigenvalues']);
+%     title(['TestData' num2str(iD) ' normalised eigenvalues']);
    
     %% entire function
-    [grps{iD},Qmax(iD),grpscon{iD},Qcon(iD),ctr(iD),CLU{iD}] = ConsensusCommunityDetect(Data{iD},P{iD},U(iD),Treps(end),dims{1});
+    [grps{iD},Qmax(iD),grpscon{iD},Qcon(iD),ctr(iD),CLU{iD}] = ConsensusCommunityDetect(TestData(iD).W,P{iD},U(iD),Treps(end),dims{1});
 
 end
 

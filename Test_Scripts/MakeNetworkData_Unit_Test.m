@@ -8,7 +8,8 @@ n = 100;
 W = rand(100); % uniformly random weight matrix
 W = (W+W')/2;    % undirected 
 W(eye(n)==1) = 0; % remove self-connections
-Data{1} = W;
+TestData(1).W = W;
+TestData(1).M = nan;
 
 % block diagoonal
 Wblock = ones(n/2); 
@@ -16,7 +17,8 @@ W = zeros(n);
 W(1:n/2,1:n/2) = Wblock;
 W(n/2+1:end,n/2+1:end) = Wblock;
 W(eye(n)==1) = 0; % remove self-connections
-Data{2} = W;
+TestData(2).W = W;
+TestData(2).M = nan;
 
 % multiple groups
 Wblock = ones(n/4); 
@@ -26,6 +28,12 @@ for iW = 1:4
     W(ix,ix) = Wblock;
 end
 W(eye(n)==1) = 0; % remove self-connections
-Data{3} = W;
+TestData(3).W = W;
+TestData(3).M = nan;
 
-save UnitTestClusteringData Data
+% real network: Les Mis
+load ../Results/Rejected_Lesmis.mat    
+TestData(4).W = Data.Aconnected;
+TestData(4).M = Data.Dn;        % not used yet
+
+save UnitTestClusteringData TestData
