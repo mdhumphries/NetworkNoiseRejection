@@ -15,16 +15,16 @@ function allgrps = kmeansSweep(D,LowerK,UpperK,Treps,dims)
 % Mark Humphries 6/3/2017
 
 if LowerK < 2 
-    error('Specify at least L=2 as minimum number of groups')
+    error('kmeansSweep:parameter','Specify at least L=2 as minimum number of groups')
 end
 
 if LowerK > UpperK
-    error('Lower-bound greater than upper-bound')
+    error('kmeansSweep:parameter','Lower-bound greater than upper-bound')
 end
 
 [n,d] = size(D);
 if any(strfind(dims,'scale')) && d < UpperK-1
-    error('Not enough embedding dimensions to scale to upper bound')
+    error('kmeansSweep:parameter','Not enough embedding dimensions to scale to upper bound')
 end
 
 K = 1+ UpperK - LowerK;

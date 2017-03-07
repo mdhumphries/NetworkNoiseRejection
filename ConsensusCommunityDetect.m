@@ -161,13 +161,13 @@ while ~blnConverged
             blnConverged = 1;
         else
             % find upper limit of groups
-            [D,B,M] = EmbedConsensus(CCons);
+            [D,Bcon,M] = EmbedConsensus(CCons);
             % do k-means sweep
             C = kmeansSweep(D,2,M,nreps,dims);  % find groups in embedding dimensions
  
             % compute Q
             for iQ = 1:size(C,2)
-                Q(iQ) = computeQ(C(:,iQ),B,m); % compute modularity Q for each clustering
+                Q(iQ) = computeQ(C(:,iQ),B,m); % compute modularity Q for each clustering using original modularity matrix
             end
         end
     end

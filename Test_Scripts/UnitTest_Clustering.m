@@ -2,39 +2,16 @@
 clear all; close all
 addpath ../
 
+fcns = {'kmeansSweep','computeQ','makeConsensusMatrix','CheckConvergenceConsensus','EmbedConsensus'};
+
 egmin = 1e-2; % counts as more than zero?
 dx = 0.05;
-
-%% make data
-% uniformly random weighted network
-n = 100;
-W = rand(100); % uniformly random weight matrix
-W = W+W'/2;    % undirected 
-W(eye(n)==1) = 0; % remove self-connections
-Data{1} = W;
-
-% block diagoonal
-Wblock = ones(n/2); 
-W = zeros(n);
-W(1:n/2,1:n/2) = Wblock;
-W(n/2+1:end,n/2+1:end) = Wblock;
-W(eye(n)==1) = 0; % remove self-connections
-Data{2} = W;
-
-% multiple groups
-Wblock = ones(n/4); 
-W = zeros(n);
-for iW = 1:4
-    ix = (1:n/4)+n/4*(iW-1);
-    W(ix,ix) = Wblock;
-end
-W(eye(n)==1) = 0; % remove self-connections
-Data{3} = W;
-
 
 %% parameter options
 dims = {'all','scale'};
 Treps = [0,1,10];
+
+load UnitTestClusteringData
 
 %% test data 
 for iD = 1:numel(Data)
@@ -59,14 +36,25 @@ for iD = 1:numel(Data)
     for iM = 1:numel(Ulist)
         for iT = 1:numel(Treps)
             for iOpt = 1:numel(dims)
-                try
-                    allgrps = kmeansSweep(EmbedD,L,Ulist(iM),Treps(iT),dims{iOpt});
-                catch ME
-                    msg = sprintf(['\n Data' num2str(iD) ', K-means Error' num2str(ErrCtr) ': \n' ME.message ' \n Thrown by: M=' num2str(Ulist(iM)) ', Treps = ' num2str(Treps(iT)) ', dims = ' dims{iOpt}]); 
-                    disp(msg)
+                pars = {EmbedD,L,Ulist(iM),Treps(iT),dims{iOpt}};
+                [blnExpected,allgrps] = doUnitTest(fcns{1},pars);
+                if blnExpected
                     allgrps = [];
-                    ErrCtr = ErrCtr+1;
                 end
+%                 try
+%                     allgrps = kmeansSweep(EmbedD,L,Ulist(iM),Treps(iT),dims{iOpt});
+%                 catch ME
+%                     if any(strfind(ME.identifier,'kmeansSweep'))
+%                         msg = sprintf(['\n Data' num2str(iD) ', K-means Error: \n' ME.message ' \n Thrown by: M=' num2str(Ulist(iM)) ', Treps = ' num2str(Treps(iT)) ', dims = ' dims{iOpt}]); 
+%                         disp(msg)
+%                         allgrps = [];
+%                         ErrCtr = ErrCtr+1;
+%                     else
+%                        rethrow(ME); 
+%                     end
+%                 end
+                
+                
                 % sanity checks
                 if ~isempty(allgrps)
                     [r,c] = size(allgrps);
@@ -83,12 +71,9 @@ for iD = 1:numel(Data)
     
     %% Q computation
     m = sum(sum(Data{iD}))/2;  % sum of unique weights
-    try
-        Q = computeQ(Clustering{iD}(:,1),B{iD},m);
-    catch ME
-        msg = sprintf(['\n Data' num2str(iD) ', Q compute Error: \n' ME.message ]); 
-        disp(msg)
-    end
+    pars = {Clustering{iD}(:,1),B{iD},m};
+    [blnExpected,Q] = doUnitTest(fcns{1},pars);
+   
     
     %% Make consensus matrix
     try
@@ -99,6 +84,9 @@ for iD = 1:numel(Data)
     end
     
     %% check convergence
+    pars = Ccons(iD);
+    [blnExpected,blnTrans,grpscon{iD}] = doUnitTest(fcns{2},pars);
+    
     try
         [blnTrans,grpscon{iD}] = CheckConvergenceConsensus(Ccons{iD});
     catch ME
