@@ -68,8 +68,17 @@ for iD = 1:numel(Data)
     %% check convergence
     pars = {Ccons{iD}};
     [blnExpected,blnTrans,grpscon{iD}] = doUnitTest('CheckConvergenceConsensus',pars);
-
     
+    %% consensus null model
+    K = 1+U(iD)-L;
+    pars = {1,ones(K,1)*max(Treps),n};  % must throw error
+    [blnExpected,~,~] = doUnitTest('nullmodelConsensusSweep',pars);
+    pars = {L:U(iD),ones(K,1)*max(Treps),n}; 
+    [blnExpected,PconS{iD},VconS{iD}] = doUnitTest('nullmodelConsensusSweep',pars);
+    
+    pars = {Ccons{iD}};
+    [blnExpected,PconE{iD}] = doUnitTest('nullmodelConsensusExpectation',pars);
+
     %% embed consensus
     pars = {Ccons{iD}};
     [blnExpected,newD{iD},newB{iD},newM{iD},egsNorm{iD}] = doUnitTest('EmbedConsensus',pars);
