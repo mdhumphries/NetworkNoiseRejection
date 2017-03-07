@@ -81,12 +81,15 @@ for iD = 1:numel(Data)
 
     %% embed consensus
     pars = {Ccons{iD}};
-    [blnExpected,newD{iD},newB{iD},newM{iD},egsNorm{iD}] = doUnitTest('EmbedConsensus',pars);
-
-    x = min(egsNorm{iD})-dx:dx:max(egsNorm{iD})+dx;
-    figure
-    hist(egsNorm{iD},x);
-    title(['Data' num2str(iD) ' normalised eigenvalues']);
+    [blnExpected,newD{iD},newB{iD},newM{iD},egsNorm{iD}] = doUnitTest('EmbedConsensusWishart',pars);
+    
+    pars = {Ccons{iD},U(iD)};
+    [blnExpected,newDlw{iD},egslw{iD}] = doUnitTest('ProjectLaplacian',pars);
+    
+%     x = min(egsNorm{iD})-dx:dx:max(egsNorm{iD})+dx;
+%     figure
+%     hist(egsNorm{iD},x);
+%     title(['Data' num2str(iD) ' normalised eigenvalues']);
    
     %% entire function
     [grps{iD},Qmax(iD),grpscon{iD},Qcon(iD),ctr(iD),CLU{iD}] = ConsensusCommunityDetect(Data{iD},P{iD},U(iD),Treps(end),dims{1});

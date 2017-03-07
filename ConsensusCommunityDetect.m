@@ -164,12 +164,18 @@ while ~blnConverged
             Qcon = 0;
             blnConverged = 1;
         else
-            % find upper limit of groups
-            [D,Bcon,M] = EmbedConsensus(CCons);
-            % do k-means sweep
-            C = kmeansSweep(D,2,M,nreps,dims);  % find groups in embedding dimensions
- 
+%             % find upper limit of groups - replicate this code when using
+%             null model for consensus
+%             [D,~,Mcons] = EmbedConsensusWishart(CCons);
+%              % do k-means sweep using found M
+%             C = kmeansSweep(D,2,Mcons,nreps,dims);  % find groups in embedding dimensions
+           
+            % do Laplacian on consensus matrix, using original M
+            D = ProjectLaplacian(CCons,M);
+            C = kmeansSweep(D,M,M,nreps,dims);  % find groups in embedding dimensions
+             
             % compute Q
+            Q = zeros(size(C,2));
             for iQ = 1:size(C,2)
                 Q(iQ) = computeQ(C(:,iQ),B,m); % compute modularity Q for each clustering using original modularity matrix
             end
