@@ -12,7 +12,7 @@ function m = kmeansplus(X,k)
 [n,d] = size(X); 
 m = zeros(k,d);
 v = inf(n,1); % current minimum distance of data-point to closest centre
-m(1,:) = X(ceil(n*rand),:); % put is co-ordinates into 
+m(1,:) = X(ceil(n*rand),:); % put 1st co-ordinates into 
 
 for i = 2:k
     % find distance from all data-points to closest center

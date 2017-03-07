@@ -39,6 +39,9 @@ function [grps,Qmax,grpscon,Qcon,ctr,varargout] = ConsensusCommunityDetect(W,P,M
 %   uses k-means clustering on those eigenvectors to cluster the nodes into k = C+1 groups. 
 %   A value for Q is computed for each k-means clustering (using the defined distance metrics).
 %
+%   Q = 1/2m * sum_ij(A_ij-P_ij) I(n_i,n_j) [where I(n_i,n_j) = 1 if nodes i,j
+%   are in the same group, and 0 otherwise]
+%   
 %   (2) This is repeated for each C in 1:M, where M is number of positive
 %   eigenvalues
 %
@@ -109,12 +112,12 @@ m = sum(sum(W))/2;    % number of unique links (or total unique weights)
 
 blnConverged = 0;       % stopping flag
 ctr = 1;                % iterations of consensus
-Gstar = ones(nIDs,1);   % current clustering: all in same group
-mQ = []; stdQ = [];
 
 %% cluster signal network
 B = W - P;          % initial modularity matrix, given data matrix W and specified null model P
-[V,~] = eig(B);   % eigenvectors of B - embedding dimensions
+[V,egs] = eig(B,'vector');
+[~,ix] = sort(egs,'descend');    % sort into descending order
+V = V(:,ix);                       % ditto the eigenvectors 
 
 C = kmeansSweep(V(:,1:M-1),2,M,nreps,dims);  % find groups in embedding dimensions: sweep from 2 to M
 
@@ -130,6 +133,7 @@ if isempty(C) || all(Q(:) <= 0)
     grpscon = zeros(nIDs,1);
     Qcon = 0;
     ctr = 0; 
+    varargout{1} = C;
     blnConverged = 1;  % no answer
     return
 else

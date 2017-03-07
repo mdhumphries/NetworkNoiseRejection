@@ -40,8 +40,8 @@ for ngrps = LowerK:UpperK
             error('Unknown options for DIMS')
     end
     
-    cpos = kmeansplus(thisVector, ngrps); % initialise centers
     for rep = 1:Treps
+        cpos = kmeansplus(thisVector, ngrps); % initialise centers (chooses starting position at random)
         % keyboard
         try            
             allgrps(:,ixNow) = kmeans(thisVector,ngrps,'Distance','sqeuclidean','Start',cpos);
