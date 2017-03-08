@@ -2,23 +2,38 @@
 % Mark Humphries, 28/2/2017
 clear all; close all;
 
-fname = 'Lesmis';
+fname = 'StarWarsNetworkEp5';
 nLouvain = 5;
 fontsize = 6;
 
-%% load data
-load(['Results/Rejected_' fname],'Data')
+% load data
+load(['Results/Rejected_' fname])
 
 %% cluster - with noise rejection
 % consensus modularity
-% [C,Qmax,Ccon,Qc,Ngrps,Q] = allevsplitConTransitive(Asignal);
-[Connected.QmaxCluster,Connected.Qmax,Connected.ConsCluster,Connected.ConsQ,Ngrps,~] = allevsplitConTransitive(Data.Aconnected);
+% [Connected.QmaxCluster,Connected.Qmax,Connected.ConsCluster,Connected.ConsQ,Ngrps,~] = allevsplitConTransitive(Data.Aconnected);
+
+% construct new null model
+P = Data.ExpA(Data.ixConnectedSignal,Data.ixConnectedSignal); % extract relevant part of null model
+
+% or make one
+% [Signal.Emodel,~,Vmodel,Signal.ExpA] = RndPoissonConfigModel(Data.Aconnected,pars.N,pars.C,optionsModel);
+% P = Data.Aconnected - Signal.ExpA;  % modularity matrix using chosen null model
+% % find low-dimensional projection
+% [~,~,Signal.Dn,~] = LowDSpace(P,Signal.Emodel,pars.alpha); % to just obtain low-dimensional projection
+
+% then cluster
+[Connected.QmaxCluster,Connected.Qmax,Connected.ConsCluster,Connected.ConsQ,ctr] = ...
+                                        ConsensusCommunityDetect(Data.Aconnected,P,1+Data.Dn);
 
 % Louvain algorithm
 [Connected.LouvCluster,Connected.LouvQ,allCn,allIters] = LouvainCommunityUDnondeterm(Data.Aconnected,nLouvain,1);  % run 5 times; return 1st level of hierarchy only
 
 %% cluster - without noise rejection
-[Full.QmaxCluster,Full.Qmax,Full.ConsCluster,Full.ConsQ,Ngrps,~] = allevsplitConTransitive(Data.A);
+% [Full.QmaxCluster,Full.Qmax,Full.ConsCluster,Full.ConsQ,Ngrps,~] = allevsplitConTransitive(Data.A);
+[Full.QmaxCluster,Full.Qmax,Full.ConsCluster,Full.ConsQ,~] = ...
+                                                ConsensusCommunityDetect(Data.A,Data.ExpA,1+Data.Dn);
+
 
 [Full.LouvCluster,Full.LouvQ,allCn,allIters] = LouvainCommunityUDnondeterm(Data.A,nLouvain,1);  % run 5 times; return 1st level of hierarchy only
 

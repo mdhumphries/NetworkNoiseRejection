@@ -9,7 +9,7 @@
 
 clear all; close all
 
-fname = 'Lesmis.mat'; 
+fname = 'StarWarsNetworkEp4'; 
 blnVizNet = 1;  % network visualisation - if MATLAB BGL installed, appropriate for platform:
 fontsize = 6;
 

@@ -171,9 +171,16 @@ while ~blnConverged
 %              % do k-means sweep using found M
 %             C = kmeansSweep(D,2,Mcons,nreps,dims);  % find groups in embedding dimensions
            
-            % do Laplacian on consensus matrix, using original M
-            D = ProjectLaplacian(CCons,M);
-            C = kmeansSweep(D,M,M,nreps,dims);  % find groups in embedding dimensions
+            T = sum(reshape(Allowed,nreps,1+M-2));  % count how many at each K were retained
+            [D,~,Mcons] = EmbedConsensusNull(CCons,'sweep',2:M,T);
+            M = Mcons;
+             % do k-means sweep using found M
+            C = kmeansSweep(D,2,M,nreps,dims);  % find groups in embedding dimensions
+
+%             % do Laplacian on consensus matrix, using original M
+%             D = ProjectLaplacian(CCons,M);
+%             keyboard
+%             C = kmeansSweep(D,M,M,nreps,dims);  % find groups in embedding dimensions
              
             % compute Q
             Q = zeros(size(C,2),1);
