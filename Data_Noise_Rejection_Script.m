@@ -6,7 +6,7 @@
 clear all; close all
 
 % network to analyse
-fname = 'StarWarsNetworkEp6'; 
+fname = 'cosyneFinalData'; 
 
 % analysis parameters
 pars.N = 100;           % repeats of permutation
@@ -45,7 +45,7 @@ else
     Data.nodelabels = Problem.aux.nodename;
 end
 
-% clean-up A, use largest component, and store as basis for all further analysis
+% clean-up A, get largest component, and store as basis for all further analysis
 [Data.A,Data.ixRetain,Data.Comps,Data.CompSizes] = prep_A(A);
 
 % % SBM generation
