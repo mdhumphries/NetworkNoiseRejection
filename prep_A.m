@@ -1,15 +1,28 @@
-% Function to go through all the steps to prepare a connectivity matrix for
-% noise rejection. Namely, 
 
-function [A,nz_e] = prep_A(A)
+function [W,ixRetain,Comps,Comp_sizes] = prep_A(W)
+% PREP_A get final weighted adjacency matrix
+% [W*,I,C,S] = PREP_A(W) given the undirected weighted adjacency matrix W,
+% finds the largest component, and returns that as W*, the matrix to be
+% used in all further analyses. Also returns:
+%   I: the index of retained nodes in W*
+%   C: the complete index list of components (1,...,C components)
+%   S: the sizes of each component
+%
+% NOTE:
+% Uses GET_COMPONENTS from the Brain Connectivity Toolbox
+%
+% Mark Humphries 9/3/2017
 
-% Keep only non-zero elements
-nz_e = find(sum(A)); % nonzero_elements
+A = double(W>0);
+[Comps,Comp_sizes] = get_components(A);
 
-A = A(nz_e,nz_e);
+% Keep only the largest component
+ixC = find(Comp_sizes == max(Comp_sizes));
+ixRetain = find(Comps == ixC);
+W = W(ixRetain,ixRetain);
 
 % Remove diagonal elements
-A((eye(length(A)))==1) = 0;
+W((eye(size(W,1)))==1) = 0;
 
 
 

@@ -2,7 +2,7 @@
 % Mark Humphries, 28/2/2017
 clear all; close all;
 
-fname = 'StarWarsNetworkEp5';
+fname = 'StarWarsNetworkAll';
 nLouvain = 5;
 fontsize = 6;
 

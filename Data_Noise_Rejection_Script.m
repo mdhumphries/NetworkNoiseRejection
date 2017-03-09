@@ -6,7 +6,7 @@
 clear all; close all
 
 % network to analyse
-fname = 'StarWarsEp5.mat'; 
+fname = 'StarWarsNetworkEp6'; 
 
 % analysis parameters
 pars.N = 100;           % repeats of permutation
@@ -45,8 +45,8 @@ else
     Data.nodelabels = Problem.aux.nodename;
 end
 
-% clean-up A, and store as basis for all further analysis
-[Data.A,Data.ixRetain] = prep_A(A);
+% clean-up A, use largest component, and store as basis for all further analysis
+[Data.A,Data.ixRetain,Data.Comps,Data.CompSizes] = prep_A(A);
 
 % % SBM generation
 % A_SBM = test_noise_rejection_planted_noise(50,2,'low',0.2);
