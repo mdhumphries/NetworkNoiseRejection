@@ -6,13 +6,14 @@
 clear all; close all
 
 % network to analyse
-fname = 'LesMis.mat'; 
+fname = 'StarWarsEp5.mat'; 
 
 % analysis parameters
 pars.N = 100;           % repeats of permutation
 pars.alpha = 0;         % confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
 pars.Model = 'Poiss';   % or 'WCM' . % which null model
 pars.C = 1;             % conversion factor for real-valued weights (set=1 for integers)
+pars.eg_min = 1e-2;      % given machine error, what is acceptable as "zero" eigenvalue
 
 % null model options
 optionsModel.Expected = 1;    % compute the expectation over the null model graph ensemble? 
@@ -70,6 +71,11 @@ B = Data.A - Data.ExpA;  % modularity matrix using chosen null model
 % find low-dimensional projection
 [Data.Dspace,~,Data.Dn,Data.EigEst] = LowDSpace(B,Data.Emodel,pars.alpha); % to just obtain low-dimensional projection; Data.Dn = number of retained eigenvectors
 
+% compute dimensions based on just positive eigenvalues
+egs = eig(B,'vector');  % eigenspectra of data modularity matrix
+egs = sort(egs,'descend'); % sort eigenvalues into descending order 
+Data.PosDn = sum(egs > pars.eg_min);
+
 % node rejection within low-dimensional projection
 Rejection = NodeRejection(B,Data.Emodel,pars.alpha,Vmodel,optionsReject); % N.B. also calls LowDSpace function to find projections
 
@@ -86,6 +92,13 @@ Data.Aconnected = Data.A(Data.ixConnectedSignal,Data.ixConnectedSignal);  % subs
 Control.P = expectedA(Data.A);
 
 B = Data.A - Control.P;
+
+% compute groups based on just positive eigenvalues
+egs = eig(B,'vector');  % eigenspectra of data modularity matrix
+egs = sort(egs,'descend'); % sort eigenvalues into descending order 
+Control.PosDn = sum(egs > pars.eg_min);
+
+% compute groups based on estimated bounds
 [Control.Dspace,~,Control.Dn,Control.EigEst] = LowDSpace(B,Control.Emodel,pars.alpha); % to just obtain low-dimensional projection; Data.Dn = number of retained eigenvectors
 
 
