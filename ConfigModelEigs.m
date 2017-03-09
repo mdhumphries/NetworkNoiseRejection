@@ -1,23 +1,25 @@
-function [allV,varargout] = expectedEigsUnd(A,N,varargin)
+function [allV,varargout] = ConfigModelEigs(A,N,varargin)
 
-% EXPECTEDEIGSUND expected eigenvalue distribution for weighted configuration model
-% V = EXPECTEDEIGSUND(A,N) takes the weighted, undirected adjacency matrix A and creates N
+% CONFIGMODELEIGS expected eigenvalue distribution for basic configuration model
+% V = CONFIGMODELEIGS(A,N) takes the weighted, undirected (n x n) adjacency matrix A and creates N
 % random realisations of the modularity matrix B by randomly generating a 
 % null model approximating the configuration model P.
-% Returns V, the distribution of all eigenvalues for all random modularity
+% Returns E, an n x N matrix of all n eigenvalues for each of the N random modularity
 % matrices.
 % 
-% V = EXPECTEDEIGSUND(..,C) sets the conversion factor C; i.e. the amount
+% V = CONFIGMODELEIGS(..,C) sets the conversion factor C; i.e. the amount
 % by which the weighted adjacency matrix is scaled to get integer weights.
 % C = 'all' sets the conversion factor large enough that the minimum weight
 % is converted to 1.
 %
-% [..,D] = EXPECTEDEIGSUND(...) returns a struct D, containing diagnostic
-% measurements of the accuracy of the null model for each of the N repeats, with fields
-%       D(i).kAp = degree distribution of the ith repeat
-%       D(i).dK = absolute difference between data and ith model degree distributions 
-%       D(i).dkN = absolute difference, normalised per node to its degree
-%       in the data (i.e. to measure the error relative to magnitude)
+% [..,D,V] = CONFIGMODELEIGS(...) returns:
+%           D: a struct, containing diagnostic measurements of the accuracy of the null model 
+%           for each of the N repeats, with fields
+%           D(i).sAp = strength distribution of the ith repeat
+%           D(i).dS = absolute difference between data and ith model strength distributions 
+%           D(i).dSN = absolute difference, normalised per node to its strength
+%               in the data (i.e. to measure the error relative to magnitude)
+%           V: an nxnxN matrix, containing all of the nxn eigenvector matrices of the N repeats            
 %
 % Notes: 
 % (1) assumes A is connected;
@@ -29,8 +31,9 @@ function [allV,varargout] = expectedEigsUnd(A,N,varargin)
 % 25/7/2016: changed to computation of B* = P* - P as basic model   
 %            added Parallel Computing Toolbox support for main loop
 %            fixed bug: now returns correct eigenvalues
-% 
-% Mark Humphries 25/7/2016
+% 9/3/2017  Updated input and output to match corresponding functions for
+%           more complex models
+% Mark Humphries 9/3/2017
 
 n = size(A,1);
 
@@ -62,14 +65,13 @@ stubs = sum(A_int);  % how many stubs?
 m_int = sum(stubs)/2; % so how many loops to match all stubs?
 
 P_appear = stubs ./ sum(stubs);
-C_appear = cumsum(stubs ./ sum(stubs));
 
 % weighted configuration model {expectation]
 P = expectedA(A);
 
 % initialise structs to full storage size, allowing parfor to slice
 % appropriately
-Pstar = emptyStruct({'Egs'},[N,1]);
+Pstar = emptyStruct({'Egs','V'},[N,1]);
 
 fieldnames = {'conversion','kAp','minW','maxW','dK','dKN','dmax'};
 diagnostics = emptyStruct(fieldnames, [N,1]);
@@ -150,12 +152,20 @@ parfor iN = 1:N
     %% get eigenvalues
     % P is null model for A, assuming A = P + noise
     % B* = P* - P
-    Pstar(iN).Egs = eig(Aperm - P);
+    [Pstar(iN).V,Pstar(iN).Egs] = eig(Aperm - P,'vector');
+    [Pstar(iN).Egs,ix] = sort(Pstar(iN).Egs,'descend'); % ensure eigenvalues are sorted in order
+    Pstar(iN).V = Pstar(iN).V(:,ix); % also sort eigenvectors
     
     % keyboard
 end
 
-allV = [Pstar.Egs];
-allV = allV(:);
-varargout{1} = diagnostics;
+% now collapse all eigenvalues and vectors into matrix
+V = zeros(n,n,N);
+E = zeros(n,N);
+for iN = 1:N
+    E(:,iN) = Pstar(iN).Egs;
+    V(:,:,iN) = Pstar(iN).V;
+end
 
+varargout{1} = diagnostics;
+varargout{2} = V;

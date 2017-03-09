@@ -6,7 +6,7 @@
 clear all; close all
 
 % network to analyse
-fname = 'StarWarsNetworkEp5.mat'; 
+fname = 'LesMis.mat'; 
 
 % analysis parameters
 pars.N = 100;           % repeats of permutation
@@ -64,12 +64,11 @@ switch pars.Model
         error('Unrecognised null model specified')
 end
 
-
 %% decompose nodes into signal and noise
 B = Data.A - Data.ExpA;  % modularity matrix using chosen null model
 
 % find low-dimensional projection
-[Data.Dspace,Ix,Data.Dn,Data.EigEst] = LowDSpace(B,Data.Emodel,pars.alpha); % to just obtain low-dimensional projection; Data.Dn = number of retained eigenvectors
+[Data.Dspace,~,Data.Dn,Data.EigEst] = LowDSpace(B,Data.Emodel,pars.alpha); % to just obtain low-dimensional projection; Data.Dn = number of retained eigenvectors
 
 % node rejection within low-dimensional projection
 Rejection = NodeRejection(B,Data.Emodel,pars.alpha,Vmodel,optionsReject); % N.B. also calls LowDSpace function to find projections
@@ -82,6 +81,15 @@ kAsignal = sum(Data.Asignal>0);
 Data.ixConnectedSignal = Rejection.ixSignal(kAsignal > 1);  % more than 1 link
 Data.Aconnected = Data.A(Data.ixConnectedSignal,Data.ixConnectedSignal);  % subset of original matrix
 
+%% compare to standard configuration model
+[Control.Emodel,diagnostics,Vmodel] = RndPoissonConfigModel(Data.A,pars.N,pars.C);
+Control.P = expectedA(Data.A);
+
+B = Data.A - Control.P;
+[Control.Dspace,~,Control.Dn,Control.EigEst] = LowDSpace(B,Control.Emodel,pars.alpha); % to just obtain low-dimensional projection; Data.Dn = number of retained eigenvectors
+
+
+
 
 %% save
-save(['Results/Rejected_' fname],'Rejection','Data','pars','optionsModel','optionsReject')
+save(['Results/Rejected_' fname],'Rejection','Data','Control','pars','optionsModel','optionsReject')
