@@ -6,7 +6,7 @@
 clear all; close all
 
 % network to analyse
-fname = 'cosyneFinalData'; 
+fname = 'StarWarsNetworkEp5'; 
 
 % analysis parameters
 pars.N = 100;           % repeats of permutation
@@ -82,10 +82,18 @@ Rejection = NodeRejection(B,Data.Emodel,pars.alpha,Vmodel,optionsReject); % N.B.
 % new signal matrix
 Data.Asignal = Data.A(Rejection.ixSignal,Rejection.ixSignal);
 
-% connected signal matrix
-kAsignal = sum(Data.Asignal>0);
-Data.ixConnectedSignal = Rejection.ixSignal(kAsignal > 1);  % more than 1 link
-Data.Aconnected = Data.A(Data.ixConnectedSignal,Data.ixConnectedSignal);  % subset of original matrix
+% connected signal matrix: find largest component, and use that - store
+% others
+[Data.Asignal_comp,ixRetain,Data.SignalComps,Data.SignalComp_sizes] = prep_A(Data.Asignal); 
+Data.ixSignal_comp = Rejection.ixSignal(ixRetain);  % original node indices
+
+% and then strip out leaves - nodes with single links
+K = sum(Data.Asignal_comp);
+ixLeaves = find(K==1); ixKeep = find(K > 1);
+
+Data.ixSignal_Final = Data.ixSignal_comp(ixKeep);
+Data.ixSignal_Leaves = Data.ixSignal_comp(ixLeaves);
+Data.Asignal_final = Data.Asignal_comp(ixKeep,ixKeep);
 
 %% compare to standard configuration model
 [Control.Emodel,diagnostics,Vmodel] = RndPoissonConfigModel(Data.A,pars.N,pars.C);

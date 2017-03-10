@@ -1,9 +1,9 @@
-function [grps,Qmax,grpscon,Qcon,ctr,varargout] = ConsensusCommunityDetect(W,P,M,varargin)
+function [grps,Qmax,grpscon,Qcon,ctr,varargout] = ConsensusCommunityDetect(W,P,L,M,varargin)
  
 % CONSENSUSCOMMUNITYDETECT partition signal network using eigenvectors of signal modularity matrix (with consensus)
-%   [C,Qmax,Ccon,Qc,N,Q] = CONSENSUSCOMMUNITYDETECT(W,P,M) splits the
+%   [C,Qmax,Ccon,Qc,N,Q] = CONSENSUSCOMMUNITYDETECT(W,P,L,M) splits the
 %   vertices of the nxn weighted signal network W into multiple groups, given
-%   expected null model P, and maximum number of groups M.
+%   expected null model P, and minimum L and maximum M number of groups to detect.
 %   
 %   Returns: 
 %       C: column vector indicating group membership for the parition with maximum
@@ -32,18 +32,14 @@ function [grps,Qmax,grpscon,Qcon,ctr,varargout] = ConsensusCommunityDetect(W,P,M
 %       negative values
 %   Warnings for both of these will be given
 %
-%   (1) This is a one-step multiple partition method, following up a
-%   suggestion in Newman (2006) that all eigenvectors corresponding to positive
-%   eigenvalues of the modularity matrix contain information about group
-%   structure. The algorithm implemented takes the C such eigenvectors, and
+%   (1) This is a one-step multiple partition method. The algorithm implemented takes the C such eigenvectors, and
 %   uses k-means clustering on those eigenvectors to cluster the nodes into k = C+1 groups. 
 %   A value for Q is computed for each k-means clustering (using the defined distance metrics).
 %
 %   Q = 1/2m * sum_ij(A_ij-P_ij) I(n_i,n_j) [where I(n_i,n_j) = 1 if nodes i,j
 %   are in the same group, and 0 otherwise]
 %   
-%   (2) This is repeated for each C in 1:M, where M is number of positive
-%   eigenvalues
+%   (2) This is repeated for each C in L:M; set L=M for 
 %
 %   (3) Consensus: this attempts to extract a stable set of groups that are robust to repeats
 %   of the clustering process. All clusterings with Q>0 across all k-means variants and numbers of groups are
@@ -91,12 +87,13 @@ if x > 0
 end
 
 %% set up options
-if nargin >= 4
-    if ~isempty(varargin{1}) nreps = varargin{1}; end
-    if ~isempty(varargin{2}) 
-        dims = varargin{2}; 
-    end    
+if nargin >= 5 && ~isempty(varargin{1}) 
+    nreps = varargin{1}; 
 end
+
+if nargin >= 6 && ~isempty(varargin{2}) 
+    dims = varargin{2}; 
+end    
 
 % % set up saving of each iteration
 % blnSave = 0; % internal flag for setting saving of data
@@ -119,8 +116,8 @@ B = W - P;          % initial modularity matrix, given data matrix W and specifi
 [~,ix] = sort(egs,'descend');    % sort into descending order
 V = V(:,ix);                       % ditto the eigenvectors 
 
-% C = kmeansSweep(V(:,1:M-1),2,M,nreps,dims);  % find groups in embedding dimensions: sweep from 2 to M
-C = kmeansSweep(V(:,1:M),2,M,nreps,dims);  % find groups in embedding dimensions: sweep from 2 to M
+% C = kmeansSweep(V(:,1:M-1),L,M,nreps,dims);  % find groups in embedding dimensions: sweep from 2 to M
+C = kmeansSweep(V(:,1:M),L,M,nreps,dims);  % find groups in embedding dimensions: sweep from 2 to M
 
 for iQ = 1:size(C,2)
     Q(iQ) = computeQ(C(:,iQ),B,m); % compute modularity Q for each clustering
@@ -169,13 +166,14 @@ while ~blnConverged
 %             null model for consensus
 %             [D,~,Mcons] = EmbedConsensusWishart(CCons);
 %              % do k-means sweep using found M
-%             C = kmeansSweep(D,2,Mcons,nreps,dims);  % find groups in embedding dimensions
+%             C = kmeansSweep(D,L,Mcons,nreps,dims);  % find groups in embedding dimensions
            
-            T = sum(reshape(Allowed,nreps,1+M-2));  % count how many at each K were retained
-            [D,~,Mcons] = EmbedConsensusNull(CCons,'sweep',2:M,T);
+            % keyboard
+            T = sum(reshape(Allowed,nreps,1+M-L));  % count how many at each K were retained
+            [D,~,Mcons] = EmbedConsensusNull(CCons,'sweep',L:M,T);
             M = Mcons;
              % do k-means sweep using found M
-            C = kmeansSweep(D,2,M,nreps,dims);  % find groups in embedding dimensions
+            C = kmeansSweep(D,L,M,nreps,dims);  % find groups in embedding dimensions
 
 %             % do Laplacian on consensus matrix, using original M
 %             D = ProjectLaplacian(CCons,M);

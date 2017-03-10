@@ -2,9 +2,11 @@
 % Mark Humphries, 28/2/2017
 clear all; close all;
 
-fname = 'StarWarsNetworkAll';
+fname = 'StarWarsNetworkEp5';
 nLouvain = 5;
 fontsize = 6;
+
+clusterpars.nreps = 200;
 
 % load data
 load(['Results/Rejected_' fname])
@@ -14,7 +16,7 @@ load(['Results/Rejected_' fname])
 % [Connected.QmaxCluster,Connected.Qmax,Connected.ConsCluster,Connected.ConsQ,Ngrps,~] = allevsplitConTransitive(Data.Aconnected);
 
 % construct new null model
-P = Data.ExpA(Data.ixConnectedSignal,Data.ixConnectedSignal); % extract relevant part of null model
+P = Data.ExpA(Data.ixSignal_Final,Data.ixSignal_Final); % extract relevant part of null model
 
 % or make one
 % [Signal.Emodel,~,Vmodel,Signal.ExpA] = RndPoissonConfigModel(Data.Aconnected,pars.N,pars.C,optionsModel);
@@ -24,35 +26,35 @@ P = Data.ExpA(Data.ixConnectedSignal,Data.ixConnectedSignal); % extract relevant
 
 % then cluster
 [Connected.QmaxCluster,Connected.Qmax,Connected.ConsCluster,Connected.ConsQ,ctr] = ...
-                                        ConsensusCommunityDetect(Data.Aconnected,P,1+Data.Dn);
+                                        ConsensusCommunityDetect(Data.Asignal_final,P,1+Data.Dn,1+Data.Dn,clusterpars.nreps);
 
 % Louvain algorithm
-[Connected.LouvCluster,Connected.LouvQ,allCn,allIters] = LouvainCommunityUDnondeterm(Data.Aconnected,nLouvain,1);  % run 5 times; return 1st level of hierarchy only
+[Connected.LouvCluster,Connected.LouvQ,allCn,allIters] = LouvainCommunityUDnondeterm(Data.Asignal_final,nLouvain,1);  % run 5 times; return 1st level of hierarchy only
 
 %% cluster - without noise rejection
 % [Full.QmaxCluster,Full.Qmax,Full.ConsCluster,Full.ConsQ,Ngrps,~] = allevsplitConTransitive(Data.A);
 [Full.QmaxCluster,Full.Qmax,Full.ConsCluster,Full.ConsQ,~] = ...
-                                                ConsensusCommunityDetect(Data.A,Data.ExpA,1+Data.Dn);
+                                                ConsensusCommunityDetect(Data.A,Data.ExpA,1+Data.Dn,1+Data.Dn);
 
 
 [Full.LouvCluster,Full.LouvQ,allCn,allIters] = LouvainCommunityUDnondeterm(Data.A,nLouvain,1);  % run 5 times; return 1st level of hierarchy only
 
 %% plot sorted into group order
 
-[H,Ix] = plotClusterMap(Data.Aconnected,Connected.ConsCluster,[],'S');
+[H,Ix] = plotClusterMap(Data.Asignal_final,Connected.ConsCluster,[],'S');
 title('Consensus clustering')
-plotorder = Data.ixConnectedSignal(Ix);
+plotorder = Data.ixSignal_Final(Ix);
 
 % Add node labels
-numConnected = length(Data.ixConnectedSignal);
+numConnected = length(Data.ixSignal_Final);
 set(gca,'Ytick',1:numConnected);
 set(gca,'Yticklabel',Data.nodelabels(plotorder,:),'Fontsize',fontsize);
 % set(gca,'XTickLabelRotation',90);
 
 for i=1:numel(Connected.LouvCluster)
     CLou = Connected.LouvCluster{i}{1};  % Repeat#, Level of Hierarchy
-    [H,Ix] = plotClusterMap(Data.Aconnected,CLou,[],'S');
-    plotorder = Data.ixConnectedSignal(Ix);
+    [H,Ix] = plotClusterMap(Data.Asignal_final,CLou,[],'S');
+    plotorder = Data.ixSignal_Final(Ix);
     title(['Louvain ' num2str(i)]);
     % Add node labels
     set(gca,'Ytick',1:numConnected);

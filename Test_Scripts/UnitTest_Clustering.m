@@ -31,7 +31,7 @@ for iD = 1:numel(TestData)
     EmbedD = V(:,ixRetain);
     
     %% test k-means sweep
-    Ulist = [0,1,U(iD),U+5];  % test passing of no groups, 1 group, matching groups, and more than dimensions
+    Ulist = [0,1,U(iD),U(iD)+5];  % test passing of no groups, 1 group, matching groups, and more than dimensions
     ErrCtr = 1;
     for iM = 1:numel(Ulist)
         for iT = 1:numel(Treps)
@@ -100,7 +100,9 @@ for iD = 1:numel(TestData)
 %     title(['TestData' num2str(iD) ' normalised eigenvalues']);
    
     %% entire function
-    [grps{iD},Qmax(iD),grpscon{iD},Qcon(iD),ctr(iD),CLU{iD}] = ConsensusCommunityDetect(TestData(iD).W,P{iD},U(iD),Treps(end),dims{1});
+    [grps{iD},Qmax(iD),grpscon{iD},Qcon(iD),ctr(iD),CLU{iD}] = ConsensusCommunityDetect(TestData(iD).W,P{iD},L,U(iD),Treps(end),dims{1});
+    % same lower and upper bounds
+    [grpsLU{iD},QmaxLU(iD),grpsconLU{iD},QconLU(iD),ctrLU(iD),CLU_LU{iD}] = ConsensusCommunityDetect(TestData(iD).W,P{iD},U(iD),U(iD),Treps(end),dims{1});
 
 end
 
