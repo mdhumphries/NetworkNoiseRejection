@@ -11,7 +11,7 @@ fname = 'StarWarsOriginalTrilogy';
 
 % analysis parameters
 pars.N = 100;           % repeats of permutation
-pars.alpha = 0.95; % 0.95; % 0;         % confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
+pars.alpha = 0; %0.95; % 0.95; % 0;         % confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
 pars.Model = 'Poiss';   % or 'WCM' . % which null model
 pars.C = 1;             % conversion factor for real-valued weights (set=1 for integers)
 pars.eg_min = 1e-2;      % given machine error, what is acceptable as "zero" eigenvalue
