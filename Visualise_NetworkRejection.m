@@ -8,8 +8,9 @@
 % Mark Humphries, Mat Evans 28/2/2017
 
 clear all; close all
+fname = 'StarWarsOriginalTrilogy'; 
 
-fname = 'StarWarsNetworkEp4'; 
+% fname = 'StarWarsNetworkEp4'; 
 blnVizNet = 1;  % network visualisation - if MATLAB BGL installed, appropriate for platform:
 fontsize = 6;
 
@@ -94,7 +95,7 @@ end
 if blnVizNet
     % visualise Aconnected
     colors = repmat([0 0 0],n,1)+0.6;
-    colors(Data.ixConnectedSignal,:) = 0;  % black for signal, connected 
+    colors(Data.ixSignal_Final,:) = 0;  % black for signal, connected 
     figure
     graphplot2D(xynew,Data.A,10,colors,syms,10);
     axis off

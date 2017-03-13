@@ -5,7 +5,7 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 % and noise components, given: 
 %       B: the (nxn) modularity matrix of the network, defined using a null model (e.g Weighted Configuration Model)
 %       E: the null-model eigenvalue distribution (n x #repeats of null model) (from e.g. WeightedConfigModel) 
-%       I: specified confidence interval on the maximum eigenvalue (eg I = 0.95 for 95%); if I is specified as an n-length array {I1,I2,...,In], 
+%       I: specified confidence interval on the mean maximum eigenvalue (eg I = 0.95 for 95%); if I is specified as an n-length array {I1,I2,...,In], 
 %       then a decompositin will be returned for each I 
 %       V: the null model set of eigenvectors (n x n x #repeats of null model; 1 eigenvector per column)
 %
@@ -23,12 +23,12 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 %               .NegDiff.Raw: a vector of differences for each node between
 %               data and model-derived lower bound (any data < lower bound
 %               is interesting)
-%               .NegDiff.Raw: as .Raw but normalised as above
+%               .NegDiff.Norm: as .Raw but normalised as above
 %
 % ... = NODEREJECTION(...,Options) is a struct that sets analysis options:
 %           .Norm: defines the vector norm used to identify noise nodes:
 %                'L2': L2-norm AKA the Euclidean distance from the origin in the defined sub-space
-%                       [defaut]
+%                       [default]
 %                'L1': L1-norm AKA the sum of absolute values of the vector
 %                'Lmax': L-infinity norm AKA the maximum value
 %
@@ -148,7 +148,7 @@ for i = 1:numel(I)
     mModel = mean(VmodelW,2); 
     % semModel = std(VmodelW,[],2) / sqrt(N);
     CIModel = CIfromSEM(std(VmodelW,[],2),ones(size(mModel,1),1)*N,I);
-  
+    
     % differences
     D(i).Difference.Raw = lengths - (mModel + CIModel);
     D(i).Difference.Norm = D(i).Difference.Raw ./ (mModel + CIModel);

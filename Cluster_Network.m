@@ -2,11 +2,13 @@
 % Mark Humphries, 28/2/2017
 clear all; close all;
 
-fname = 'StarWarsNetworkEp5';
+fname = 'StarWarsOriginalTrilogy'; 
+% fname = 'LesMis';
+
 nLouvain = 5;
 fontsize = 6;
 
-clusterpars.nreps = 200;
+clusterpars.nreps = 100;
 
 % load data
 load(['Results/Rejected_' fname])

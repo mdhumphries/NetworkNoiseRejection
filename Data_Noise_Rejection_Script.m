@@ -6,11 +6,12 @@
 clear all; close all
 
 % network to analyse
-fname = 'StarWarsNetworkEp5'; 
+fname = 'StarWarsOriginalTrilogy'; 
+% fname = 'LesMis';
 
 % analysis parameters
 pars.N = 100;           % repeats of permutation
-pars.alpha = 0;         % confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
+pars.alpha = 0.95; % 0.95; % 0;         % confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
 pars.Model = 'Poiss';   % or 'WCM' . % which null model
 pars.C = 1;             % conversion factor for real-valued weights (set=1 for integers)
 pars.eg_min = 1e-2;      % given machine error, what is acceptable as "zero" eigenvalue
@@ -29,7 +30,7 @@ load(['Networks/' fname]);
 if strfind(fname,'StarWars')
     A = StarWars.A;
     nodelabels = StarWars.Nodes;
-    Data.nodelabels = nodelabels';
+    nodelabels = nodelabels';
 elseif strfind(fname,'cosyne')
     A = adjMatrix;
     m = cellfun('length',cosyneData.authorHash);
@@ -38,15 +39,17 @@ elseif strfind(fname,'cosyne')
         l = numel(cosyneData.authorHash{i});
         nodelabels = [nodelabels; cosyneData.authorHash{i} blanks(max(m) - l)];
     end
-    Data.nodelabels = nodelabels;
+    nodelabels = nodelabels;
 else
     A = full(Problem.A);
     % Generate node labels for later visualisation to work
-    Data.nodelabels = Problem.aux.nodename;
+    nodelabels = Problem.aux.nodename;
 end
 
 % clean-up A, get largest component, and store as basis for all further analysis
+% all indices are with reference to Data.A
 [Data.A,Data.ixRetain,Data.Comps,Data.CompSizes] = prep_A(A);
+Data.nodelabels = nodelabels(Data.ixRetain,:);
 
 % % SBM generation
 % A_SBM = test_noise_rejection_planted_noise(50,2,'low',0.2);
