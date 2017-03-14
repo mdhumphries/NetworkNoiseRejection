@@ -6,7 +6,7 @@
 clear all; close all
 
 % network to analyse
-fname = 'cosyneFinalData'; 
+fname = 'polblogs'; 
 
 % analysis parameters
 pars.N = 100;           % repeats of permutation
@@ -39,11 +39,17 @@ elseif strfind(fname,'cosyne')
         nodelabels = [nodelabels; cosyneData.authorHash{i} blanks(max(m) - l)];
     end
     nodelabels = nodelabels;
+elseif strfind(fname,'CosyneYear')
+    A = adjMatrix;
+    nodelabels = nodelabel;
 else
     A = full(Problem.A);
     % Generate node labels for later visualisation to work
     nodelabels = Problem.aux.nodename;
 end
+
+% make undirected if necessary
+A = (A + A') / 2; % make undirected
 
 % clean-up A, get largest component, and store as basis for all further analysis
 % all indices are with reference to Data.A

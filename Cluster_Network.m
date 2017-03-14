@@ -2,9 +2,8 @@
 % Mark Humphries, 28/2/2017
 clear all; close all;
 
-% fname = 'StarWarsOriginalTrilogy'; 
-fname = 'cosyneFinalData'; 
-
+fname = 'polblogs'; 
+blnLabels = 1;      % write node labels? Omit for large networks
 nLouvain = 5;
 fontsize = 6;
 
@@ -53,11 +52,23 @@ if Data.Dn > 0
     [H,Ix] = plotClusterMap(Data.Asignal_final,Connected.ConsCluster,[],'S');
     title('Consensus clustering')
     plotorder = Data.ixSignal_Final(Ix);
-
-    % Add node labelss
-    set(gca,'Ytick',1:numConnected);
-    set(gca,'Yticklabel',Data.nodelabels(plotorder,:),'Fontsize',fontsize);
-    % set(gca,'XTickLabelRotation',90);
+    
+    if blnLabels
+        % Add node labelss
+        set(gca,'Ytick',1:numConnected);
+        set(gca,'Yticklabel',Data.nodelabels(plotorder,:),'Fontsize',fontsize);
+        % set(gca,'XTickLabelRotation',90);
+    end
+    % compare to the Qmax solution at the requested number of groups
+    [H,Ix] = plotClusterMap(Data.Asignal_final,Connected.QmaxCluster,[],'S');
+    title('Qmax clustering')
+    if blnLabels
+        % Add node labelss
+        set(gca,'Ytick',1:numConnected);
+        set(gca,'Yticklabel',Data.nodelabels(plotorder,:),'Fontsize',fontsize);
+        % set(gca,'XTickLabelRotation',90);
+    end
+   
 end
 
 for i=1:numel(Connected.LouvCluster)
@@ -65,9 +76,11 @@ for i=1:numel(Connected.LouvCluster)
     [H,Ix] = plotClusterMap(Data.Asignal_final,CLou,[],'S');
     plotorder = Data.ixSignal_Final(Ix);
     title(['Louvain ' num2str(i)]);
-    % Add node labels
-    set(gca,'Ytick',1:numConnected);
-    set(gca,'Yticklabel',Data.nodelabels(plotorder,:),'Fontsize',fontsize);
+    if blnLabels
+        % Add node labels
+        set(gca,'Ytick',1:numConnected);
+        set(gca,'Yticklabel',Data.nodelabels(plotorder,:),'Fontsize',fontsize);
+    end
     % set(gca,'XTickLabelRotation',90);
     for j = i+1:numel(Connected.LouvCluster)
         CLou2 = Connected.LouvCluster{j}{1};  % Repeat#, Level of Hierarchy
@@ -80,11 +93,13 @@ if Data.Dn > 0
     [H,Ix] = plotClusterMap(Data.A,Full.ConsCluster,[],'S');
     title('Consensus clustering of all')
     plotorder = Ix;
-
-    % Add node labels
-    [srt,I] = sort(Full.ConsCluster,'ascend');
-    set(gca,'Ytick',1:numel(Data.ixRetain));
-    set(gca,'Yticklabel',Data.nodelabels(plotorder,:),'Fontsize',fontsize);
+    
+    if blnLabels
+        % Add node labels
+        [srt,I] = sort(Full.ConsCluster,'ascend');
+        set(gca,'Ytick',1:numel(Data.ixRetain));
+        set(gca,'Yticklabel',Data.nodelabels(plotorder,:),'Fontsize',fontsize);
+    end
 end
 
 % Louvain algorithm
@@ -93,10 +108,11 @@ for i=1:numel(Full.LouvCluster)
     [HL,Ix] = plotClusterMap(Data.A,CLou,[],'S');
     title(['Full Louvain ' num2str(i)]);
     plotorder = Ix;
-    % Add node labels
-    % [srt,I] = sort(CLou,'ascend');
-    set(gca,'Ytick',1:numel(Data.ixRetain));
-    set(gca,'Yticklabel',Data.nodelabels(plotorder,:),'Fontsize',fontsize);
+    if blnLabels
+        % Add node labels
+        set(gca,'Ytick',1:numel(Data.ixRetain));
+        set(gca,'Yticklabel',Data.nodelabels(plotorder,:),'Fontsize',fontsize);
+    end
     for j = i+1:numel(Full.LouvCluster)
         CLou2 = Full.LouvCluster{j}{1};  % Repeat#, Level of Hierarchy
         Full.VI_Louvain(i,j) = VIpartitions(CLou,CLou2) ./ log(numel(Data.ixRetain));

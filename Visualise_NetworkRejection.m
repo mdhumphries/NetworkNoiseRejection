@@ -8,9 +8,8 @@
 % Mark Humphries, Mat Evans 28/2/2017
 
 clear all; close all
-fname = 'StarWarsOriginalTrilogy'; 
-
-% fname = 'StarWarsNetworkEp4'; 
+% fname = 'StarWarsOriginalTrilogy'; 
+fname = 'LesMis'; 
 blnVizNet = 1;  % network visualisation - if MATLAB BGL installed, appropriate for platform:
 fontsize = 6;
 
