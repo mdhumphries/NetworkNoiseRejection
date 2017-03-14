@@ -12,11 +12,12 @@ clear all; close all;
 load('cosyneFinalData');
 A_Full = adjMatrix;
 
-% get complete list of years
+% how many posters per author entry
 nP = cellfun('length',cosyneData.posterID);
 
-years = fix(rem([cosyneData.posterID{:}],1)*10^4);  % just the year (after decimal)
-IDs = floor([cosyneData.posterID{:}]);  % just the poster ID
+% get list of years
+firstID = cellfun(@(x) x(1),cosyneData.posterID);  % the first poster ID entry for every author entry
+years = cast(rem(firstID,1)*10^4,'int32');  % just the year (after decimal)
 yrSet = unique(years); 
 
 % posterIDs can have multiple entries per author
@@ -31,22 +32,27 @@ yrSet = unique(years);
 % loop over year list and create new matrices per year
 for iY = 1:numel(yrSet)
 
-    % get all poster IDs for that year
+    % get all author IDs for that year
     ix = find(years == yrSet(iY));
-
-    % get all corresponding author IDs for that year
-    ixAuthor = cosyneData.authorID(ix);  % each author of each poster
-    setA = unique(ixAuthor); % set of unique authors in that list
+    ixAuthor = cosyneData.authorID(ix);  % each author listed for that year: some may be listed twice
     
-    % get all poster IDs
-    ixPoster = IDs(ix);
+    setA = unique(ixAuthor); % set of unique authors in that list
+    n = arrayfun(@(x) sum(x == ixAuthor),setA);  % check where some authors appear more than twice
+    
+     % get a list of unique poster-author IDs and 
+    ixPoster = floor([cosyneData.posterID{ix}]);
     thesePosters = unique(ixPoster);
+    
+    % matching list of author IDs
+    thisNP = nP(ix);
+    ixPA = arrayfun(@(x,y) zeros(x,1)+y,thisNP,ixAuthor,'UniformOutput',false);
+    ixPosterAuthor = vertcat(ixPA{:});
     
     % find out which were on the same posters...
     adjMatrix = zeros(numel(setA));
     for iP = 1:numel(thesePosters)
         matchPoster = find(ixPoster == thesePosters(iP));  % find all authors on this poster
-        auths = ixAuthor(matchPoster);
+        auths = ixPosterAuthor(matchPoster);
         ixMatrix =arrayfun(@(x) find(x == setA),auths);
         adjMatrix(ixMatrix,ixMatrix) = adjMatrix(ixMatrix,ixMatrix) + 1;  %
     end
@@ -58,7 +64,12 @@ for iY = 1:numel(yrSet)
         % and get names from master list
         nodelabels{iA} = [cosyneData.firstnames{iNames}, cosyneData.lastnames{iNames}];
     end
+    
+    % remove diagonal! Store separately as per-author posters...
+    nPosters = diag(adjMatrix);
+    adjMatrix(eye(numel(setA))==1) = 0;
+    
     % save 
     fname = ['CosyneYear' num2str(yrSet(iY))];
-    save(fname,'adjMatrix','nodelabels');
+    save(fname,'adjMatrix','nodelabels','nPosters');
 end
