@@ -6,8 +6,7 @@
 clear all; close all
 
 % network to analyse
-fname = 'StarWarsOriginalTrilogy'; 
-% fname = 'LesMis';
+fname = 'cosyneFinalData'; 
 
 % analysis parameters
 pars.N = 100;           % repeats of permutation

@@ -2,8 +2,8 @@
 % Mark Humphries, 28/2/2017
 clear all; close all;
 
-fname = 'StarWarsOriginalTrilogy'; 
-% fname = 'LesMis';
+% fname = 'StarWarsOriginalTrilogy'; 
+fname = 'cosyneFinalData'; 
 
 nLouvain = 5;
 fontsize = 6;
@@ -27,31 +27,38 @@ P = Data.ExpA(Data.ixSignal_Final,Data.ixSignal_Final); % extract relevant part 
 % [~,~,Signal.Dn,~] = LowDSpace(P,Signal.Emodel,pars.alpha); % to just obtain low-dimensional projection
 
 % then cluster
-[Connected.QmaxCluster,Connected.Qmax,Connected.ConsCluster,Connected.ConsQ,ctr] = ...
+if Data.Dn > 0
+    [Connected.QmaxCluster,Connected.Qmax,Connected.ConsCluster,Connected.ConsQ,ctr] = ...
                                         ConsensusCommunityDetect(Data.Asignal_final,P,1+Data.Dn,1+Data.Dn,clusterpars.nreps);
-
+else
+    Connected.QmaxCluster = []; Connected.Qmax = 0; Connected.ConsCluster = []; Connected.ConsQ = 0;
+end
 % Louvain algorithm
 [Connected.LouvCluster,Connected.LouvQ,allCn,allIters] = LouvainCommunityUDnondeterm(Data.Asignal_final,nLouvain,1);  % run 5 times; return 1st level of hierarchy only
 
 %% cluster - without noise rejection
-% [Full.QmaxCluster,Full.Qmax,Full.ConsCluster,Full.ConsQ,Ngrps,~] = allevsplitConTransitive(Data.A);
-[Full.QmaxCluster,Full.Qmax,Full.ConsCluster,Full.ConsQ,~] = ...
+if Data.Dn > 0
+    [Full.QmaxCluster,Full.Qmax,Full.ConsCluster,Full.ConsQ,~] = ...
                                                 ConsensusCommunityDetect(Data.A,Data.ExpA,1+Data.Dn,1+Data.Dn);
-
+else
+    Full.QmaxCluster = []; Full.Qmax = 0; Full.ConsCluster = []; Full.ConsQ = 0;
+end
 
 [Full.LouvCluster,Full.LouvQ,allCn,allIters] = LouvainCommunityUDnondeterm(Data.A,nLouvain,1);  % run 5 times; return 1st level of hierarchy only
 
 %% plot sorted into group order
-
-[H,Ix] = plotClusterMap(Data.Asignal_final,Connected.ConsCluster,[],'S');
-title('Consensus clustering')
-plotorder = Data.ixSignal_Final(Ix);
-
-% Add node labels
 numConnected = length(Data.ixSignal_Final);
-set(gca,'Ytick',1:numConnected);
-set(gca,'Yticklabel',Data.nodelabels(plotorder,:),'Fontsize',fontsize);
-% set(gca,'XTickLabelRotation',90);
+
+if Data.Dn > 0
+    [H,Ix] = plotClusterMap(Data.Asignal_final,Connected.ConsCluster,[],'S');
+    title('Consensus clustering')
+    plotorder = Data.ixSignal_Final(Ix);
+
+    % Add node labelss
+    set(gca,'Ytick',1:numConnected);
+    set(gca,'Yticklabel',Data.nodelabels(plotorder,:),'Fontsize',fontsize);
+    % set(gca,'XTickLabelRotation',90);
+end
 
 for i=1:numel(Connected.LouvCluster)
     CLou = Connected.LouvCluster{i}{1};  % Repeat#, Level of Hierarchy
@@ -69,16 +76,16 @@ for i=1:numel(Connected.LouvCluster)
 end
 
 %% without noise rejection
+if Data.Dn > 0
+    [H,Ix] = plotClusterMap(Data.A,Full.ConsCluster,[],'S');
+    title('Consensus clustering of all')
+    plotorder = Ix;
 
-[H,Ix] = plotClusterMap(Data.A,Full.ConsCluster,[],'S');
-title('Consensus clustering of all')
-plotorder = Ix;
-
-% Add node labels
-[srt,I] = sort(Full.ConsCluster,'ascend');
-set(gca,'Ytick',1:numel(Data.ixRetain));
-set(gca,'Yticklabel',Data.nodelabels(plotorder,:),'Fontsize',fontsize);
-
+    % Add node labels
+    [srt,I] = sort(Full.ConsCluster,'ascend');
+    set(gca,'Ytick',1:numel(Data.ixRetain));
+    set(gca,'Yticklabel',Data.nodelabels(plotorder,:),'Fontsize',fontsize);
+end
 
 % Louvain algorithm
 for i=1:numel(Full.LouvCluster)
