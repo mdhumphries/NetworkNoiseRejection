@@ -1,7 +1,7 @@
 
 function [W,ixRetain,Comps,Comp_sizes] = prep_A(W)
 % PREP_A get final weighted adjacency matrix
-% [W*,I,C,S] = PREP_A(W) given the undirected weighted adjacency matrix W,
+% [W*,I,C,S] = PREP_A(W) given the undiredted weighted adjacency matrix W,
 % finds the largest component, and returns that as W*, the matrix to be
 % used in all further analyses. Also returns:
 %   I: the index of retained nodes in W*

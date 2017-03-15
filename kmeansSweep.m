@@ -49,6 +49,7 @@ for ngrps = LowerK:UpperK
         catch
             % if kmeans throws a wobbly, set to "no groups"...
             warning('kmeans wobbly')
+            keyboard
         end
         ixNow = ixNow + 1;
     end % end k-means repeats loop

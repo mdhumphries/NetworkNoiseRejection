@@ -6,12 +6,11 @@
 clear all; close all
 
 % network to analyse
-fname = 'StarWarsOriginalTrilogy'; 
-% fname = 'LesMis';
+fname = 'polblogs'; 
 
 % analysis parameters
 pars.N = 100;           % repeats of permutation
-pars.alpha = 0.95; % 0.95; % 0;         % confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
+pars.alpha = 0; %0.95; % 0.95; % 0;         % confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
 pars.Model = 'Poiss';   % or 'WCM' . % which null model
 pars.C = 1;             % conversion factor for real-valued weights (set=1 for integers)
 pars.eg_min = 1e-2;      % given machine error, what is acceptable as "zero" eigenvalue
@@ -40,11 +39,17 @@ elseif strfind(fname,'cosyne')
         nodelabels = [nodelabels; cosyneData.authorHash{i} blanks(max(m) - l)];
     end
     nodelabels = nodelabels;
+elseif strfind(fname,'CosyneYear')
+    A = adjMatrix;
+    nodelabels = nodelabel;
 else
     A = full(Problem.A);
     % Generate node labels for later visualisation to work
     nodelabels = Problem.aux.nodename;
 end
+
+% make undirected if necessary
+A = (A + A') / 2; % make undirected
 
 % clean-up A, get largest component, and store as basis for all further analysis
 % all indices are with reference to Data.A

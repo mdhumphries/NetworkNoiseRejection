@@ -140,43 +140,42 @@ parfor iN = 1:N
     S = sum(sA);  % total weights
     sAint = sum(A_int); % integer strength
     Sint = sum(sAint); % integer total strength
-
-    if S ~= K  % then is weighted network  
-        % disp('Weighted network')
-        % linear indices of linked pairs for upper triangular matrix
-        ixpairs = find(triu(Aperm,0)>0); 
-        
+    
+    ixpairs = find(triu(Aperm,0)>0);     % linear indices of linked pairs for upper triangular matrix
+    nLinks = round(Sint/2) - numel(ixpairs);  % number of links left to place: total links - [already placed]
+    
+    if S ~= K && nLinks > 0 % then is weighted network and there are edges left to place       
         % get as (i,j)
         [irow,jcol] = ind2sub([n,n],ixpairs);
-        % linear indices of linked pairs for lower triangular matrix
-        % (symmetric respect to the diagonal)
-        linearInd = sub2ind([n,n], jcol, irow);
         % get P(link): 
         Plink = sA(irow) .* sA(jcol);
         Plink = Plink ./ sum(Plink); % P(link is placed between each pair)
         
-        nLinks = round(Sint/2) - numel(ixpairs);  % total links - [already placed]
-
         lambda = nLinks .* Plink; % expected number of links
-        
+
         Nlink = poissrnd(lambda);  % Poisson random number of links made
-        
-        % keyboard
-        
+
         Aperm(ixpairs) = Aperm(ixpairs) + Nlink'; % add to existing links
         Aperm = Aperm ./ conversion;  % convert back
-        Aperm = Aperm + Aperm';  % make symmetric
+
+        if any(isnan(Aperm(:)))
+            keyboard
+        end
+    end
         
+    Aperm = Aperm + Aperm';  % make symmetric
+
 %         
-%         
+%                 % linear indices of linked pairs for lower triangular matrix
+        % (symmetric respect to the diagonal)
+        % linearInd = sub2ind([n,n], jcol, irow);
+
 %         Plink = poissrnd(sA(irow) .* sA(jcol));
 %         rndmat(ixpairs) = Plink;
 %         rndmat(linearInd) = Plink;
 %         Atemp = sum(sum(A))/sum(sum(rndmat))*rndmat; % normalisation
 %         % kkk = rndmat.*(ones(size(A,1))-eye(size(A,1))); % remove diagonal
-%         % Aperm = sum(sum(A))/sum(sum(kkk))*kkk; % normalisation
-        
-    end
+%         % Aperm = sum(sum(A))/sum(sum(kkk))*kkk; % normalisati
     
     %% diagnostics: how far does random model depart?
     diagnostics(iN).sAp = sum(Aperm);  % degree
