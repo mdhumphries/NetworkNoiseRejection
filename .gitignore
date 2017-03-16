@@ -53,3 +53,6 @@ Temporary Items
 
 # Mat's python hacking that's not ready for public consumption
 graph_tool
+# a big data file
+/Networks/Allen_mouse_brain_atlas/my_unionizes.json
+/Networks/Allen_mouse_brain_atlas/expression.json
