@@ -12,6 +12,8 @@ clear all; close all
 fname = 'LesMis'; 
 blnVizNet = 1;  % network visualisation - if MATLAB BGL installed, appropriate for platform:
 fontsize = 6;
+Nodes = 5; % marker size for nodes
+Links = 1; % linewidth for links
 
 %% load data
 load(['Results/Rejected_' fname],'Data','Rejection')
@@ -58,22 +60,32 @@ if blnVizNet
     n = size(Data.A,1);
     xynew = fruchterman_reingold_force_directed_layout(sparse(Data.A));
     syms = repmat('o',n,1);
-
-    colors = repmat([0 0 0],n,1);
-    colors(Rejection.ixNoise,:) = colors(Rejection.ixNoise,:) + 0.6;  % gray for noise 
+    colors = repmat([0 0 0],n,1); 
     figure
-    graphplot2D(xynew,Data.A,10,colors,syms,10);
+    graphplot2D(xynew,Data.A,1,colors,syms,Nodes);
     axis off
     allh = get(gca,'Children');
     set(allh,'MarkerEdgeColor',[0 0 0])
-    set(allh,'LineWidth',0.2)
+    set(allh,'LineWidth',Links)
+    %title('Full')
+    exportPPTfig(gcf,[fname 'FullNetwork'],[10 15 8 8])
+    
+    % now shade out rejection
+    colors(Rejection.ixNoise,:) = colors(Rejection.ixNoise,:) + 0.6;  % gray for noise 
+    figure
+    graphplot2D(xynew,Data.A,1,colors,syms,Nodes);
+    axis off
+    allh = get(gca,'Children');
+    set(allh,'MarkerEdgeColor',[0 0 0])
+    set(allh,'LineWidth',Links)
     title('Signal/Noise split')
+    % Add node labels to graph
+    for i = 1:length(Data.ixRetain); 
+        txt(i) = text(xynew(i,1),xynew(i,2),Data.nodelabels(i,:),'Fontsize',fontsize);%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
+    end
 end
 
-% Add node labels to graph
-for i = 1:length(Data.ixRetain); 
-    txt(i) = text(xynew(i,1),xynew(i,2),Data.nodelabels(i,:),'Fontsize',fontsize);%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
-end
+
 
 %% Plot lowD projection of each node, with labels, sorted by magnitude
 figure
@@ -96,12 +108,18 @@ if blnVizNet
     colors = repmat([0 0 0],n,1)+0.6;
     colors(Data.ixSignal_Final,:) = 0;  % black for signal, connected 
     figure
-    graphplot2D(xynew,Data.A,10,colors,syms,10);
+    graphplot2D(xynew,Data.A,1,colors,syms,Nodes);
     axis off
     allh = get(gca,'Children');
     set(allh,'MarkerEdgeColor',[0 0 0])
-    set(allh,'LineWidth',0.5)
-    title('Connected Signal/Noise split')
+    set(allh,'LineWidth',Links)
+    % title('Connected Signal/Noise split')
+    exportPPTfig(gcf,[fname 'FinalSignalNetwork'],[10 15 8 8])
+    
+    % Add node labels to graph
+    for i = Data.ixSignal_Final; 
+        txt(i) = text(xynew(i,1),xynew(i,2),Data.nodelabels(i,:),'Fontsize',fontsize);%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
+    end
 end
 
 
