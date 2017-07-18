@@ -8,9 +8,10 @@
 % Mark Humphries, Mat Evans 28/2/2017
 
 clear all; close all
-% fname = 'StarWarsOriginalTrilogy'; 
-fname = 'LesMis'; 
+fname = 'StarWarsOriginalTrilogy'; 
+% fname = 'LesMis'; 
 blnVizNet = 1;  % network visualisation - if MATLAB BGL installed, appropriate for platform:
+blnExport = 0;
 fontsize = 6;
 Nodes = 5; % marker size for nodes
 Links = 1; % linewidth for links
@@ -68,7 +69,7 @@ if blnVizNet
     set(allh,'MarkerEdgeColor',[0 0 0])
     set(allh,'LineWidth',Links)
     %title('Full')
-    exportPPTfig(gcf,[fname 'FullNetwork'],[10 15 8 8])
+    if blnExport exportPPTfig(gcf,[fname 'FullNetwork'],[10 15 8 8]); end
     
     % now shade out rejection
     colors(Rejection.ixNoise,:) = colors(Rejection.ixNoise,:) + 0.6;  % gray for noise 
@@ -114,7 +115,7 @@ if blnVizNet
     set(allh,'MarkerEdgeColor',[0 0 0])
     set(allh,'LineWidth',Links)
     % title('Connected Signal/Noise split')
-    exportPPTfig(gcf,[fname 'FinalSignalNetwork'],[10 15 8 8])
+    if blnExport exportPPTfig(gcf,[fname 'FinalSignalNetwork'],[10 15 8 8]); end
     
     % Add node labels to graph
     for i = Data.ixSignal_Final; 

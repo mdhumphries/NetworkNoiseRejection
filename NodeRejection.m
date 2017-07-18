@@ -154,8 +154,8 @@ for i = 1:numel(I)
     D(i).Difference.Norm = D(i).Difference.Raw ./ (mModel + CIModel);
     
     % split into signal and noise node sets
-    D(i).ixSignal = find(D(i).Difference.Raw >= 0);  % the retained node
-    D(i).ixNoise = find(D(i).Difference.Raw < 0); % removed nodes
+    D(i).ixSignal = find(D(i).Difference.Raw > 0);  % the retained node
+    D(i).ixNoise = find(D(i).Difference.Raw <= 0); % removed nodes
     
     % also store negative projections - only of use if we use CI > 0
     D(i).NegDiff.Raw = lengths - (mModel - CIModel);
