@@ -11,6 +11,21 @@ load allen_CC.mat
 load allen_leafnodes.mat
 load allen_names.mat
 
+%% check original CC 
+k = sum(allen_cc);
+zeroIDs = find(k == 0);  % 456 of them. How: because downloaded JSON files are full of NaNs for whole regions
+
+%% load original data
+load allen_expression.mat
+
+[nRegions,nGenes] = size(allen_expression);
+% find all NaNs
+nanIDs = find(isnan(allen_expression));
+[nanRegion,nanGene] = ind2sub([nRegions,nGenes],nanIDs);
+
+nanRegionSet = unique(nanRegion);
+nanGeneSet = unique(nanGene);
+
 %% single matrix of all leaf-nodes
 leafIDs = find(allen_leafnodes == 1);
 CC_leaf = allen_cc(leafIDs,leafIDs);
@@ -29,22 +44,22 @@ cmap = brewermap(10,'Greys');
 figure; 
 imagesc(A(iK,iK)); colormap(cmap);
 
-save Allen_Gene_Leaf A nodelabels
+save('../Allen_Gene_Leaf','A','nodelabels')
 
-%% single matrices at individual levels
-
-load allen_depth.mat
-depths = unique(allen_depths);
-
-for iD = depths
-    % get all IDs at this depth
-    
-    % make A
-    A = 
-    
-    % strip out empty nodes
-    
-    % final A and node labels
-end
+% %% single matrices at individual levels
+% 
+% load allen_depth.mat
+% depths = unique(allen_depths);
+% 
+% for iD = depths
+%     % get all IDs at this depth
+%     
+%     % make A
+%     A = 
+%     
+%     % strip out empty nodes
+%     
+%     % final A and node labels
+% end
 
 
