@@ -3,7 +3,7 @@
 % Mark Humphries, Mat Evans 28/2/2017
 
 clear all; close all
-fname = 'StarWarsOriginalTrilogy'; 
+fname = 'Allen_Gene_Leaf'; 
 % fname = 'LesMis'; 
 
 blnLabels = 1;      % write node labels? Omit for large networks

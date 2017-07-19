@@ -6,7 +6,7 @@
 clear all; close all
 
 % network to analyse
-fname = 'polblogs'; 
+% fname = 'Allen_Gene_Leaf'; 
 
 % analysis parameters
 pars.N = 100;           % repeats of permutation
@@ -42,7 +42,7 @@ elseif strfind(fname,'cosyne')
 elseif strfind(fname,'CosyneYear')
     A = adjMatrix;
     nodelabels = nodelabel;
-else
+elseif exist('Problem')
     A = full(Problem.A);
     % Generate node labels for later visualisation to work
     nodelabels = Problem.aux.nodename;

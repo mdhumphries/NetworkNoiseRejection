@@ -8,9 +8,9 @@
 % Mark Humphries, Mat Evans 28/2/2017
 
 clear all; close all
-fname = 'StarWarsOriginalTrilogy'; 
+fname = 'Allen_Gene_Leaf'; 
 % fname = 'LesMis'; 
-blnVizNet = 1;  % network visualisation - if MATLAB BGL installed, appropriate for platform:
+blnVizNet = 0;  % network visualisation - if MATLAB BGL installed, appropriate for platform:
 blnExport = 0;
 fontsize = 6;
 Nodes = 5; % marker size for nodes
