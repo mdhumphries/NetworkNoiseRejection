@@ -8,8 +8,8 @@
 % Mark Humphries, Mat Evans 28/2/2017
 
 clear all; close all
-fname = 'Allen_Gene_Leaf'; 
-% fname = 'LesMis'; 
+% fname = 'Allen_Gene_Leaf'; 
+fname = 'LesMis'; 
 blnVizNet = 0;  % network visualisation - if MATLAB BGL installed, appropriate for platform:
 blnExport = 0;
 fontsize = 6;
