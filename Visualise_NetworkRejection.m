@@ -1,6 +1,6 @@
 %% script to visualise Full and Signal networks
 % Visualisations of network layouts need:
-% (1) Traud-Mucha-Porter toolbox (included in GitHub)
+% (1) Traud-Mucha-Porter toolbox (included in this GitHub repo)
 % (2) MATLAB BGL Toolbox:
 %           Win32, Win64, Mac32, Linux: https://www.cs.purdue.edu/homes/dgleich/packages/matlab_bgl/ 
 %           Mac64: http://www.cs.purdue.edu/homes/dgleich/packages/matlab_bgl/old/matlab_bgl_4.0_osx64.zip
@@ -8,9 +8,10 @@
 % Mark Humphries, Mat Evans 28/2/2017
 
 clear all; close all
-% fname = 'StarWarsOriginalTrilogy'; 
-fname = 'LesMis'; 
-blnVizNet = 1;  % network visualisation - if MATLAB BGL installed, appropriate for platform:
+fname = 'dolphins'; 
+% fname = 'LesMis'; 
+blnVizNet = 0;  % network visualisation - if MATLAB BGL installed, appropriate for platform:
+blnExport = 0;
 fontsize = 6;
 Nodes = 5; % marker size for nodes
 Links = 1; % linewidth for links
@@ -54,6 +55,54 @@ stairs(xmodel,fmodel,'k')
 xlabel('P')
 ylabel('Eigenvalues')
 
+%% compare data eigenvalues to distribution of maximum eigenvalues
+
+maxModelE = max(Data.Emodel);   % all predicted maximum values
+minModelE = min(Data.Emodel);   % all predicted minimum values
+
+[F_maxmodelE,X_maxmodelE] = ksdensity(maxModelE);
+CImax = CIfromSEM(std(maxModelE),numel(maxModelE),[0.95,0.99]);
+
+[F_minmodelE,X_minmodelE] = ksdensity(minModelE);
+ExpMin = mean(minModelE);
+CImin = CIfromSEM(std(minModelE),numel(minModelE),[0.95,0.99]);
+
+
+figure
+% density histograms of min and max
+plot(X_maxmodelE,F_maxmodelE,'color',[0.7 0.7 0.7]); hold on
+plot(X_minmodelE,F_minmodelE,'color',[0.7 0.7 0.7]); hold on
+ylim = get(gca,'YLim');
+
+% plot CIs and means
+line([Data.EigEst(1), Data.EigEst(1)],ylim,'Color',[0.8 0.6 0.6],'Linewidth',2); % mean of max Eigs
+% 95% CIs
+line([Data.EigEst(1)-CImax(1), Data.EigEst(1)-CImax(1)],ylim,'Color',[0.6 0.6 0.8],'Linewidth',1); % lower CI
+line([Data.EigEst(1)+CImax(1), Data.EigEst(1)+CImax(1)],ylim,'Color',[0.6 0.6 0.8],'Linewidth',1); % upper CI
+% 99% CIs
+line([Data.EigEst(1)-CImax(2), Data.EigEst(1)-CImax(2)],ylim,'Color',[0.6 0.6 0.8],'Linewidth',1,'Linestyle',':'); % lower CI
+line([Data.EigEst(1)+CImax(2), Data.EigEst(1)+CImax(2)],ylim,'Color',[0.6 0.6 0.8],'Linewidth',1,'Linestyle',':'); % upper CI
+
+% and the same for the minimum
+line([ExpMin, ExpMin],ylim,'Color',[0.8 0.6 0.6],'Linewidth',2); % mean of min Eigs
+% 95% CIs
+line([ExpMin - CImin(1), ExpMin - CImin(1)],ylim,'Color',[0.6 0.6 0.8],'Linewidth',1); % lower CI
+line([ExpMin + CImin(1), ExpMin + CImin(1)],ylim,'Color',[0.6 0.6 0.8],'Linewidth',1); % upper CI
+% 99% CIs
+line([ExpMin - CImin(2), ExpMin - CImin(2)],ylim,'Color',[0.6 0.6 0.8],'Linewidth',1,'Linestyle',':'); % lower CI
+line([ExpMin + CImin(2), ExpMin + CImin(2)],ylim,'Color',[0.6 0.6 0.8],'Linewidth',1,'Linestyle',':'); % upper CI
+
+
+
+% data
+plot(Edata,zeros(numel(Edata),1)+0.01,'x')
+
+title('Max/min model eigenvalues vs data')
+ylabel('P(max model eigenvalue)')
+xlabel('Eigenvalue')
+
+
+
 
 %% visualise signal and noise parts
 if blnVizNet
@@ -68,7 +117,7 @@ if blnVizNet
     set(allh,'MarkerEdgeColor',[0 0 0])
     set(allh,'LineWidth',Links)
     %title('Full')
-    exportPPTfig(gcf,[fname 'FullNetwork'],[10 15 8 8])
+    if blnExport exportPPTfig(gcf,[fname 'FullNetwork'],[10 15 8 8]); end
     
     % now shade out rejection
     colors(Rejection.ixNoise,:) = colors(Rejection.ixNoise,:) + 0.6;  % gray for noise 
@@ -88,18 +137,23 @@ end
 
 
 %% Plot lowD projection of each node, with labels, sorted by magnitude
-figure
-[sorted_norms,SNIdx] = sort(Rejection.Difference.Norm); % SNIdx = Sorted Norm Index
+if Data.Dn > 0
+    
+    figure
+    [sorted_norms,SNIdx] = sort(Rejection.Difference.Norm); % SNIdx = Sorted Norm Index
 
-stem(1:numel(Rejection.ixNoise),sorted_norms(1:numel(Rejection.ixNoise)));
-hold all
-stem(numel(Rejection.ixNoise)+1:numel(Rejection.Difference.Norm),sorted_norms(numel(Rejection.ixNoise)+1:end))
-xlabel('Nodes')
-ylabel('Projection (normalised to null model)')
+    stem(1:numel(Rejection.ixNoise),sorted_norms(1:numel(Rejection.ixNoise)));
+    hold all
+    stem(numel(Rejection.ixNoise)+1:numel(Rejection.Difference.Norm),sorted_norms(numel(Rejection.ixNoise)+1:end))
+    xlabel('Nodes')
+    ylabel('Projection (normalised to null model)')
 
-% EDIT HERE: text labels 90 rotated: up for y>0; down for y<0
-for i = 1:length(Data.A); 
-    text(i,sorted_norms(i),Data.nodelabels(SNIdx(i),:),'Fontsize',fontsize);%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
+    % EDIT HERE: text labels 90 rotated: up for y>0; down for y<0
+    for i = 1:length(Data.A); 
+        text(i,sorted_norms(i),Data.nodelabels(SNIdx(i),:),'Fontsize',fontsize);%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
+    end
+else
+    warning('No retained dimensions, so no node rejection either')
 end
 
 %% visualise connected-signal network
@@ -114,7 +168,7 @@ if blnVizNet
     set(allh,'MarkerEdgeColor',[0 0 0])
     set(allh,'LineWidth',Links)
     % title('Connected Signal/Noise split')
-    exportPPTfig(gcf,[fname 'FinalSignalNetwork'],[10 15 8 8])
+    if blnExport exportPPTfig(gcf,[fname 'FinalSignalNetwork'],[10 15 8 8]); end
     
     % Add node labels to graph
     for i = Data.ixSignal_Final; 

@@ -7,13 +7,15 @@ function network=test_noise_rejection_planted_noise(nodes_group,num_groups, mix,
 %%%     num_groups: no. of communities
 %%%     mix: 'low', 'medium', 'high'
 %%%     periphery: fraction of nodes relative to core that are peripheral
-%%%     options
-%%%           weight_dist: struct with following fields
-%%%                  ingroup
-%%%                  outgroup
-%%%                  periphery_periphery
-%%%                  periphery_core
-%%% 
+%%%     options: structure of options
+%%%           .blnViz: (0,1): plot resulting weight matrix (1 is default)
+%%%           .weight_dist: struct with following fields (this overwrites
+%%%           settings in "mix")
+%%%                  .ingroup
+%%%                  .outgroup
+%%%                  .periphery_periphery
+%%%                  .periphery_core
+%%%            
 %%% Outputs:
 %%%     network: struct with following fields
 %%%                  adjacency: adjacency matrix
@@ -29,20 +31,21 @@ function network=test_noise_rejection_planted_noise(nodes_group,num_groups, mix,
 %%%     
 %%%      test_noise_rejection_planted_noise([60 40 82],3,'low', 0.3, options)
 %%%      produces network with  3 communities of sizes 60, 40 and 82
+% Abhinav Singh & Mark Humphries
 
+addpath('./WSBM_v1.2/'); 
 addpath('./WSBM_v1.2/analysis tools/')
-
-if nargin==0,
-    
-    nodes_group=50;
-    num_groups=2;
-    mix='low';
-    frac_periphery=0.5;
-    
-    weight_dist=struct('ingroup', [100,20], 'outgroup', [1,0.02],...
-        'periphery_periphery', [1,0.02], 'periphery_core', [10,2]);
-     
-end
+% if nargin==0,
+%     
+%     nodes_group=50;
+%     num_groups=2;
+%     mix='low';
+%     frac_periphery=0.5;
+%     
+%     weight_dist=struct('ingroup', [100,20], 'outgroup', [1,0.02],...
+%         'periphery_periphery', [1,0.02], 'periphery_core', [10,2]);
+%      
+% end
 %%
 % R = [1,2,3,3;
 %     2,4,3,3;
@@ -107,7 +110,9 @@ else
     end
 end
 
-
+if ~isfield(options, 'blnViz')
+    options.blnViz = 1;
+end
 
 % theta_w=[periphery_periphery;periphery_core;
 %         group_group;core_core];
@@ -129,7 +134,9 @@ R(1:end-1,end)=4;
 [~,True_Model] = generateEdges('Normal','Bernoulli',...
     R,theta_w,theta_e,group_sizes);
 %% plot edge matrix 
+if options.blnViz
 plotWSBM(True_Model);
+end
 
 %% convert edge matrix into symmetric adjacency matrix
 adj=zeros(num_nodes);

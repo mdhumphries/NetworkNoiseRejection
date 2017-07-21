@@ -2,12 +2,12 @@
 % Mark Humphries, 28/2/2017
 clear all; close all;
 
-fname = 'polblogs'; 
+fname = 'Allen_Gene_Leaf'; 
 blnLabels = 1;      % write node labels? Omit for large networks
-nLouvain = 5;
 fontsize = 6;
 
 clusterpars.nreps = 100;
+clusterpars.nLouvain = 5;
 
 % load data
 load(['Results/Rejected_' fname])
@@ -33,7 +33,7 @@ else
     Connected.QmaxCluster = []; Connected.Qmax = 0; Connected.ConsCluster = []; Connected.ConsQ = 0;
 end
 % Louvain algorithm
-[Connected.LouvCluster,Connected.LouvQ,allCn,allIters] = LouvainCommunityUDnondeterm(Data.Asignal_final,nLouvain,1);  % run 5 times; return 1st level of hierarchy only
+[Connected.LouvCluster,Connected.LouvQ,allCn,allIters] = LouvainCommunityUDnondeterm(Data.Asignal_final,clusterpars.nLouvain,1);  % run 5 times; return 1st level of hierarchy only
 
 %% cluster - without noise rejection
 if Data.Dn > 0
@@ -43,7 +43,7 @@ else
     Full.QmaxCluster = []; Full.Qmax = 0; Full.ConsCluster = []; Full.ConsQ = 0;
 end
 
-[Full.LouvCluster,Full.LouvQ,allCn,allIters] = LouvainCommunityUDnondeterm(Data.A,nLouvain,1);  % run 5 times; return 1st level of hierarchy only
+[Full.LouvCluster,Full.LouvQ,allCn,allIters] = LouvainCommunityUDnondeterm(Data.A,clusterpars.nLouvain,1);  % run 5 times; return 1st level of hierarchy only
 
 %% plot sorted into group order
 numConnected = length(Data.ixSignal_Final);
@@ -119,4 +119,4 @@ for i=1:numel(Full.LouvCluster)
     end
 end
 
-save(['Results/Clustered_' fname],'Full','Connected')
+save(['Results/Clustered_' fname],'Full','Connected','clusterpars')

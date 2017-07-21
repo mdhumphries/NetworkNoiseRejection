@@ -1,44 +1,46 @@
-% High level function to run noise rejection on an example network, and
-% save out an array of signal (1) and noise (0) labels. 
-%
-% Input: A - connectivity matrix
-%        filename - filename to use for saving signal node array
+function Data = reject_the_noise(A,pars,optionsModel,optionsReject)
 
-function signal_nodes = reject_the_noise(A,filename)
+% REJECT_THE_NOISE batch version of noise rejection script
+% DATA = REJECT_THE_NOISE(A,PARS)
+%
+% Mark Humphries & Mat Evans
 
 % Prepare A for Noise Rejection
-[newA,nz_e] = prep_A(A);
-
-N = ceil(20000/length(A));        % repeats of permutation. Aiming to get ~20000 samples.
-alpha = 0;      % confidence interval on estimate of maxiumum eigenvalue for null model
-
-% WCM model options
-WCMOptions.Expected = 1;
-WCMOptions.NoLoops = 1;
-
-% NodeRejection options
-options.Weight = 'linear'; % 'linear' is default
-options.Norm = 'L2'; % L2 is default
+[Data.A,Data.ixRetain,Data.Comps,Data.CompSizes] = prep_A(A);
 
 % get expected distribution of eigenvalues under null model (here, WCM)
-[Emodel,diagnostics,Vmodel,ExpWCM] = RndPoissonConfigModel(newA,N,1,WCMOptions);
+switch pars.Model
+    case 'Poiss'
+        [Data.Emodel,diagnostics,Vmodel,Data.ExpA] = RndPoissonConfigModel(Data.A,pars.N,pars.C,optionsModel);
+    case 'WCM'
+        [Data.Emodel,diagnostics,Vmodel,Data.ExpA] = WeightedConfigModel(Data.A,pars.N,pars.C,optionsModel);
+    otherwise
+        error('Unrecognised null model specified')
+end
 
-% Decompose into signal and noise
-B = newA - ExpWCM;  % modularity matrix using chosen null model
-
-% compare data and model
-Edata = eig(B);
+B = Data.A - Data.ExpA;  % modularity matrix using chosen null model
 
 % find low-dimensional projection
-[Dspace,Ix,Dn,EigEst] = LowDSpace(B,Emodel,alpha); % to just obtain low-dimensional projection
+[Data.Dspace,~,Data.Dn,Data.EigEst] = LowDSpace(B,Data.Emodel,pars.alpha); % to just obtain low-dimensional projection; Data.Dn = number of retained eigenvectors
 
 % node rejection within low-dimensional projection
-R = NodeRejection(B,Emodel,alpha,Vmodel,options); % N.B. also calls function to find projections
+Rejection = NodeRejection(B,Data.Emodel,pars.alpha,Vmodel,optionsReject); % N.B. also calls LowDSpace function to find projections
 
-%% Print out array of signal(1) and noise(0) nodes to .csv
+% keyboard
 
-signal_nodes = zeros(length(A),1);
-signal_nodes(nz_e(R.ixSignal)) = 1;
+% new signal matrix
+Data.Asignal = Data.A(Rejection.ixSignal,Rejection.ixSignal);
 
-save(['Networks/signal_',filename,'.mat'],'signal_nodes')
+% connected signal matrix: find largest component, and use that - store
+% others
+[Data.Asignal_comp,ixRetain,Data.SignalComps,Data.SignalComp_sizes] = prep_A(Data.Asignal); 
+Data.ixSignal_comp = Rejection.ixSignal(ixRetain);  % original node indices
+
+% and then strip out leaves - nodes with single links
+K = sum(Data.Asignal_comp);
+ixLeaves = find(K==1); ixKeep = find(K > 1);
+
+Data.ixSignal_Final = Data.ixSignal_comp(ixKeep);
+Data.ixSignal_Leaves = Data.ixSignal_comp(ixLeaves);
+Data.Asignal_final = Data.Asignal_comp(ixKeep,ixKeep);
 
