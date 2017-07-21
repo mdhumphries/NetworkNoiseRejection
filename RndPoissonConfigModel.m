@@ -114,18 +114,18 @@ fields = {'conversion','sAp','minW','maxW','dS','dSN','dmax'};
 diagnostics = emptyStruct(fields, [N,1]);
 
 % detect parallel toolbox, and enable if present
-blnParallel = license('test','Distrib_Computing_Toolbox');
+% blnParallel = license('test','Distrib_Computing_Toolbox');
 
-if blnParallel
-    nCores = feature('numCores');
-    if isempty(gcp('nocreate'))
-        parpool('local',nCores);  % run on all
-    end
-end
-
-
-parfor iN = 1:N
-% for iN = 1:N
+% if blnParallel
+%     nCores = feature('numCores');
+%     if isempty(gcp('nocreate'))
+%         parpool('local',nCores);  % run on all
+%     end
+% end
+% 
+% 
+% parfor iN = 1:N
+for iN = 1:N
     %% Step 1: create links
     K = sum(kA);  % total number of links
    
@@ -196,7 +196,7 @@ parfor iN = 1:N
         %% go ahead and get eigenvalues
         % P is null model for A, assuming A = P + noise
         % B* = P* - P
-        [Pstar(iN).V,Pstar(iN).Egs] = eig(Aperm - P,'vector');
+        [Pstar(iN).V,Pstar(iN).Egs] = eig(Aperm - P); %,'vector');
         [Pstar(iN).Egs,ix] = sort(Pstar(iN).Egs,'descend'); % ensure eigenvalues are sorted in order
         Pstar(iN).V = Pstar(iN).V(:,ix); % also sort eigenvectors
 
@@ -213,7 +213,7 @@ if Options.Expected
     varargout{3} = ExpWCM;  % return this if asked
     % now compute eigenvalues
     for iN = 1:N
-        [Pstar(iN).V,Pstar(iN).Egs] = eig(Pstar(iN).A - ExpWCM,'vector'); % difference between realisation and Expected model
+        [Pstar(iN).V,Pstar(iN).Egs] = eig(Pstar(iN).A - ExpWCM);%,'vector'); % difference between realisation and Expected model
         [Pstar(iN).Egs,ix] = sort(Pstar(iN).Egs,'descend'); % ensure eigenvalues are sorted in order
         Pstar(iN).V = Pstar(iN).V(:,ix); % also sort eigenvectors
     end
