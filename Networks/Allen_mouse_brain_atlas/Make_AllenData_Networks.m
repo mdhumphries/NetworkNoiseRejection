@@ -44,7 +44,7 @@ cmap = brewermap(10,'Greys');
 figure; 
 imagesc(A(iK,iK)); colormap(cmap);
 
-save('../Allen_Gene_Leaf','A','nodelabels')
+save('../Allen_Gene_Leaf','A','nodelabels','leafIDs_final')
 
 % %% single matrices at individual levels
 % 

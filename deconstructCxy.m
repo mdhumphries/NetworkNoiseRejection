@@ -13,7 +13,7 @@ function [Cs,Cn,ixRetain,CsRetain,CnRetain] = deconstructCxy(C,T)
 %   N: the matrix of estimated noise correlations (Cxy = S + N)
 %   R: the index of all n time-series that are retained   
 %   sigR: the matrix of signal correlations between retained time-series 
-%   noiseR : the matrix of signal correlations between retained time-series 
+%   noiseR : the matrix of noise correlations between retained time-series 
 %
 % NOTES:
 %   (1) Signal + noise decomposition is from MacMahon &
@@ -55,8 +55,8 @@ if N > T
 end
 
 % eigenspectra
-[V,D] = eig(C);
-egs =diag(D);
+[V,egs] = eig(C,'vector');
+[egs,~] = sort(egs,'descend'); 
 
 % Marchenko-Pastur distribution bounds
 MP_lambda_pos = (1+sqrt(N/T)).^2;
