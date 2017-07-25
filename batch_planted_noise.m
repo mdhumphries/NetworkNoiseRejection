@@ -23,7 +23,7 @@ T  =numel(Communities.fraction_periphery_grid) * numel(Communities.gg_cc_grid) *
 %% params for noise rejection
 
 pars.N = 100;           % repeats of permutation
-pars.alpha = 0; %0.95; % 0.95; % 0;         % confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
+pars.alpha = 0.95; %0.95; % 0.95; % 0;         % confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
 pars.Model = 'Poiss';   % or 'WCM' . % which null model
 pars.C = 100;             % conversion factor for real-valued weights (set=1 for integers)
 pars.eg_min = 1e-2;      % given machine error, what is acceptable as "zero" eigenvalue
@@ -66,16 +66,15 @@ for count_peri=1:numel(Communities.fraction_periphery_grid)
             network=test_noise_rejection_planted_noise(Communities.size,Communities.N, 'low',fraction_periphery, options);
             % unit analyses
             
-            %%% HERE: replace with function based on main template
-            %%% script....
-            Data = reject_the_noise(network.adjacency,pars,optionsModel,optionsReject);        
+            %%% Main dimension reduction and node rejection function
+            [Data,Rejection] = reject_the_noise(network.adjacency,pars,optionsModel,optionsReject);        
             
             true_members=find(network.membership >= 0);
             Nperiph = numel(network.membership) - numel(true_members);
             signal=numel(intersect(true_members,Data.ixSignal_Final))/numel(true_members);  % proportion of true members retained
             additional = numel(setdiff(Data.ixSignal_Final,true_members))/Nperiph; % proportion of periphery retained
             
-                       
+            % keyboard           
             %% do all 3 detection methods on Signal
             % construct new null mode
             P = Data.ExpA(Data.ixSignal_Final,Data.ixSignal_Final); % extract relevant part of null model

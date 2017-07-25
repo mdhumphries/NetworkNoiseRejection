@@ -7,6 +7,8 @@ clear all; close all
 
 % network to analyse
 % fname = 'Allen_Gene_Leaf'; 
+fname = 'LesMis'; 
+
 
 % analysis parameters
 pars.N = 100;           % repeats of permutation

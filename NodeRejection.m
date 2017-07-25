@@ -32,7 +32,7 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 %                'L1': L1-norm AKA the sum of absolute values of the vector
 %                'Lmax': L-infinity norm AKA the maximum value
 %
-%           .Weights: passes finds the "noise" nodes by weighting X:
+%           .Weights: finds the "noise" nodes by weighting X:
 %               'linear': weights projections by the eigenvalues of each
 %               eigenvector [Default]
 %               'none': no weighting by eigenvalues
@@ -44,7 +44,7 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 % (1) determines the low dimensional space for projecting the network for the specified rejection interval;
 % then finds the sampling distribution of null model projections (or norm)
 % of each node in that space
-% Retains all nodes that exceed the mean+2SEM of their sampling distribution
+% Retains all nodes that exceed the specified confidence interval of their sampling distribution
 %    
 % (2) The projections can be weighted according to the eigenvalues (see
 % above)
@@ -58,6 +58,8 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 % 29/7/2016: added Norm options; returned difference between model and data  
 % 25/10/2016: added checking of lower bound threshold too (assumes there is
 % one...)
+% 24/7/2017: fixed multiple CI bug; returns estimates of mean and CI for
+% all nodes; fixed bug in non-default weighting options
 %
 % Mark Humphries 
 
@@ -89,16 +91,20 @@ for i = 1:numel(I)
     [Vpos,ixpos,~] = LowDSpace(B,Emodel,I(i));
     
     %% project data and model
-    VmodelW = zeros(n,N);
+    nPos = numel(ixpos);
+    VmodelW = zeros(n,nPos,N);
     switch Options.Weight
         case 'none'
             % no weighting
             Vweighted = Vpos;   % data
             % for each model network, project into the same P dimensions
             % (top P eigenvalues)
-            for iN = 1:N   
-                VmodelW(:,iN) = sqrt(sum(Vmodel(:,ixpos,iN).^2,2));
-            end
+%             for iN = 1:N   
+%                 VmodelW(:,iN) = sqrt(sum(Vmodel(:,ixpos,iN).^2,2));
+%             end
+ 
+            VmodelW = Vmodel(:,ixpos,:);
+
         case 'linear'  % default
             egMat = repmat(egs(ixpos)',n,1);
             Vweighted = Vpos .* egMat;  %weight by eigenvalues
@@ -106,7 +112,7 @@ for i = 1:numel(I)
             % by eigenvalues
             for iN = 1:N
                 egMat = repmat(Emodel(ixpos,iN)',n,1);
-                VmodelW(:,iN) = sqrt(sum((egMat.*Vmodel(:,ixpos,iN)).^2,2));
+                VmodelW(:,:,iN) = egMat.*Vmodel(:,ixpos,iN);
             end
         case 'sqrt'
             % weight by square root of eigenvalue: cf Zhang & Newman 2015
@@ -115,28 +121,29 @@ for i = 1:numel(I)
             Vweighted = Vpos .* egMat;
             for iN = 1:N
                 egMat = repmat((sqrt(Emodel(ixpos,iN)))',n,1);
-                VmodelW(:,iN) = sqrt(sum((egMat.*Vmodel(:,ixpos,iN)).^2,2));
+                VmodelW(:,iN) = egMat.*Vmodel(:,ixpos,iN);
             end          
         otherwise
             error('Unknown weighting option')
     end
     
     % norms
+    VmodelL = zeros(n,N);
     switch Options.Norm
         case 'L2'  % default
             lengths = sqrt(sum(Vweighted.^2,2));  % L2: Euclidean distance
             for iN = 1:N   
-                VmodelW(:,iN) = sqrt(sum(VmodelW(:,iN).^2,2));
+                VmodelL(:,iN) = sqrt(sum(VmodelW(:,:,iN).^2,2));
             end
         case 'L1'
             lengths = sum(abs(Vweighted),2);  % L1: absolute sum
             for iN = 1:N   
-                VmodelW(:,iN) = sum(abs(VmodelW(:,iN)),2);
+                VmodelL(:,iN) = sum(abs(VmodelW(:,:,iN)),2);
             end
         case 'Lmax'
             lengths = max(abs(Vweighted),[],2);  % L infinity: maximum absolute value
             for iN = 1:N   
-                VmodelW(:,iN) = max(abs(VmodelW(:,iN)),[],2);
+                VmodelL(:,iN) = max(abs(VmodelW(:,:,iN)),[],2);
             end
        
         otherwise
@@ -145,21 +152,26 @@ for i = 1:numel(I)
 
     
     % summarise model projections
-    mModel = mean(VmodelW,2); 
-    % semModel = std(VmodelW,[],2) / sqrt(N);
-    CIModel = CIfromSEM(std(VmodelW,[],2),ones(size(mModel,1),1)*N,I);
+    D(i).mModel = mean(VmodelL,2); 
     
+    % confidence interval on the mean
+    D(i).CIModel = CIfromSEM(std(VmodelL,[],2),ones(size(D(i).mModel,1),1)*N,I(i));
+    
+    keyboard
+    
+    % distribution of projections?
+    maxModelL = max(VmodelL,[],2);
     % differences
-    D(i).Difference.Raw = lengths - (mModel + CIModel);
-    D(i).Difference.Norm = D(i).Difference.Raw ./ (mModel + CIModel);
+    D(i).Difference.Raw = lengths - (D(i).mModel + D(i).CIModel);
+    D(i).Difference.Norm = D(i).Difference.Raw ./ (D(i).mModel + D(i).CIModel);
     
     % split into signal and noise node sets
     D(i).ixSignal = find(D(i).Difference.Raw > 0);  % the retained node
     D(i).ixNoise = find(D(i).Difference.Raw <= 0); % removed nodes
     
     % also store negative projections - only of use if we use CI > 0
-    D(i).NegDiff.Raw = lengths - (mModel - CIModel);
-    D(i).NegDiff.Norm = D(i).NegDiff.Raw ./ (mModel - CIModel);
+    D(i).NegDiff.Raw = lengths - (D(i).mModel - D(i).CIModel);
+    D(i).NegDiff.Norm = D(i).NegDiff.Raw ./ (D(i).mModel - D(i).CIModel);
     
 %     D(i).ixSignal = find(lengths >= mModel); % + 2.*semModel);  % the retained node
 %     D(i).ixNoise = find(lengths < mModel); % + 2.*semModel); % removed nodes
