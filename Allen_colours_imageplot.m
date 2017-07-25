@@ -1,5 +1,5 @@
 % Allen_colours_imageplot.m
-%
+% 
 % Script to make an image of the sorted-by-cluster 'allen_colours'
 %
 % M. Evans July 2017
