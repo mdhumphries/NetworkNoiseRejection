@@ -1,7 +1,7 @@
-function Data = reject_the_noise(A,pars,optionsModel,optionsReject)
+function [Data,Rejection] = reject_the_noise(A,pars,optionsModel,optionsReject)
 
 % REJECT_THE_NOISE batch version of noise rejection script
-% DATA = REJECT_THE_NOISE(A,PARS)
+% [DATA,REJECTION] = REJECT_THE_NOISE(A,PARS)
 %
 % Mark Humphries & Mat Evans
 
