@@ -2,7 +2,7 @@
 % Mark Humphries, 28/2/2017
 clear all; close all;
 
-fname = 'Allen_Gene_Leaf'; 
+fname = 'LesMis'; 
 blnLabels = 1;      % write node labels? Omit for large networks
 fontsize = 6;
 

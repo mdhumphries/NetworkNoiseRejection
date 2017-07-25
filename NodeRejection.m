@@ -5,7 +5,7 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 % and noise components, given: 
 %       B: the (nxn) modularity matrix of the network, defined using a null model (e.g Weighted Configuration Model)
 %       E: the null-model eigenvalue distribution (n x #repeats of null model) (from e.g. WeightedConfigModel) 
-%       I: specified confidence interval on the mean maximum eigenvalue (eg I = 0.95 for 95%); if I is specified as an n-length array {I1,I2,...,In], 
+%       I: specified prediction or confidence interval (e.g. I = 0.9 for 90%); if I is specified as an n-length array {I1,I2,...,In], 
 %       then a decompositin will be returned for each I 
 %       V: the null model set of eigenvectors (n x n x #repeats of null model; 1 eigenvector per column)
 %
@@ -14,6 +14,7 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 %               network
 %               .ixNoise: the node indices in the noise component of the
 %               network
+%               .ixNegative: any nodes indices below the lower bound
 %               .N: the number of retained eigenvectors according to I(i) -
 %               for use in e.g. estimating the maximum number of communties as N+1
 %               .Difference.Raw: a vector of differences between the data
@@ -39,6 +40,13 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 %               'sqrt': weights projections by the square root of the
 %               eigenvalues of each eigenvector
 %
+%           .Intervals: defines the intervals used to test eigenvalues and
+%                   projection lengths: 
+%               'PI': [Default] prediction intervals on the distribution of values from the null model 
+%                       - see PREDICTIONINTERVALSNONP
+%               'CI': confidence intervals on the mean values from the null
+%               model (if using this option, set I=0 to just use the mean)
+%
 %
 % Notes: 
 % (1) determines the low dimensional space for projecting the network for the specified rejection interval;
@@ -60,12 +68,14 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 % one...)
 % 24/7/2017: fixed multiple CI bug; returns estimates of mean and CI for
 % all nodes; fixed bug in non-default weighting options
+% 25/7/2017: added Prediction Intervals  
 %
 % Mark Humphries 
 
 % sort out options
 Options.Weight = 'linear';
 Options.Norm = 'L2';
+Options.Intervals = 'PI';
 
 N = size(Vmodel,3); 
 n = size(Vmodel,1);
@@ -151,30 +161,55 @@ for i = 1:numel(I)
     end
 
     
+    
     % summarise model projections
     D(i).mModel = mean(VmodelL,2); 
-    
-    % confidence interval on the mean
-    D(i).CIModel = CIfromSEM(std(VmodelL,[],2),ones(size(D(i).mModel,1),1)*N,I(i));
-    
-    keyboard
-    
-    % distribution of projections?
-    maxModelL = max(VmodelL,[],2);
-    % differences
-    D(i).Difference.Raw = lengths - (D(i).mModel + D(i).CIModel);
-    D(i).Difference.Norm = D(i).Difference.Raw ./ (D(i).mModel + D(i).CIModel);
-    
+
+    switch Options.Intervals 
+        case 'CI'
+
+            % confidence interval on the mean
+            D(i).CIModel = CIfromSEM(std(VmodelL,[],2),ones(size(D(i).mModel,1),1)*N,I(i));
+
+            % differences
+            D(i).Difference.Raw = lengths - (D(i).mModel + D(i).CIModel);
+            D(i).Difference.Norm = D(i).Difference.Raw ./ (D(i).mModel + D(i).CIModel);
+            
+            % also store negative projections - only of use if we use CI > 0
+            D(i).NegDiff.Raw = lengths - (D(i).mModel - D(i).CIModel);
+            D(i).NegDiff.Norm = D(i).NegDiff.Raw ./ (D(i).mModel - D(i).CIModel);
+
+        case 'PI'
+            if rem(N,2) == 0
+                nIdx = N-1;
+            else
+                nIdx = N;
+            end
+
+            for iN = 1:n
+                PIs = PredictionIntervalNonP(VmodelL(iN,1:nIdx));  % take an odd number to (most likely) get integer-spaced prediction intervals
+                ix = find(PIs(:,1)/100 == I(i));       % get specified prediction interval 
+                if isempty(ix) error('Cannot find specified prediction interval'); end
+
+                D(i).PIModel(iN,:) = PIs(ix,2:3); 
+            end
+            % differences from upper bound
+            D(i).Difference.Raw = lengths - D(i).PIModel(:,2);
+            D(i).Difference.Norm = D(i).Difference.Raw ./ D(i).PIModel(:,2);
+            
+            % also store negative projections below lower bound
+            D(i).NegDiff.Raw = lengths - D(i).PIModel(:,1);  % so below lower bound will be negative 
+            D(i).NegDiff.Norm = D(i).NegDiff.Raw ./ D(i).PIModel(:,1);
+
+        otherwise
+            error('Unknown Interval option')
+    end
+
     % split into signal and noise node sets
     D(i).ixSignal = find(D(i).Difference.Raw > 0);  % the retained node
     D(i).ixNoise = find(D(i).Difference.Raw <= 0); % removed nodes
+    D(i).ixNegative = find(D(i).NegDiff.Raw <= 0); % projections below lower bounds
     
-    % also store negative projections - only of use if we use CI > 0
-    D(i).NegDiff.Raw = lengths - (D(i).mModel - D(i).CIModel);
-    D(i).NegDiff.Norm = D(i).NegDiff.Raw ./ (D(i).mModel - D(i).CIModel);
-    
-%     D(i).ixSignal = find(lengths >= mModel); % + 2.*semModel);  % the retained node
-%     D(i).ixNoise = find(lengths < mModel); % + 2.*semModel); % removed nodes
 
 end
 
