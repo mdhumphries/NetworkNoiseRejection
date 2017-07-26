@@ -8,7 +8,7 @@
 % Mark Humphries, Mat Evans 28/2/2017
 
 clear all; close all
-% fname = 'dolphins'; 
+% fname = 'StarWarsNetworkEp5'; 
 fname = 'LesMis'; 
 blnVizNet = 0;  % network visualisation - if MATLAB BGL installed, appropriate for platform:
 blnExport = 0;

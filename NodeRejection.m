@@ -42,9 +42,9 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 %
 %           .Intervals: defines the intervals used to test eigenvalues and
 %                   projection lengths: 
-%               'PI': [Default] prediction intervals on the distribution of values from the null model 
+%               'PI': prediction intervals on the distribution of values from the null model 
 %                       - see PREDICTIONINTERVALSNONP
-%               'CI': confidence intervals on the mean values from the null
+%               'CI': [Default] confidence intervals on the mean values from the null
 %               model (if using this option, set I=0 to just use the mean)
 %
 %
@@ -75,7 +75,7 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 % sort out options
 Options.Weight = 'linear';
 Options.Norm = 'L2';
-Options.Intervals = 'PI';
+Options.Intervals = 'CI';
 
 N = size(Vmodel,3); 
 n = size(Vmodel,1);
