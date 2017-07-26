@@ -7,9 +7,9 @@
 clear all; close all
 
 % Change path as appropriate
-load('/Users/mathew/work/NetworkNoiseRejection/Networks/Allen_Gene_Leaf.mat')
-load('/Users/mathew/work/NetworkNoiseRejection/Networks/Allen_mouse_brain_atlas/allen_colours.mat')
-load('/Users/mathew/work/NetworkNoiseRejection/Results/Clustered_Allen_Gene_Leaf.mat', 'Full')
+load('../Networks/Allen_Gene_Leaf.mat')
+load('../Networks/Allen_mouse_brain_atlas/allen_colours.mat')
+load('../Results/Clustered_Allen_Gene_Leaf.mat', 'Full')
 
 % Qmax
 figure;
