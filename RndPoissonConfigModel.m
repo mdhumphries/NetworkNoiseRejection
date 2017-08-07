@@ -223,6 +223,7 @@ end
 V = zeros(n,n,N);
 E = zeros(n,N);
 if nargout >=5 A = zeros(n,n,N); end
+keyboard
 for iN = 1:N
     E(:,iN) = Pstar(iN).Egs;
     V(:,:,iN) = Pstar(iN).V;

@@ -1,7 +1,7 @@
-function [Data,Rejection] = reject_the_noise(A,pars,optionsModel,optionsReject)
+function [Data,Rejection,Control] = reject_the_noise(A,pars,optionsModel,optionsReject)
 
 % REJECT_THE_NOISE batch version of noise rejection script
-% [DATA,REJECTION] = REJECT_THE_NOISE(A,PARS)
+% [DATA,REJECTION,CONTROL] = REJECT_THE_NOISE(A,PARS,optionsModel,optionsReject)
 %
 % Mark Humphries & Mat Evans
 
@@ -43,4 +43,28 @@ ixLeaves = find(K==1); ixKeep = find(K > 1);
 Data.ixSignal_Final = Data.ixSignal_comp(ixKeep);
 Data.ixSignal_Leaves = Data.ixSignal_comp(ixLeaves);
 Data.Asignal_final = Data.Asignal_comp(ixKeep,ixKeep);
+
+% count groups given just positive eigenvalues
+egs = eig(B,'vector');  % eigenspectra of data modularity matrix
+egs = sort(egs,'descend'); % sort eigenvalues into descending order 
+Data.PosDn = sum(egs > pars.eg_min);
+
+
+% count groups
+egs = eig(B,'vector');  % eigenspectra of data modularity matrix
+egs = sort(egs,'descend'); % sort eigenvalues into descending order 
+Data.PosDn = sum(egs > pars.eg_min);
+
+%% compare to standard configuration model
+
+Control.P = expectedA(Data.A);
+B = Data.A - Control.P;
+% compute based on spectral rejection
+[Control.Emodel,~,~] = RndPoissonConfigModel(Data.A,pars.N,pars.C);
+[Control.Dspace,~,Control.Dn,Control.EigEst] = LowDSpace(B,Control.Emodel,pars.I); % to just obtain low-dimensional projection; Data.Dn = number of retained eigenvectors
+
+% compute groups based on just positive eigenvalues
+egs = eig(B,'vector');  % eigenspectra of data modularity matrix
+egs = sort(egs,'descend'); % sort eigenvalues into descending order 
+Control.PosDn = sum(egs > pars.eg_min);
 
