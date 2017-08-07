@@ -12,21 +12,25 @@ N = [100,100,100];  % size of modules
 
 % edge parameters
 P.in = 0.1;
-P.between = 0.05;
+P.between = 0.1;
 
-% degree distribution parameters
-Dpar.distribution =         % type of distribution
-Dpar.scale = ...            % [in, between]
-Dpar.spread = ...           % [in, between]
+% stength distribution parameters
+Spar.distribution =  'Poisson';  % type of distribution
+Spar.a = 10;                    % scale: in addition to existing edges
+Spar.b = 1;                     % spread
+
+% proportion of degree assigned within module
+alpha = 0.8;    % [0,1): 1 = all within
 
 %% make adjacency matrix
 A = wire_edges(N,P);
 
-%% sample degrees according to current rules
+%% sample strength distribution according to current rules
 
-D = sample_degrees(N,Dpar);
+n = sum(N);
+S = sample_strength(n,Spar);
 
 
 %% use Poisson generative model to create Weight matrix
 
-W = weight_edges(A,D); % calling code from Poisson CM model
+W = weight_edges(A,N,S,alpha); % calling code from Poisson CM model
