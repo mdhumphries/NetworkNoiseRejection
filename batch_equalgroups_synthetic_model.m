@@ -106,7 +106,7 @@ for iP = 1:numel(Model.P_of_within)
         [bestPartition] = multiwaySpectCommDet(Data.A);
         Results.nVIFull_Multiway(iP,iA) = VIpartitions(bestPartition,group_membership) / log(numel(group_membership));
         
-        Results.Time(iP,iA) = toc;
+        Results.Time(iP,iA) = toc
     end
 end
 
