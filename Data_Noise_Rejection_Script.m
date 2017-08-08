@@ -84,7 +84,7 @@ B = Data.A - Data.ExpA;  % modularity matrix using chosen null model
 [Data.Dspace,~,Data.Dn,Data.EigEst,Data.Nspace,~,Data.Dneg,Data.NEigEst] = LowDSpace(B,Data.Emodel,pars.I); % to just obtain low-dimensional projection; Data.Dn = number of retained eigenvectors
 
 % compute dimensions based on just positive eigenvalues
-egs = eig(B,'vector');  % eigenspectra of data modularity matrix
+egs = eig(B);  % eigenspectra of data modularity matrix
 egs = sort(egs,'descend'); % sort eigenvalues into descending order 
 Data.PosDn = sum(egs > pars.eg_min);
 
@@ -114,7 +114,7 @@ Control.P = expectedA(Data.A);
 B = Data.A - Control.P;
 
 % compute groups based on just positive eigenvalues
-egs = eig(B,'vector');  % eigenspectra of data modularity matrix
+egs = eig(B);  % eigenspectra of data modularity matrix
 egs = sort(egs,'descend'); % sort eigenvalues into descending order 
 Control.PosDn = sum(egs > pars.eg_min);
 

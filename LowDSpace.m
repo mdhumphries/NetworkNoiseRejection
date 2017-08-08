@@ -48,7 +48,8 @@ if size(Emodel,1) ~= n
     error('Eigenvalue matrix should be n (nodes) x N (repeats)')
 end
 
-[V,egs] = eig(B,'vector');  % eigenspectra of data modularity matrix
+[V,egs] = eig(B);  % eigenspectra of data modularity matrix
+egs = diag(egs); % extract vector from diagonal
 [egs,ix] = sort(egs,'descend'); % sort eigenvalues into descending order 
 V = V(:,ix);  % sort eigenvectors accordingly
 

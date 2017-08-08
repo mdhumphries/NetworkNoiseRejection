@@ -50,7 +50,7 @@ else
 end
 
 % count groups given just positive eigenvalues
-egs = eig(B,'vector');  % eigenspectra of data modularity matrix
+egs = eig(B);  % eigenspectra of data modularity matrix
 egs = sort(egs,'descend'); % sort eigenvalues into descending order 
 Data.PosDn = sum(egs > pars.eg_min);
 
@@ -63,7 +63,7 @@ B = Data.A - Control.P;
 [Control.Dspace,~,Control.Dn,Control.EigEst] = LowDSpace(B,Control.Emodel,pars.alpha); % to just obtain low-dimensional projection; Data.Dn = number of retained eigenvectors
 
 % compute groups based on just positive eigenvalues
-egs = eig(B,'vector');  % eigenspectra of data modularity matrix
+egs = eig(B);  % eigenspectra of data modularity matrix
 egs = sort(egs,'descend'); % sort eigenvalues into descending order 
 Control.PosDn = sum(egs > pars.eg_min);
 
