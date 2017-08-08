@@ -4,6 +4,7 @@
 
 clear all; close all;
 addpath('SyntheticModel/');
+addpath('ZhangNewman2015/');
 
 %% fixed parameters edge parameters
 Model.N = [100,100,100];  % size of modules
@@ -56,6 +57,7 @@ Model.S = sample_strength(n,Model.Spar); % sample strength distribution accordin
 
 for iP = 1:numel(Model.P_of_within)
     for iA = 1:numel(Model.alpha_range)
+        iA
         tic
         % assign parameters
         
@@ -66,18 +68,8 @@ for iP = 1:numel(Model.P_of_within)
         A = wire_edges(Model.N,P);  % make adjacency matrix
         W = weight_edges(A,Model.N,Model.S,alpha); % use Poisson generative model to create Weight matrix
         
-        [Data,Rejection] = reject_the_noise(W,rejectionpars,optionsModel,optionsReject);        
-        
-        [Control.Emodel,~,Vmodel] = RndPoissonConfigModel(Data.A,rejectionpars.N,rejectionpars.C);
-        Control.P = expectedA(Data.A);
-
-        B = Data.A - Control.P;
-
-        % compute groups based on just positive eigenvalues
-        egs = eig(B,'vector');  % eigenspectra of data modularity matrix
-        egs = sort(egs,'descend'); % sort eigenvalues into descending order 
-        Control.PosDn = sum(egs > pars.eg_min);
-
+        %% do spectral rejection on model
+        [Data,Rejection,Control] = reject_the_noise(W,rejectionpars,optionsModel,optionsReject);        
 
         % RESULTS:
         % number of groups recovered by spectra vs same count from other
@@ -105,7 +97,7 @@ for iP = 1:numel(Model.P_of_within)
 
         [Full.LouvCluster,Full.LouvQ,allCn,allIters] = LouvainCommunityUDnondeterm(Data.A,clusterpars.nLouvain,1);  % run 5 times; return 1st level of hierarchy only
         for j = 1:clusterpars.nLouvain
-            CLou = Connected.LouvCluster{j}{1};  % Repeat#, Level of Hierarchy
+            CLou = Full.LouvCluster{j}{1};  % Repeat#, Level of Hierarchy
             Full.VI_Louvain(j) = VIpartitions(CLou,group_membership) ./ log(numel(group_membership));
         end
         Results.nVIFull_LouvainMin(iP,iA) = min(Full.VI_Louvain);

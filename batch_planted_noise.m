@@ -120,7 +120,7 @@ for count_peri=1:numel(Communities.fraction_periphery_grid)
 
             [Full.LouvCluster,Full.LouvQ,allCn,allIters] = LouvainCommunityUDnondeterm(Data.A,clusterpars.nLouvain,1);  % run 5 times; return 1st level of hierarchy only
             for j = 1:clusterpars.nLouvain
-                CLou = Connected.LouvCluster{j}{1};  % Repeat#, Level of Hierarchy
+                CLou = Full.LouvCluster{j}{1};  % Repeat#, Level of Hierarchy
                 Full.VI_Louvain(j) = VIpartitions(CLou,network.membership+1) ./ log(numel(network.membership));
             end
             nVIFull_LouvainMin = min(Full.VI_Louvain);

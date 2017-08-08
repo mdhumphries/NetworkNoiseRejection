@@ -196,8 +196,10 @@ for iN = 1:N
         %% go ahead and get eigenvalues
         % P is null model for A, assuming A = P + noise
         % B* = P* - P
-        [Pstar(iN).V,Pstar(iN).Egs] = eig(Aperm - P); %,'vector');
-        [Pstar(iN).Egs,ix] = sort(Pstar(iN).Egs,'descend'); % ensure eigenvalues are sorted in order
+        % [Pstar(iN).V,Pstar(iN).Egs] = eig(Aperm - P,'vector');  % not using 'vector' option for backwards compatibility
+        [Pstar(iN).V,Egs] = eig(Aperm - P);
+        Egs = diag(Egs); % extract vector from diagonal
+        [Pstar(iN).Egs,ix] = sort(Egs,'descend'); % ensure eigenvalues are sorted in order
         Pstar(iN).V = Pstar(iN).V(:,ix); % also sort eigenvectors
 
     end
@@ -213,8 +215,10 @@ if Options.Expected
     varargout{3} = ExpWCM;  % return this if asked
     % now compute eigenvalues
     for iN = 1:N
-        [Pstar(iN).V,Pstar(iN).Egs] = eig(Pstar(iN).A - ExpWCM);%,'vector'); % difference between realisation and Expected model
-        [Pstar(iN).Egs,ix] = sort(Pstar(iN).Egs,'descend'); % ensure eigenvalues are sorted in order
+        % [Pstar(iN).V,Pstar(iN).Egs] = eig(Pstar(iN).A - ExpWCM,'vector'); % difference between realisation and Expected model
+        [Pstar(iN).V,Egs] = eig(Pstar(iN).A - ExpWCM);
+        Egs = diag(Egs); % extract vector from diagonal
+        [Pstar(iN).Egs,ix] = sort(Egs,'descend'); % ensure eigenvalues are sorted in order
         Pstar(iN).V = Pstar(iN).V(:,ix); % also sort eigenvectors
     end
 end
@@ -223,7 +227,7 @@ end
 V = zeros(n,n,N);
 E = zeros(n,N);
 if nargout >=5 A = zeros(n,n,N); end
-keyboard
+
 for iN = 1:N
     E(:,iN) = Pstar(iN).Egs;
     V(:,:,iN) = Pstar(iN).V;
