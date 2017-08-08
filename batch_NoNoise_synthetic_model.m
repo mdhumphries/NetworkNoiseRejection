@@ -7,7 +7,7 @@ addpath('SyntheticModel/');
 addpath('ZhangNewman2015/');
 
 %% fixed parameters edge parameters
-Model.N = [100,100,100];  % size of modules
+Model.N = [200,75,25];  % size of modules
 
 Model.P.between = 0.05;   
 
@@ -110,8 +110,15 @@ for iP = 1:numel(Model.P_of_within)
     end
 end
 
+%% save
 fname = datestr(now,30);
 
-save(['Results/SyntheticEqual_NoNoise_' fname],'Results','Model','rejectionpars','optionsModel','optionsReject','clusterpars')
+if all(Model.N == Model.N(1))
+    strName = 'Equal';
+else
+    strName = 'Unequal';
+end
+
+save(['Results/Synthetic' strName '_NoNoise_' fname],'Results','Model','rejectionpars','optionsModel','optionsReject','clusterpars')
 
 
