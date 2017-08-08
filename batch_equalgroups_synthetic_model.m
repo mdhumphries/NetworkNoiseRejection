@@ -81,8 +81,7 @@ for iP = 1:numel(Model.P_of_within)
         
         % keyboard           
         %% do all 3 detection methods on Signal
-        % construct new null mode
-        P = Data.ExpA(Data.ixSignal_Final,Data.ixSignal_Final); % extract relevant part of null model
+        % construct new null model
 
         %% and all again, on full matrix, assigning noise to its own community
         if Data.Dn > 0
