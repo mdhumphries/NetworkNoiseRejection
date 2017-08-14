@@ -3,7 +3,8 @@
 
 clear all; close all;
 
-fname = 'SyntheticEqual_NoNoise_20170808T130427';
+% fname = 'SyntheticEqual_NoNoise_20170808T130427';
+fname = 'SyntheticUnequal_NoNoise_20170808T175814';
 
 load(['Results/' fname]);  % Main table is 'core_perf'
 

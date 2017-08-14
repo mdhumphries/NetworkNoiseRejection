@@ -9,9 +9,9 @@ N = 100; % number of time-series
 r = rand(T,N); % random time-series
 rN = (r-mean(r(:)))./std(r(:));  % z-scored
 Cxy = corrcoef(r);
-% Cxy = corrcoef(rN);
+% Cxy = cov(rN);
 
-[Cs,Cn,ixRetain,sigR,noiseR] = deconstructCxy(Cxy,T); % ixRetain & sigR is empty, as expected
+[Cs,Cn,ixRetain,sigR,noiseR,D] = deconstructCxy(Cxy,T,'weighted'); % ixRetain & sigR is empty, as expected
 
 figure
 subplot(3,3,1), imagesc(Cxy); title('Cxy')
@@ -41,16 +41,21 @@ title('Eigenvalue distribution of Cxy of random time-series')
 
 
 %% correlation in dataset
-ix = [5,7]; reps = 5;  % total number in correlated groups = #ixs + (#ixs * reps)
+ix = [5,7,10]; reps = 5;  % total number in correlated groups = #ixs + (#ixs * reps)
 r_corr = r; 
+used = [ix];
 for i=1:numel(ix)
     poss = randperm(N);
+    for j =1:numel(used)        % don't copy over anything already set-up as in a group
+        poss(poss == used(j)) = [];
+    end
     r_corr(:,poss(1:reps)) = repmat(r(:,ix(i)),1,reps); % copy that column to reps others
+    used = [used poss(1:reps)]; 
 end
 %r_corrN = (r_corr-mean(r_corr(:)))./std(r_corr(:));
 Cxy = corrcoef(r_corr);
 
-[Cs,Cn,ixRetain,sigR,noiseR] = deconstructCxy(Cxy,T); 
+[Cs,Cn,ixRetain,sigR,noiseR,D] = deconstructCxy(Cxy,T,'weighted'); 
 
 figure
 subplot(3,3,1), imagesc(Cxy); title('Cxy')

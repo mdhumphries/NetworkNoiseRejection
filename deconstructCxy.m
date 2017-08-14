@@ -1,7 +1,7 @@
-function [Cs,Cn,ixRetain,CsRetain,CnRetain] = deconstructCxy(C,T) 
+function [Cs,Cn,ixRetain,CsRetain,CnRetain,D] = deconstructCxy(C,T,varargin) 
 
 % DECONSTRUCTCXY deconstructs a correlation matrix
-% [S,N,R,sigR,noiseR] = DECONSTRUCTCXY(C,T) deconstructs a matrix Cxy of 
+% [S,N,R,sigR,noiseR,D] = DECONSTRUCTCXY(C,T) deconstructs a matrix Cxy of 
 % nxn pairwise correlation coefficients, computed from n time-series recorded for T 
 % time-steps. The deconstruction assumes that the observed correlation 
 % matrix is constructed from a true set of correlations (signal) with
@@ -14,6 +14,10 @@ function [Cs,Cn,ixRetain,CsRetain,CnRetain] = deconstructCxy(C,T)
 %   R: the index of all n time-series that are retained   
 %   sigR: the matrix of signal correlations between retained time-series 
 %   noiseR : the matrix of noise correlations between retained time-series 
+%   D: the number of dimensions (eigenvalues above upper bound)
+%
+%  ... = DECONSTRUCTCXY(...,'weighted') weights the D-dimensional
+%  projection by the eigenvalue of each dimension. d = sqrt(sum([eg(i) * V(i)].^2))
 %
 % NOTES:
 %   (1) The correlation/covariance matrix must have zero mean and unit
@@ -42,7 +46,10 @@ function [Cs,Cn,ixRetain,CsRetain,CnRetain] = deconstructCxy(C,T)
 % 
 %   We find the retained R = N -E time-series by retaining the R time-series 
 %   with the longest projecting vectors in the vector space defined by the 
-%   R eigenvectors (cf suggestion by Lopes-dos-Santos et al 2011). 
+%   R eigenvectors (cf suggestion by Lopes-dos-Santos et al 2011). Option
+%   'weighted' weights these projections by the eigenvalue of each
+%   dimension (so high variance dimensions account for more of the
+%   projection).
 %
 %   (4) The signal correlation matrix is a further step: we take the
 %   sub-matrix of the Correlation matrix for just the retained nodes, 
@@ -60,8 +67,15 @@ function [Cs,Cn,ixRetain,CsRetain,CnRetain] = deconstructCxy(C,T)
 %   MacMahon, M. & Garlaschelli, D. (2015) Community Detection for Correlation Matrices 
 %   Phys. Rev. X,5, 021006
 %
+%   14/8/2017: added option to weight projections by the eigenvalue of each
+%   dimension
 %
 % Mark Humphries 7/8/2015
+
+blnWeighted = 0; 
+if nargin > 2 && strcmp(varargin{1},'weighted')
+    blnWeighted = 1;
+end
 
 N = size(C,1);
 
@@ -70,7 +84,8 @@ if N > T
 end
 
 % eigenspectra
-[V,egs] = eig(C,'vector');
+[V,egs] = eig(C);
+egs = diag(egs);
 [egs,~] = sort(egs,'descend'); 
 
 % Marchenko-Pastur distribution bounds
@@ -92,7 +107,12 @@ end
 Cn = C - Cs; % noise matrix
 
 % rejection of outliers
-lengths = sqrt(sum(Vpos.^2,2));  % length of projection into space
+if blnWeighted
+    egMat = repmat(egs(ixpos)',N,1);
+    lengths = sqrt(sum((egMat.*Vpos).^2,2));  % weighted length of projection into space
+else
+    lengths = sqrt(sum(Vpos.^2,2));  % length of projection into space
+end
 [srt,I] = sort(lengths,'descend');
 ixRetain = sort(I(1:Tensemble),'ascend');  % the T retained nodes, in ID order
 ixRemove = sort(I(Tensemble+1:end),'ascend'); % removed nodes, in ID order
@@ -108,6 +128,7 @@ for i=1:numel(ixpos)
 end
 CnRetain = CRetain - CsRetain; % noise matrix
 
+D = numel(ixpos);
 
 % % resulting correlation and noise matrices
 % CsRetain = Cs(ixRetain,ixRetain);  % retained signal matrix
