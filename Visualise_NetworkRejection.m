@@ -9,7 +9,8 @@
 
 clear all; close all
 % fname = 'StarWarsNetworkEp5'; 
-fname = 'LesMis'; 
+% fname = 'LesMis'; 
+fname = 'cosyneFinalData';
 blnVizNet = 0;  % network visualisation - if MATLAB BGL installed, appropriate for platform:
 blnExport = 0;
 fontsize = 6;
@@ -52,8 +53,8 @@ Edata = eig(B);
 figure
 stairs(xdata,fdata,'r'); hold on
 stairs(xmodel,fmodel,'k')
-xlabel('P')
-ylabel('Eigenvalues')
+ylabel('P')
+xlabel('Eigenvalues')
 
 %% compare data eigenvalues to distribution of maximum eigenvalues
 
@@ -75,8 +76,8 @@ plot(X_minmodelE,F_minmodelE,'color',[0.7 0.7 0.7]); hold on
 ylim = get(gca,'YLim');
 
 % compute PIs
-line([Data.EigEst(1), Data.EigEst(1)],ylim,'Color',[0.6 0.6 0.8],'Linewidth',1); % lower CI
-line([Data.EigEst(2), Data.EigEst(2)],ylim,'Color',[0.6 0.6 0.8],'Linewidth',1); % upper CI
+line([Data.EigEst(1), Data.EigEst(1)],ylim,'Color',[0.6 0.6 0.8],'Linewidth',1); % lower CI (or only CI, if just computing mean)
+line([Data.EigEst(2), Data.EigEst(2)],ylim,'Color',[0.6 0.6 0.8],'Linewidth',1); % upper CI (or 0, if just computing mean)
 
 line([Data.NEigEst(1), Data.NEigEst(1)],ylim,'Color',[0.6 0.6 0.8],'Linewidth',1); % lower CI
 line([Data.NEigEst(2), Data.NEigEst(2)],ylim,'Color',[0.6 0.6 0.8],'Linewidth',1); % upper CI
@@ -110,7 +111,17 @@ ylabel('P(max model eigenvalue)')
 xlabel('Eigenvalue')
 
 
+%% just plot eigenvalues and limits
 
+figure('Units', 'centimeters', 'PaperPositionMode', 'auto','Position',[10 15 4 2]); 
+line([Data.EigEst(1), Data.EigEst(1)],[0 0.02],'Color',[0.6 0.6 0.8],'Linewidth',1); hold on % lower CI
+line([0,0],[0 0.02],'Color',[0.6 0.6 0.8],'Linewidth',1); % lower CI
+plot(Edata,zeros(numel(Edata),1)+0.01,'kx')
+lim = max(max(abs(Edata)),Data.EigEst(1)) + 2;
+set(gca,'XLim',[-lim lim])
+% ylabel('P(max model eigenvalue)')
+xlabel('Eigenvalues')
+if blnExport exportPPTfig(gcf,[fname 'Eigs_Limits'],[10 15 4 2]); end
 
 %% visualise signal and noise parts
 if blnVizNet
