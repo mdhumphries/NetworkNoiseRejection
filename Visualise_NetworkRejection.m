@@ -115,7 +115,7 @@ xlabel('Eigenvalue')
 
 figure('Units', 'centimeters', 'PaperPositionMode', 'auto','Position',[10 15 4 2]); 
 line([Data.EigEst(1), Data.EigEst(1)],[0 0.02],'Color',[0.6 0.6 0.8],'Linewidth',1); hold on % lower CI
-line([0,0],[0 0.02],'Color',[0.6 0.6 0.8],'Linewidth',1); % lower CI
+line([0,0],[0 0.02],'Color',[0.8 0.8 0],'Linewidth',1); % modularity matrix
 plot(Edata,zeros(numel(Edata),1)+0.01,'kx')
 lim = max(max(abs(Edata)),Data.EigEst(1)) + 2;
 set(gca,'XLim',[-lim lim])
