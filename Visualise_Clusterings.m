@@ -8,7 +8,7 @@ clear all; close all
 fname = 'StarWarsNetworkEp5'; 
 
 blnLabels = 1;      % write node labels? Omit for large networks
-blnExport = 1;
+blnExport = 0;
 fontsize = 6;
 
 %% load data
@@ -20,7 +20,7 @@ load(['Results/Clustered_' fname],'Full','Connected')
 numConnected = length(Data.ixSignal_Final);
 
 if Data.Dn > 0
-    [H,Ix] = plotClusterMap(Data.Asignal_final,Connected.ConsCluster,[],'S');
+    [H,h,Ix] = plotClusterMap(Data.Asignal_final,Connected.ConsCluster,[],[],'S');
     title('Consensus clustering of signal')
     plotorder = Data.ixSignal_Final(Ix);
     
@@ -33,7 +33,7 @@ if Data.Dn > 0
     if blnExport exportPPTfig(gcf,[fname 'Consensus_Signal'],[10 15 7 7]); end
 
     % compare to the Qmax solution at the requested number of groups
-    [H,Ix] = plotClusterMap(Data.Asignal_final,Connected.QmaxCluster,[],'S');
+    [H,h,Ix] = plotClusterMap(Data.Asignal_final,Connected.QmaxCluster,[],[],'S');
     plotorder = Data.ixSignal_Final(Ix);
     title('Qmax clustering of signal')
     if blnLabels
@@ -47,7 +47,7 @@ end
 
 %% plot clustering of full network
 if Data.Dn > 0
-    [H,Ix] = plotClusterMap(Data.A,Full.ConsCluster,[],'S');
+    [H,h,Ix] = plotClusterMap(Data.A,Full.ConsCluster,[],[],'S');
     title('Consensus clustering of all')
     plotorder = Ix;
     
@@ -59,7 +59,7 @@ if Data.Dn > 0
     end
     
     % compare to the Qmax solution at the requested number of groups
-    [H,Ix] = plotClusterMap(Data.A,Full.QmaxCluster,[],'S');
+    [H,h,Ix] = plotClusterMap(Data.A,Full.QmaxCluster,[],[],'S');
     plotorder = Ix;
     title('Qmax clustering of all')
     if blnLabels
