@@ -1,6 +1,6 @@
 % unit-test consensus clustering of network functions
 clear all; close all
-addpath ../
+addpath('../Network_Analysis_Functions/')
 
 egmin = 1e-2; % counts as more than zero?
 dx = 0.05;

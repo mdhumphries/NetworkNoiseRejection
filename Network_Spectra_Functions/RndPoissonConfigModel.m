@@ -51,6 +51,8 @@ function [E,varargout] = RndPoissonConfigModel(A,N,varargin)
 % WCM model [MH]
 %
 % Silvia Maggi & Mark Humphries
+addpath('../Helper_Functions/')  % for emptyStruct
+addpath('../Network_Analysis_Functions/')  % for expectedA
 
 n = size(A,1);
 
@@ -119,7 +121,8 @@ diagnostics = emptyStruct(fields, [N,1]);
 % if blnParallel
 %     nCores = feature('numCores');
 %     if isempty(gcp('nocreate'))
-%         parpool('local',nCores);  % run on all
+%         parpool('local',nCores-1);  % run on all, except one to stop
+%         machine from freezing
 %     end
 % end
 % 

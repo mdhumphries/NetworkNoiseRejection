@@ -3,10 +3,12 @@
 
 clear all; close all;
 
+addpath('../Helper_Functions/')
+
 % fname = 'SyntheticEqual_NoNoise_20170808T130427';
 fname = 'SyntheticUnequal_NoNoise_20170808T175814';
 
-load(['Results/' fname]);  % Main table is 'core_perf'
+load(['../Results/' fname]);  % Main table is 'core_perf'
 
 nAlpha = numel(Model.alpha_range);  % split of weights between within and between
 nP = numel(Model.P_of_within);    % within communities P

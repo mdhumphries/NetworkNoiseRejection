@@ -3,6 +3,9 @@
 % Mark Humphries, Mat Evans 28/2/2017
 
 clear all; close all
+
+addpath('../Helper_Functions/')
+
 % fname = 'Allen_Gene_Leaf'; 
 % fname = 'LesMis'; 
 fname = 'StarWarsNetworkEp5'; 
@@ -12,8 +15,8 @@ blnExport = 0;
 fontsize = 6;
 
 %% load data
-load(['Results/Rejected_' fname],'Data','Rejection')
-load(['Results/Clustered_' fname],'Full','Connected')
+load(['../Results/Rejected_' fname],'Data','Rejection')
+load(['../Results/Clustered_' fname],'Full','Connected')
 
 %% plot clustering of connected signal
 

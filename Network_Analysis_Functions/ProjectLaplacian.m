@@ -1,7 +1,7 @@
 function [D,varargout] = ProjectLaplacian(W,M)
 
 % PROJECTLAPLACIAN low-dimensional projection using Laplacian
-% D = SPECTRALCLUSTER(W,M) for the n*n symmetric matrix W, creates a low-dimensional
+% D = PROJECTLAPLACIAN(W,M) for the n*n symmetric matrix W, creates a low-dimensional
 % projection using the M top eigenvectors of the random-walk Laplacian
 % matrix.
 %   

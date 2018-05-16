@@ -72,6 +72,8 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 %
 % Mark Humphries 
 
+addpath('../Helper_Functions/')  % for empty_struct and CIfromSEM
+
 % sort out options
 Options.Weight = 'linear';
 Options.Norm = 'L2';

@@ -3,8 +3,8 @@
 % Mark Humphries 7/8/2017
 
 clear all; close all;
-addpath('SyntheticModel/');
-addpath('ZhangNewman2015/');
+addpath('../SyntheticModel/');
+addpath('../ZhangNewman2015/');
 
 %% fixed parameters edge parameters
 Model.N = [200,75,25];  % size of modules
@@ -119,6 +119,6 @@ else
     strName = 'Unequal';
 end
 
-save(['Results/Synthetic' strName '_NoNoise_' fname],'Results','Model','rejectionpars','optionsModel','optionsReject','clusterpars')
+save(['../Results/Synthetic' strName '_NoNoise_' fname],'Results','Model','rejectionpars','optionsModel','optionsReject','clusterpars')
 
 

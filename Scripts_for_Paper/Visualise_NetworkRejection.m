@@ -8,6 +8,8 @@
 % Mark Humphries, Mat Evans 28/2/2017
 
 clear all; close all
+addpath('../Helper_Functions/')
+
 % fname = 'StarWarsNetworkEp5'; 
 % fname = 'LesMis'; 
 fname = 'cosyneFinalData';
@@ -29,7 +31,7 @@ if blnVizNet
     if ismac
         bglpath = genpath('/Users/mqbssmhg/Dropbox/My Toolboxes/Graph_theory/matlab_bglOSX64/');  % generate path to local BGL and all its subdirectories
     else
-        bglpath = genpath('C:\Users\mqbssmhg.DS\Dropbox\My Toolboxes\Graph_theory\matlab_bgl\');
+        bglpath = genpath('C:\Users\lpzmdhS\Dropbox\My Toolboxes\Graph_theory\matlab_bgl\');
     end
     % add to current MATLAB path
     addpath(bglpath); 

@@ -41,6 +41,8 @@ function  [Dspace,ixpos,Dn,mci,varargout] = LowDSpace(B,Emodel,I)
 %
 % Mark Humphries
 
+addpath('../Helper_Functions/')  % for PredictionIntervalNonP and CIfromSEM
+
 Options.Intervals = 'CI';
 
 n = size(B,1);

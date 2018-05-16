@@ -5,6 +5,9 @@
 
 clear all; close all
 
+addpath('../Network_Spectra_Functions/')
+addpath('../Network_Analysis_Functions/')
+
 % network to analyse
 % fname = 'Allen_Gene_Leaf'; 
 fname = 'LesMis'; 
@@ -28,7 +31,7 @@ optionsReject.Norm = 'L2';       % L2 is default
 optionsReject.Interval = 'CI';
 
 %% load data-file
-load(['Networks/' fname]); 
+load(['../Networks/' fname]); 
 
 if strfind(fname,'StarWars')
     A = StarWars.A;
@@ -125,4 +128,4 @@ Control.PosDn = sum(egs > pars.eg_min);
 
 
 %% save
-save(['Results/Rejected_' fname],'Rejection','Data','Control','pars','optionsModel','optionsReject')
+save(['../Results/Rejected_' fname],'Rejection','Data','Control','pars','optionsModel','optionsReject')

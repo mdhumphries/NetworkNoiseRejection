@@ -1,7 +1,7 @@
 % gather all results into a Table...
 clear all; close all;
 
-fnames = dir('Results/');
+fnames = dir('../Results/');
 
 nF = numel(fnames);
 
@@ -11,7 +11,7 @@ for iF = 1:nF
     if any(strfind(fnames(iF).name,'Clustered'))
         netCtr = netCtr + 1;
         result(netCtr).NetworkName = fnames(iF).name(11:end-4); % strip out 'Clustered' and .mat
-        load(['Results/' fnames(iF).name]);
+        load(['../Results/' fnames(iF).name]);
         % keyboard
         result(netCtr).Signal_Consensus_Grps = numel(unique(Connected.ConsCluster)); 
         n = cellfun(@(x) numel(unique(x{1})),Connected.LouvCluster);    % number of groups in each Louvain clustering
@@ -33,4 +33,4 @@ for iF = 1:nF
 end
 
 Network_Clustering_Table = struct2table(result);
-save('Results/Network_Clustering_Table','Network_Clustering_Table');
+save('../Results/Network_Clustering_Table','Network_Clustering_Table');

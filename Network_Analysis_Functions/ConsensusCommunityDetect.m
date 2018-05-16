@@ -162,7 +162,7 @@ while ~blnConverged
            
             % keyboard
             T = sum(reshape(Allowed,nreps,1+M-L));  % count how many at each K were retained
-            [D,~,Mcons] = EmbedConsensusNull(CCons,'sweep',L:M,T);
+            [D,~,Mcons] = EmbedConsensusNull(CCons,'sweep',L:M,T);  % option 'expected' available as well as 'sweep'
             M = Mcons;
              % do k-means sweep using found M
             C = kmeansSweep(D,L,M,nreps,dims);  % find groups in embedding dimensions

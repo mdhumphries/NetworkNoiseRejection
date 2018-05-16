@@ -2,6 +2,9 @@
 % Mark Humphries, 28/2/2017
 clear all; close all;
 
+addpath('../Helper_Functions/')
+addpath('../Network_Analysis_Functions/')
+
 fname = 'LesMis'; 
 blnLabels = 1;      % write node labels? Omit for large networks
 fontsize = 6;
@@ -10,7 +13,7 @@ clusterpars.nreps = 100;
 clusterpars.nLouvain = 5;
 
 % load data
-load(['Results/Rejected_' fname])
+load(['../Results/Rejected_' fname])
 
 %% cluster - with noise rejection
 % consensus modularity
@@ -119,4 +122,4 @@ for i=1:numel(Full.LouvCluster)
     end
 end
 
-save(['Results/Clustered_' fname],'Full','Connected','clusterpars')
+save(['../Results/Clustered_' fname],'Full','Connected','clusterpars')

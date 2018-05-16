@@ -5,6 +5,8 @@ function [Data,Rejection,Control] = reject_the_noise(A,pars,optionsModel,options
 %
 % Mark Humphries & Mat Evans
 
+addpath('../Network_Analysis_Functions/')  % for prep_A
+
 % Prepare A for Noise Rejection
 [Data.A,Data.ixRetain,Data.Comps,Data.CompSizes] = prep_A(A);
 
