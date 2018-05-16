@@ -10,7 +10,7 @@ close all; clear all;
 
 fname = 'WSBM_20170721T170120';
 
-load(['Results/' fname]);  % Main table is 'core_perf'
+load(['../Results/' fname]);  % Main table is 'core_perf'
 
 nNoise= numel(Communities.cp_gg_grid);  % from periphery to core communities
 nMix= numel(Communities.gg_cc_grid);    % between communities
