@@ -111,9 +111,6 @@ for i = 1:numel(I)
             Vweighted = Vpos;   % data
             % for each model network, project into the same P dimensions
             % (top P eigenvalues)
-%             for iN = 1:N   
-%                 VmodelW(:,iN) = sqrt(sum(Vmodel(:,ixpos,iN).^2,2));
-%             end
  
             VmodelW = Vmodel(:,ixpos,:);
 
