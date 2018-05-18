@@ -11,8 +11,8 @@ clear all; close all
 addpath('../Helper_Functions/')
 
 % fname = 'StarWarsNetworkEp5'; 
-% fname = 'LesMis'; 
-fname = 'cosyneFinalData';
+fname = 'LesMis'; 
+% fname = 'cosyneFinalData';
 blnVizNet = 0;  % network visualisation - if MATLAB BGL installed, appropriate for platform:
 blnExport = 0;
 fontsize = 6;
@@ -20,7 +20,7 @@ Nodes = 5; % marker size for nodes
 Links = 1; % linewidth for links
 
 %% load data
-load(['Results/Rejected_' fname],'Data','Rejection')
+load(['../Results/Rejected_' fname],'Data','Rejection')
 
 %% ready code for visualising networks
 if blnVizNet
@@ -31,7 +31,7 @@ if blnVizNet
     if ismac
         bglpath = genpath('/Users/mqbssmhg/Dropbox/My Toolboxes/Graph_theory/matlab_bglOSX64/');  % generate path to local BGL and all its subdirectories
     else
-        bglpath = genpath('C:\Users\lpzmdhS\Dropbox\My Toolboxes\Graph_theory\matlab_bgl\');
+        bglpath = genpath('C:\Users\lpzmdh\Dropbox\My Toolboxes\Graph_theory\matlab_bgl\');
     end
     % add to current MATLAB path
     addpath(bglpath); 

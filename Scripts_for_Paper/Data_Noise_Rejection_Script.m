@@ -16,7 +16,7 @@ fname = 'LesMis';
 % analysis parameters
 pars.N = 100;           % repeats of permutation
 % pars.alpha = 0; %0.95; % 0.95; % 0;         % confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
-pars.I = 0;      % interval 
+pars.I = 0;      % interval: set to 0 for mean
 pars.Model = 'Poiss';   % or 'WCM' . % which null model
 pars.C = 1;             % conversion factor for real-valued weights (set=1 for integers)
 pars.eg_min = 1e-2;      % given machine error, what is acceptable as "zero" eigenvalue
@@ -28,11 +28,14 @@ optionsModel.NoLoops = 1;     % prevent self-loops in the null model?
 % NodeRejection options
 optionsReject.Weight = 'linear'; % 'linear' is default
 optionsReject.Norm = 'L2';       % L2 is default
-optionsReject.Interval = 'CI';
+optionsReject.Interval = 'CI';   % rejection if fall within confidence interval - but only if pars.I is not 0!
 
 %% load data-file
 load(['../Networks/' fname]); 
 
+% deal with individual differences in data formats:
+% A : full weight matrix
+% nodelabels : a string array, one string per row
 if strfind(fname,'StarWars')
     A = StarWars.A;
     nodelabels = StarWars.Nodes;

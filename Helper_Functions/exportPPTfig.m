@@ -7,8 +7,7 @@ function exportPPTfig(h,figID,varargin)
 % EXPORTPPTFIG(...,S) sets the figure to size [L,B,W,H]: left L and
 % bottom-up B on screen, and W wide and H high (in cm)
 %
-% exportpath = 'C:\Users\mqbssmhg.DS\Dropbox\My Talks\Manchester\Data Clubs\Mar16_2017\';
-exportpath = '/Users/mqbssmhg/Dropbox/My Papers/Conference Abstracts/NetSci2018/';
+exportpath = '../Figures/';
 
 % common parameters
 format = 'png'; %'tiffn' for submission

@@ -7,8 +7,8 @@ clear all; close all
 addpath('../Helper_Functions/')
 
 % fname = 'Allen_Gene_Leaf'; 
-% fname = 'LesMis'; 
-fname = 'StarWarsNetworkEp5'; 
+fname = 'LesMis'; 
+% fname = 'StarWarsNetworkEp5'; 
 
 blnLabels = 1;      % write node labels? Omit for large networks
 blnExport = 0;

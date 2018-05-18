@@ -116,19 +116,18 @@ fields = {'conversion','sAp','minW','maxW','dS','dSN','dmax'};
 diagnostics = emptyStruct(fields, [N,1]);
 
 % detect parallel toolbox, and enable if present
-% blnParallel = license('test','Distrib_Computing_Toolbox');
+blnParallel = license('test','Distrib_Computing_Toolbox');
 
-% if blnParallel
-%     nCores = feature('numCores');
-%     if isempty(gcp('nocreate'))
-%         parpool('local',nCores-1);  % run on all, except one to stop
-%         machine from freezing
-%     end
-% end
-% 
-% 
-% parfor iN = 1:N
-for iN = 1:N
+if blnParallel
+    nCores = feature('numCores');
+    if isempty(gcp('nocreate'))
+        parpool('local',nCores-1);  % run on all, except one to stop machine from freezing
+    end
+end
+
+
+parfor iN = 1:N
+% for iN = 1:N
     %% Step 1: create links
     K = sum(kA);  % total number of links
    

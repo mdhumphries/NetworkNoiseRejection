@@ -52,7 +52,7 @@ end
 numConnected = length(Data.ixSignal_Final);
 
 if Data.Dn > 0
-    [H,Ix] = plotClusterMap(Data.Asignal_final,Connected.ConsCluster,[],'S');
+    [~,~,Ix] = plotClusterMap(Data.Asignal_final,Connected.ConsCluster,[],[],'S');
     title('Consensus clustering')
     plotorder = Data.ixSignal_Final(Ix);
     
@@ -63,7 +63,7 @@ if Data.Dn > 0
         % set(gca,'XTickLabelRotation',90);
     end
     % compare to the Qmax solution at the requested number of groups
-    [H,Ix] = plotClusterMap(Data.Asignal_final,Connected.QmaxCluster,[],'S');
+    [~,~,Ix] = plotClusterMap(Data.Asignal_final,Connected.QmaxCluster,[],[],'S');
     title('Qmax clustering')
     if blnLabels
         % Add node labelss
@@ -76,7 +76,7 @@ end
 
 for i=1:numel(Connected.LouvCluster)
     CLou = Connected.LouvCluster{i}{1};  % Repeat#, Level of Hierarchy
-    [H,Ix] = plotClusterMap(Data.Asignal_final,CLou,[],'S');
+    [~,~,Ix] = plotClusterMap(Data.Asignal_final,CLou,[],[],'S');
     plotorder = Data.ixSignal_Final(Ix);
     title(['Louvain ' num2str(i)]);
     if blnLabels
@@ -93,7 +93,7 @@ end
 
 %% without noise rejection
 if Data.Dn > 0
-    [H,Ix] = plotClusterMap(Data.A,Full.ConsCluster,[],'S');
+    [~,~,Ix] = plotClusterMap(Data.A,Full.ConsCluster,[],[],'S');
     title('Consensus clustering of all')
     plotorder = Ix;
     
@@ -108,7 +108,7 @@ end
 % Louvain algorithm
 for i=1:numel(Full.LouvCluster)
     CLou = Full.LouvCluster{i}{1};  % Repeat#, Level of Hierarchy
-    [HL,Ix] = plotClusterMap(Data.A,CLou,[],'S');
+    [~,~,Ix] = plotClusterMap(Data.A,CLou,[],[],'S');
     title(['Full Louvain ' num2str(i)]);
     plotorder = Ix;
     if blnLabels
