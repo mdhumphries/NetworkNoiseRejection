@@ -1,4 +1,4 @@
-function [blnTrans,grpscon] = CheckConvergenceConsensus(C)
+function [blnTrans,grpscon,varargout] = CheckConvergenceConsensus(C)
 
 % CHECKCONSENSUSCONVERGENCE determine if consensus clustering has converged
 % [B,G] =  CHECKCONSENSUSCONVERGENCE(C) checks if the n*n consensus matrix C
@@ -7,34 +7,53 @@ function [blnTrans,grpscon] = CheckConvergenceConsensus(C)
 % Returns: B = {0,1} a Boolean flag for whether the matrix converged (1) or
 % not (0); G, the consensus clustering that resulted: a n-element column vector 
 %
-% Mark Humphries 2/3/2017
+% [...,T] =  CHECKCONSENSUSCONVERGENCE also returns the detected threshold
+% T between the two modes
+%
+% Change log:
+% 02/03/2017: initial version
+% 21/05/2018: Otsu test, and option to return threshold
+%
+% Mark Humphries
 
 nIDs = size(C,1);  % number of objects
 % get upper-triangular entries of consensus matrix
 idx = find(triu(ones(size(C)),1)); % upper triangular above diagonal;
 allCs = C(idx);
 
+binwidth = 0.01;  % histogram for Otsu
+
 % convergence of weights?
+% if all(allCs == 1)
+%     theta = -inf;   % converged to all 1s, so no need to check for bimodality
+% else
+%     try
+%         % initialised centroids dynamically according to spread of data
+%         s =  prctile(allCs,[5,95]);
+%         idx = kmeans(allCs,2,'Start',s'); % use k-means to separate into mode groups
+%     catch
+%         keyboard
+%     end
+%     
+%     % work out which is lower and which is higher distribution, and set
+%     % dividing line of modes (theta)
+%     m1 = mean(allCs(idx==1));  mn1 =  min(allCs(idx==1));
+%     m2 = mean(allCs(idx==2));  mn2 =  min(allCs(idx==2));        
+%     if m1 > m2  
+%         theta = mn1;
+%     elseif m2 > m1 
+%         theta = mn2;
+%     end
+% end
+
+% use Otsu's method to divide bimodal histogram in two
+% key choice: histogram bin widths
 if all(allCs == 1)
     theta = -inf;   % converged to all 1s, so no need to check for bimodality
 else
-    try
-        % initialised centroids dynamically according to spread of data
-        s =  prctile(allCs,[5,95]);
-        idx = kmeans(allCs,2,'Start',s'); % use k-means to separate into mode groups
-    catch
-        keyboard
-    end
-    
-    % work out which is lower and which is higher distribution, and set
-    % dividing line of modes (theta)
-    m1 = mean(allCs(idx==1));  mn1 =  min(allCs(idx==1));
-    m2 = mean(allCs(idx==2));  mn2 =  min(allCs(idx==2));        
-    if m1 > m2  
-        theta = mn1;
-    elseif m2 > m1 
-        theta = mn2;
-    end
+    [hst,edges] = histcounts(allCs,'BinWidth',binwidth); % ,'BinLimits',[0 1]);
+    bintheta = otsu1D(hst);
+    theta = edges(bintheta);
 end
 
 A_upper = C;
@@ -69,3 +88,4 @@ grpscon(1,:) = []; % remove padding zeros
 [~,ixsrt] = sort(grpscon(:,1),'ascend');
 grpscon = grpscon(ixsrt,2); % return just the grouping IDs
 
+varargout{1} = theta;

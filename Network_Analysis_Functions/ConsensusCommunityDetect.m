@@ -146,7 +146,7 @@ while ~blnConverged
     if blnConverged
         Qcon = computeQ(grpscon,B,m);  % compute Q, and exit
     else
-        ctr = ctr+1; % increment consensus iteration counter
+        ctr = ctr+1;  % increment consensus iteration counter
         if ctr > 50
             % do escape if not converging
             warning('Did not converge in 50 iterations - exiting without consensus answer')

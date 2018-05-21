@@ -1,17 +1,20 @@
-function thresh = otsu1D(P)
+function [thresh,eta_max] = otsu1D(P)
 
-% OTSU1D Otsu's methof for finding a threshold on bimodality in histograms
+% OTSU1D Otsu's method for finding a threshold on bimodality in histograms
 % T = OTSU1D(P) given the L-length histogram of discrete probabilities in P,
-% iteratively determines the bin number T at which the inter-class variance
+% iteratively determines the bin number T at which the between-class variance
 % is maximised. T is then the most likely threshold between the two modes
 % (if the modes are clearly separated): bins(1:T) are mode 1; bins(T+1:L)
 % are mode 2.
 % 
 % Reference:
-% https://en.wikipedia.org/wiki/Otsu%27s_method
+% Otsu, N (1979) A Threshold Selection Method from Gray-Level Histograms, 
+%   IEEE Trans Sys Man Mach, 9, 62-66 
 %
 % Change log:
-% 18/5/2018 Initial version
+% 18/05/2018 Initial version
+% 21/05/2018 Directly implemented from Otsu's 1979 paper
+%
 % Mark Humphries 
 
 T = sum(P);
@@ -19,21 +22,26 @@ L = numel(P);
 if T ~= 1 P = P ./ sum(P); end
 T = sum(P);
 
+% global mean  - Otsu Eq 8
+muT = sum((1:L).*P);
+
+% global variance - Otsu Eq 15
+var_T = sum(((1:L)-muT).^2 .* P);
+
 maximum = 0;
 thresh = 1;
-w0 = 0; 
+w_k = 0; 
+mu_k = 0;
+
 for t = 1:L-1    % advance threshold
-    w0 = w0 + P(t);     % sum of bins in first mode
-    w1 = T - w0;        % sum of bins in second mode
+    w_k = w_k + P(t);   % cumulative probability of class 1 (Eq 6)
+    mu_k = mu_k + t*P(t);   % cumulative mean of class 1 (Eq 7)
     
-    mu0 = sum((1:t) .* P(1:t) / w0);       % current mean of first mode
-    mu1 = sum((t+1:L) .* P(t+1:L) / w1);       % current mean of second mode
-    
-    var_b = w0*w1*(mu0 - mu1).^2;
-    
-    
+    var_b = (muT * w_k - mu_k).^2 / (w_k*(1-w_k));      % between class variance (Eq 18)
+     
     if var_b > maximum
         thresh = t;
         maximum = var_b;
+        eta_max = var_b / var_T;
     end
 end
