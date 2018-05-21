@@ -13,12 +13,12 @@
 clear all; close all;
 
 % N = [100,100,100];  % size of modules
-%N = [100,100,100,100];  % size of modules
+N = [100,100,100,100];  % size of modules
 N = [100,100];
 % N = [200,75,25];  % size of modules
 
 % edge parameters
-P.in = 0.5;
+P.in = 0.2;
 P.between = 0.1;
 
 % strength distribution parameters
@@ -27,7 +27,7 @@ Spar.a = 200;                    % scale: in addition to existing edges
 Spar.b = 1;                     % spread
 
 % proportion of degree assigned within module
-alpha = 1/4;    % [0,1): 1 = all within
+alpha = 0.5;    % [0,1): 1 = all within
 
 %% set alpha baseline
 T = sum(N);  % total nodes
@@ -43,6 +43,21 @@ alpha_base = (Spar.a - E_out_group) / ((Spar.a - E_out_group) + (Spar.a - E_in_g
 %% make adjacency matrix
 A = wire_edges(N,P);
 
+ixs = 1:sum(N);
+Ns = [0 cumsum(N)];
+
+for i = 2:numel(Ns)
+    in = ixs > Ns(i-1) & ixs <= Ns(i);
+    out = ~in;
+    Kwithin(i-1) = mean(sum(A(in,in))) / 2;   % mean degree (unique links)
+    Kbetween(i-1) = mean(sum(A(:,in)) - sum(A(in,in))) / 2;
+   
+end
+B = A - expectedA(A);
+figure; imagesc(B); colormap(flipud(hot)); colorbar
+title('B of A')
+
+
 %% sample strength distribution according to current rules
 S = sample_strength(T,Spar);
 
@@ -50,4 +65,21 @@ S = sample_strength(T,Spar);
 
 W = weight_edges(A,N,S,alpha); % calling code from Poisson CM model
 
-imagesc(W); colormap(flipud(hot))
+for i = 2:numel(Ns)
+    in = ixs > Ns(i-1) & ixs <= Ns(i);
+    out = ~in;
+    Wbln = W > 0;
+    Swithin(i-1) = mean(sum(W(in,in))) / 2;   % mean strength (unique links)
+    KWwithin(i-1) =  mean(sum(Wbln(in,in))) / 2; 
+    Sbetween(i-1) = mean(sum(W(:,in)) - sum(W(in,in))) / 2;
+    KWbetween(i-1) = mean(sum(Wbln(:,in)) - sum(Wbln(in,in))) / 2;
+   
+end
+
+figure; imagesc(W); colormap(flipud(hot)); colorbar
+title('W')
+
+Bw = W - expectedA(W);
+figure; imagesc(Bw); colormap(flipud(hot)); colorbar
+title('B of W')
+
