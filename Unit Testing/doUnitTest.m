@@ -40,8 +40,10 @@ catch ME
         for iP = 1:numel(pars)
             if ischar(pars{iP})
                 strAdd = pars{iP};
-            elseif iscell(pars{iP});
+            elseif iscell(pars{iP})
                 strAdd = 'cell';
+            elseif isstruct(pars{iP})
+                strAdd = 'struct';
             elseif numel(pars{iP}) > 1
                 d = size(pars{iP}); strDim = [];
                 for iD = 1:numel(d)

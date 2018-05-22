@@ -12,13 +12,15 @@
 
 clear all; close all;
 
+addpath ../Network_Analysis_Functions/
+
 % N = [100,100,100];  % size of modules
 N = [100,100,100,100];  % size of modules
-N = [100,100];
+% N = [100,100];
 % N = [200,75,25];  % size of modules
 
 % edge parameters
-P.in = 0.2;
+P.in = 0.1;
 P.between = 0.1;
 
 % strength distribution parameters
@@ -27,18 +29,12 @@ Spar.a = 200;                    % scale: in addition to existing edges
 Spar.b = 1;                     % spread
 
 % proportion of degree assigned within module
-alpha = 0.5;    % [0,1): 1 = all within
+alpha = 0;    % [-1,1]: -1 = all between; 0 = as per A; 1 = all within
 
-%% set alpha baseline
+%% check expectations
 T = sum(N);  % total nodes
-
-% E_in_group = (N.*(N-1)/2) .* P.in;      % expected number of unique links within group
-% E_out_group = ((T-N).*(T-N-1)/2) .* P.between; % expected number of unique links outside of group
 E_in_group = (N-1)/2 .* P.in;      % expected number of unique links in group per node
 E_out_group = (T-N)/2 .* P.between; % expected number of unique links outside of group
-rem_in_group = (Spar.a - E_in_group);
-
-alpha_base = (Spar.a - E_out_group) / ((Spar.a - E_out_group) + (Spar.a - E_in_group)); % demoninator is expected number of unaccounted edges afetr placing of links
 
 %% make adjacency matrix
 A = wire_edges(N,P);
@@ -63,7 +59,13 @@ S = sample_strength(T,Spar);
 
 %% use Poisson generative model to create Weight matrix
 
-W = weight_edges(A,N,S,alpha); % calling code from Poisson CM model
+[W,blnWithin,blnBetween] = weight_edges(A,N,S,alpha,P); % calling code from Poisson CM model
+
+
+% check correct weights
+within_wgts = [min(W(blnWithin)) max(W(blnWithin))]
+between_wgts = [min(W(blnBetween)) max(W(blnBetween))]
+
 
 for i = 2:numel(Ns)
     in = ixs > Ns(i-1) & ixs <= Ns(i);

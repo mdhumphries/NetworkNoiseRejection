@@ -23,8 +23,12 @@ function S = sample_strength(N,Spar)
 
 n = sum(N);
 m = numel(N); 
-S = zeros(n,1);
 
+if m ~= numel(Spar)
+    error('sample_strength:parameter','Specify a distribution per entry in N')
+end
+
+S = zeros(n,1);
 iN = [0 cumsum(N)];
 
 for iM = 1:m
@@ -44,6 +48,6 @@ for iM = 1:m
             S(1+iN(iM):iN(iM+1)) = random(Spar(iM).distribution,a,b);
         
         otherwise
-            error('Unknown strength distribution specified')
+            error('sample_strength:parameter','Unknown sampling distribution for strengths')
     end
 end
