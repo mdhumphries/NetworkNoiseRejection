@@ -12,7 +12,7 @@ Spar.b = 1;                     % spread
 NList = {[100,100],[100 100 100 100],[200,75,25]};
 PwithinList = [0.1 0.2 0.5];
 P.between = 0.1;
-alphaList = [-1,-0.5,0,0.5,1];
+alphaList = [-1.5,-1,-0.5,0,0.5,1,1.5];
 
 %% parameter options for sample strength creation
 DistributionList = {'Cauchy','Poisson','Lognormal','Gamma','Binomial'};
@@ -36,6 +36,8 @@ for iD = 1:numel(DistributionList)
 end
 
 %% construction of synthetic models - each function in turn
+C = cell(numel(NList)*numel(PwithinList)*numel(alphaList),5);
+ctr = 0;
 for iN = 1:numel(NList)
     % sample strengths
     T = sum(NList{iN});
@@ -49,12 +51,22 @@ for iN = 1:numel(NList)
         [blnExpected,A] = doUnitTest('wire_edges',pars);
         
         for iA = 1:numel(alphaList)
+            ctr = ctr + 1;
             % create weights
             pars = {A,NList{iN},S,alphaList(iA),P};
-            [blnExpected,W] = doUnitTest('weight_edges',pars);
+            [blnExpected,W,blnWithin,blnBetween] = doUnitTest('weight_edges',pars);
+            % SANITY CHECKING: check extremes of weights...
+            within_wgts = [min(W(blnWithin)) max(W(blnWithin))];
+            between_wgts = [min(W(blnBetween)) max(W(blnBetween))];
+            
+            C(ctr,:) = {NList{iN}, alphaList(iA), within_wgts, between_wgts, sum(sum(W))};
+%             if ~blnExpected
+%                 disp(['N: ' num2str(NList{iN}) ' Alpha: ' num2str(alphaList(iA)) ...
+%                         ' W(within):' num2str(within_wgts) ' W(between):' num2str(between_wgts) ' . Total: ' num2str(sum(sum(W)))])
+%             end
         end
         
-        % SANITY CHECKING: check extremes of weights...
     end
 end
 
+Tresults = cell2table(C,'VariableNames',{'N','Alpha','W_Within','W_Between','Total_W'});
