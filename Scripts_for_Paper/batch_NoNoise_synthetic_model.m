@@ -1,13 +1,18 @@
 %% script to assess performance on equal-sized groups 
 % 
-% Mark Humphries 7/8/2017
+% Change log:
+% 7/8/2017: initial script with synthetic model and clustering
+% 4/6/2018: split into spectral analysis, and clustering
+%
+% Mark Humphries
 
 clear all; close all;
 addpath('../SyntheticModel/');
-addpath('../ZhangNewman2015/');
+addpath('../Network_Spectra_Functions/');
 
-%% fixed parameters edge parameters
-Model.N = [200,75,25];  % size of modules
+%% fixed parameters of synthetic model
+% Model.N = [200,75,25];  % size of modules
+Model.N = [100,100,100];  % size of modules
 
 Model.P.between = 0.05;   
 
@@ -16,9 +21,12 @@ Model.Spar.distribution =  'Poisson';  % type of distribution
 Model.Spar.a = 50;                    % scale: in addition to existing edges
 Model.Spar.b = 1;                     % spread
 
+nBatch = 2;
+
 %% range of parameters
 Model.P_of_within = [0.05:0.025:0.2];
-Model.alpha_range = [0.5:0.025:0.6 0.65:0.05:0.8];
+% Model.alpha_range = [0.5:0.025:0.6 0.65:0.05:0.8];
+Model.alpha_range = [-1 -0.5 -0.1 0 0.1 0.5 1];
 
 %% rejection and clustering parameters
 rejectionpars.N = 100;           % repeats of permutation
@@ -34,11 +42,6 @@ optionsModel.NoLoops = 1;     % prevent self-loops in the null model?
 % NodeRejection options
 optionsReject.Weight = 'linear'; % 'linear' is default
 optionsReject.Norm = 'L2';       % L2 is default
-
-clusterpars.nreps = 100;
-clusterpars.nLouvain = 5;
-
-options.blnViz = 0;
 
 
 %% loop: make models and do rejection etc
@@ -57,56 +60,36 @@ Model.S = sample_strength(n,Model.Spar); % sample strength distribution accordin
 
 for iP = 1:numel(Model.P_of_within)
     for iA = 1:numel(Model.alpha_range)
-        iA
-        tic
-        % assign parameters
-        
+        % assign parameters   
         P.in = Model.P_of_within(iP);
         alpha = Model.alpha_range(iA);
         
-        %% make model
-        A = wire_edges(Model.N,P);  % make adjacency matrix
-        W = weight_edges(A,Model.N,Model.S,alpha); % use Poisson generative model to create Weight matrix
-        
-        %% do spectral rejection on model
-        [Data,Rejection,Control] = reject_the_noise(W,rejectionpars,optionsModel,optionsReject);        
+        for iB = 1:nBatch
+            disp(['P: ' num2str(iP) '/' num2str(numel(Model.P_of_within)) '; alpha ' num2str(iA) '/' num2str(numel(Model.alpha_range)) '; batch: ' num2str(iB)])
+            tic
+            %% make model
+            A = wire_edges(Model.N,P);  % make adjacency matrix
+            W = weight_edges(A,Model.N,Model.S,alpha,P); % use Poisson generative model to create Weight matrix
 
-        % RESULTS:
-        % number of groups recovered by spectra vs same count from other
-        % approaches
-        Results.SpectraWCMGroups(iP,iA) = Data.Dn+1;
-        Results.SpectraConfigGroups(iP,iA) = Control.Dn+1;
-        Results.PosEigWCMGroups(iP,iA) = Data.PosDn+1;
-        Results.PosEigConfigGroups(iP,iA) = Control.PosDn+1;
-        
-        % keyboard           
-        %% do all 3 detection methods on Signal
-        % construct new null model
-
-        %% and all again, on full matrix, assigning noise to its own community
-        if Data.Dn > 0
-            [Full.QmaxCluster,Full.Qmax,Full.ConsCluster,Full.ConsQ,~] = ...
-                                                        ConsensusCommunityDetect(Data.A,Data.ExpA,1+Data.Dn,1+Data.Dn);
-        else
-            Full.QmaxCluster = []; Full.Qmax = 0; Full.ConsCluster = []; Full.ConsQ = 0;
+            %% do spectral rejection on model
+            [Data,Rejection,Control] = reject_the_noise(W,rejectionpars,optionsModel,optionsReject);        
+            
+            % store relevant network information for clustering
+            Network(iP,iA,iB).A = Data.A;
+            Network(iP,iA,iB).ExpA = Data.ExpA;
+            Network(iP,iA,iB).Asignal_final = Data.Asignal_final;
+            Network(iP,iA,iB).ixSignal_Final = Data.ixSignal_Final;
+            % RESULTS:
+            % number of groups recovered by spectra vs same count from other
+            % approaches
+            
+            Results.SpectraWCMGroups(iP,iA,iB) = Data.Dn+1;
+            Results.SpectraConfigGroups(iP,iA,iB) = Control.Dn+1;
+            Results.PosEigWCMGroups(iP,iA,iB) = Data.PosDn+1;
+            Results.PosEigConfigGroups(iP,iA,iB) = Control.PosDn+1;
+            
+            Results.Time(iP,iA,iB) = toc;
         end
-        % quality of estimation of retained communities
-        Results.nVIFull_QmaxSpectra(iP,iA)=VIpartitions(Full.QmaxCluster,group_membership) / log(numel(group_membership));
-        Results.nVIFull_ConsensusSpectra(iP,iA)=VIpartitions(Full.ConsCluster,group_membership) / log(numel(group_membership));
-
-        [Full.LouvCluster,Full.LouvQ,allCn,allIters] = LouvainCommunityUDnondeterm(Data.A,clusterpars.nLouvain,1);  % run 5 times; return 1st level of hierarchy only
-        for j = 1:clusterpars.nLouvain
-            CLou = Full.LouvCluster{j}{1};  % Repeat#, Level of Hierarchy
-            Full.VI_Louvain(j) = VIpartitions(CLou,group_membership) ./ log(numel(group_membership));
-        end
-        Results.nVIFull_LouvainMin(iP,iA) = min(Full.VI_Louvain);
-        Results.nVIFull_LouvainMax(iP,iA) = max(Full.VI_Louvain);
-
-        % multi-way spectra
-        [bestPartition] = multiwaySpectCommDet(Data.A);
-        Results.nVIFull_Multiway(iP,iA) = VIpartitions(bestPartition,group_membership) / log(numel(group_membership));
-        
-        Results.Time(iP,iA) = toc
     end
 end
 
@@ -119,6 +102,6 @@ else
     strName = 'Unequal';
 end
 
-save(['../Results/Synthetic' strName '_NoNoise_' fname],'Results','Model','rejectionpars','optionsModel','optionsReject','clusterpars')
+save(['../Results/Synthetic' strName '_NoNoise_' fname],'Results','Network','Model','group_membership','rejectionpars','optionsModel','optionsReject')
 
 
