@@ -58,7 +58,7 @@ for iP = 1:numel(Model.P_of_within)
             ClustResults(iP,iA,iB).nVIFull_LouvainMax = max(Full.VI_Louvain);
 
             % multi-way spectra
-            [bestPartition] = multiwaySpectCommDet(Data.A);
+            [bestPartition] = multiwaySpectCommDet(Network(iP,iA,iB).A);
             ClustResults(iP,iA,iB).nVIFull_Multiway = VIpartitions(bestPartition,group_membership) / log(numel(group_membership));
 
             ClustResults(iP,iA,iB).Time = toc
