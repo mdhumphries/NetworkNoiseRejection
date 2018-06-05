@@ -10,8 +10,8 @@
 clear all; close all
 addpath('../Helper_Functions/')
 
-% fname = 'StarWarsNetworkEp5'; 
-fname = 'LesMis'; 
+fname = 'StarWarsNetworkEp1'; 
+% fname = 'LesMis'; 
 % fname = 'cosyneFinalData';
 blnVizNet = 0;  % network visualisation - if MATLAB BGL installed, appropriate for platform:
 blnExport = 0;

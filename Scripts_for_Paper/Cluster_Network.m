@@ -5,7 +5,8 @@ clear all; close all;
 addpath('../Helper_Functions/')
 addpath('../Network_Analysis_Functions/')
 
-fname = 'LesMis'; 
+% fname = 'LesMis'; 
+fname = 'StarWarsNetworkEp1';
 blnLabels = 1;      % write node labels? Omit for large networks
 fontsize = 6;
 

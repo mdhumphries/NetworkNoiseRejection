@@ -11,6 +11,7 @@ addpath('../Network_Analysis_Functions/')
 % network to analyse
 % fname = 'Allen_Gene_Leaf'; 
 fname = 'LesMis'; 
+fname = 'StarWarsNetworkEp1'; 
 
 
 % analysis parameters
