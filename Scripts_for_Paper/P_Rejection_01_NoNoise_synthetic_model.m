@@ -28,7 +28,7 @@ Model.Spar.distribution =  'Poisson';  % type of distribution
 Model.Spar.a = 50;                    % scale: in addition to existing edges
 Model.Spar.b = 1;                     % spread
 
-nBatch = 2;
+nBatch = 100;
 
 %% range of parameters
 Model.P_of_within = [0.05:0.025:0.2];
