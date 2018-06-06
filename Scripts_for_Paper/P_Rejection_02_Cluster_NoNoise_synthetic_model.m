@@ -13,11 +13,11 @@ addpath('../Network_Spectra_Functions/');
 addpath('../ZhangNewman2015/');
 
 %% load networks from rejection script
-fname = 'P_rejection_SyntheticEqual_NoNoise_20180605T100138';
+fname = 'P_rejection_SyntheticEqual_NoNoise_20180606T123256';  % full set of 100 networks per P(within) level
 load(['../Results/' fname])
 
 %% clustering parameters
-clusterpars.nreps = 20;
+clusterpars.nreps = 50;
 clusterpars.nLouvain = 1;
 
 %% loop: make models and do rejection etc
@@ -53,10 +53,21 @@ parfor iB = 1:nBatch
             [QmaxCluster,Qmax,ConsCluster,ConsQ,~] = ...
                                                         ConsensusCommunityDetect(Network(iP,iB).W,Network(iP,iB).ExpW,Results.SpectraWCMGroups(iP,iB),Results.SpectraWCMGroups(iP,iB),clusterpars.nreps);
             % quality of estimation of retained communities
-            ClustResults(iB).normVIQmaxSpectra(iP)=VIpartitions(QmaxCluster,group_membership) / log(numel(group_membership));
-            ClustResults(iB).normVIConsensusSpectra(iP)=VIpartitions(ConsCluster,group_membership) / log(numel(group_membership));
-            ClustResults(iB).nGrpsQmaxSpectra(iP) = max(QmaxCluster);
-            ClustResults(iB).nGrpsConsensusSpectra(iP) = max(ConsCluster);
+            if ~isempty(QmaxCluster)
+                ClustResults(iB).normVIQmaxSpectra(iP)=VIpartitions(QmaxCluster,group_membership) / log(numel(group_membership));
+                ClustResults(iB).nGrpsQmaxSpectra(iP) = max(QmaxCluster);
+            else
+                ClustResults(iB).normVIQmaxSpectra(iP)= 0;
+                ClustResults(iB).nGrpsQmaxSpectra(iP) = nan;                
+            end
+            
+            if ~isempty(ConsCluster)
+                ClustResults(iB).normVIConsensusSpectra(iP)=VIpartitions(ConsCluster,group_membership) / log(numel(group_membership));
+                ClustResults(iB).nGrpsConsensusSpectra(iP) = max(ConsCluster);
+            else
+                ClustResults(iB).normVIConsensusSpectra(iP)= 0;
+                ClustResults(iB).nGrpsConsensusSpectra(iP) = nan;                
+            end
         else
             QmaxCluster = []; Qmax = 0; ConsCluster = []; ConsQ = 0;
             ClustResults(iB).normVIQmaxSpectra(iP)=0;
