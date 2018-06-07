@@ -76,6 +76,6 @@ box off
 %% VI of clustering
 if blnCluster
     % load clustering
-    load(['../Results/Clustering' fname]);  % Main table is 'core_perf'
+    load(['../Results/Clustering' fname]); 
 
 end

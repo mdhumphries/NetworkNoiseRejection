@@ -29,7 +29,7 @@ nBatch = 50;
 %% range of parameters
 Model.F_noise = [0.25 0.5 1];
 % 3 qualitative cases of P(noise)
-Model.P_of_noise = [Model.P.between/2, Model.P.between + (Model.P.in-Model.P.between)/2, Model.P.in + (Model.P.in-Model.P.between)/2]
+Model.P_of_noise = [Model.P.between/2, Model.P.between + (Model.P.in-Model.P.between)/2, Model.P.in + (Model.P.in-Model.P.between)/2];
 
 %% rejection and clustering parameters
 rejectionpars.N = 100;           % repeats of permutation
@@ -71,6 +71,7 @@ for iP = 1:numel(Model.P_of_noise)
             tic
             %% make model
             A = wire_edges_noise(Model.N,fnoise,P);  % make adjacency matrix
+            T = size(A,1);
             S = sample_strength(T,Model.Spar); % sample strength distribution according to current rules            
             W = weight_edges_noise(A,S); % use Poisson generative model to create Weight matrix
 
@@ -89,7 +90,6 @@ for iP = 1:numel(Model.P_of_noise)
             Results.PosEigWCM.Groups(iP,iF,iB) = Data.PosDn+1;
             Results.PosEigConfig.Groups(iP,iF,iB) = Control.PosDn+1;
             
-            keyboard
             % proportion of nodes assigned correctly...
             core = 1:n;           % indices of core nodes
             halo = n+1:T;         % indices of halo nodes
@@ -113,10 +113,10 @@ for iP = 1:numel(Model.P_of_noise)
 end
 
 %% process results
-Results.ProportionModular.SpectraWCM = sum(Results.SpectraWCMGroups > 1,2);
-Results.ProportionModular.SpectraConfig = sum(Results.SpectraConfigGroups > 1,2);
-Results.ProportionModular.PosEigWCM = sum(Results.PosEigWCMGroups > 1,2);
-Results.ProportionModular.PosEigConfig = sum(Results.PosEigConfigGroups > 1,2);
+Results.ProportionModular.SpectraWCM = squeeze(sum(Results.SpectraWCMGroups > 1,3));
+Results.ProportionModular.SpectraConfig = squeeze(sum(Results.SpectraConfigGroups > 1,3));
+Results.ProportionModular.PosEigWCM = squeeze(sum(Results.PosEigWCMGroups > 1,3));
+Results.ProportionModular.PosEigConfig = squeeze(sum(Results.PosEigConfigGroups > 1,3));
 
     
 %% save
@@ -128,6 +128,6 @@ else
     strName = 'Unequal';
 end
 
-save(['../Results/P_rejection_Synthetic' strName '_NoNoise_' fname],'Results','Network','Model','group_membership','rejectionpars','optionsModel','optionsReject')
+save(['../Results/P_rejection_Synthetic' strName '_NoNoise_' fname],'Results','Network','Model','rejectionpars','optionsModel','optionsReject')
 
 
