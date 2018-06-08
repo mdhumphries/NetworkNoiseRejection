@@ -81,7 +81,9 @@ for iP = 1:numel(Model.P_of_noise)
             % store relevant network information for clustering
             Network(iP,iF,iB).W = W;
             Network(iP,iF,iB).ExpW = Data.ExpA;
-
+            Network(iP,iF,iB).WsignalFinal = Data.Asignal_final;
+            Network(iP,iF,iB).ixFinal = Data.ixSignal_Final;
+            
             % RESULTS:
             % number of groups recovered by spectra vs same count from other approaches
 
