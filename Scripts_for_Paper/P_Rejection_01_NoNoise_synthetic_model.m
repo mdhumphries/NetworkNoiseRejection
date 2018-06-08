@@ -5,7 +5,7 @@
 %       VS
 %       Communities detected by spectral rejection
 %
-% Here in scrip 01: create networks and detect with spectral rejection
+% Here in script 01: create networks and detect with spectral rejection
 %
 % Change log:
 % 5/6/2018: initial version
@@ -15,6 +15,8 @@
 clear all; close all;
 addpath('../SyntheticModel/');
 addpath('../Network_Spectra_Functions/');
+
+fpath = 'C:/Users/lpzmdh/Dropbox/Analyses/Networks/SyntheticModel_Rejection_Results/';
 
 %% fixed parameters of synthetic model
 % Model.N = [200,75,25];  % size of modules
@@ -109,6 +111,6 @@ else
     strName = 'Unequal';
 end
 
-save(['../Results/P_rejection_Synthetic' strName '_NoNoise_' fname],'Results','Network','Model','group_membership','rejectionpars','optionsModel','optionsReject')
+save([fpath 'P_rejection_Synthetic' strName '_NoNoise_' fname],'Results','Network','Model','group_membership','rejectionpars','optionsModel','optionsReject')
 
 

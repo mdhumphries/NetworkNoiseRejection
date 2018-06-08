@@ -14,7 +14,9 @@ addpath('../ZhangNewman2015/');
 
 %% load networks from rejection script
 fname = 'P_rejection_SyntheticEqual_NoNoise_20180606T123256';  % full set of 100 networks per P(within) level
-load(['../Results/' fname])
+fpath = 'C:/Users/lpzmdh/Dropbox/Analyses/Networks/SyntheticModel_Rejection_Results/';
+
+load([fpath fname])
 
 %% clustering parameters
 clusterpars.nreps = 50;
@@ -80,6 +82,6 @@ parfor iB = 1:nBatch
 end
 
 %% save
-save(['../Results/Clustering' fname],'ClustResults','clusterpars')
+save([fpath 'Clustering' fname],'ClustResults','clusterpars')
 
 

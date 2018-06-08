@@ -7,11 +7,11 @@ clear all; close all
 addpath('../Helper_Functions/')
 
 % fname = 'Allen_Gene_Leaf'; 
-fname = 'LesMis'; 
-% fname = 'StarWarsNetworkEp5'; 
+% fname = 'LesMis'; 
+fname = 'StarWarsNetworkEp5'; 
 
 blnLabels = 1;      % write node labels? Omit for large networks
-blnExport = 0;
+blnExport = 1;
 fontsize = 6;
 
 %% load data
@@ -33,7 +33,7 @@ if Data.Dn > 0
         set(gca,'Yticklabel',Data.nodelabels(plotorder,:),'Fontsize',fontsize);
         % set(gca,'XTickLabelRotation',90);
     end
-    if blnExport exportPPTfig(gcf,[fname 'Consensus_Signal'],[10 15 7 7]); end
+    if blnExport exportPPTfig(gcf,[fname 'Consensus_Signal'],[10 15 10 10]); end
 
     % compare to the Qmax solution at the requested number of groups
     [H,h,Ix] = plotClusterMap(Data.Asignal_final,Connected.QmaxCluster,[],[],'S');

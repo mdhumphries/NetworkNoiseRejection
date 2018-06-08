@@ -10,11 +10,13 @@
 clear all; close all
 addpath('../Helper_Functions/')
 
-fname = 'StarWarsNetworkEp1'; 
+fname = 'StarWarsNetworkEp6'; 
 % fname = 'LesMis'; 
 % fname = 'cosyneFinalData';
 blnVizNet = 0;  % network visualisation - if MATLAB BGL installed, appropriate for platform:
-blnExport = 0;
+blnExport = 1;
+
+blnLabel = 1;  % add name labels to matrix plots
 fontsize = 6;
 Nodes = 5; % marker size for nodes
 Links = 1; % linewidth for links
@@ -25,7 +27,7 @@ load(['../Results/Rejected_' fname],'Data','Rejection')
 %% ready code for visualising networks
 if blnVizNet
     % Traud Mucha Porter visualisation tools
-    addpath('Traud_Mucha_Porter_CommunityVisualisation/');
+    addpath('../Traud_Mucha_Porter_CommunityVisualisation/');
 
     % needs MATLAB BGL Toolbox on your path - *change to your local path here*:
     if ismac
@@ -44,8 +46,11 @@ k = sum(Data.A);
 cmap = brewermap(10,'Greys');
 figure; 
 imagesc(Data.A(iK,iK)); colormap(cmap);
-set(gca,'Ytick',1:length(Data.ixRetain));
-set(gca,'Yticklabel',Data.nodelabels(iK,:),'Fontsize',fontsize);
+if blnLabel 
+    set(gca,'Ytick',1:length(Data.ixRetain)); 
+    set(gca,'Yticklabel',Data.nodelabels(iK,:),'Fontsize',fontsize); 
+end
+if blnExport exportPPTfig(gcf,[fname 'W'],[10 15 25 20]); end
 
 %% compare eigenvalues of data and model
 B = Data.A - Data.ExpA;  % modularity matrix using chosen null model
@@ -59,7 +64,7 @@ ylabel('P')
 xlabel('Eigenvalues')
 
 %% compare data eigenvalues to distribution of maximum eigenvalues
-
+if isfield(Data,'NEigEst')
 maxModelE = max(Data.Emodel);   % all predicted maximum values
 minModelE = min(Data.Emodel);   % all predicted minimum values
 
@@ -112,6 +117,7 @@ title('Max/min model eigenvalues vs data')
 ylabel('P(max model eigenvalue)')
 xlabel('Eigenvalue')
 
+end
 
 %% just plot eigenvalues and limits
 
@@ -138,7 +144,7 @@ if blnVizNet
     set(allh,'MarkerEdgeColor',[0 0 0])
     set(allh,'LineWidth',Links)
     %title('Full')
-    if blnExport exportPPTfig(gcf,[fname 'FullNetwork'],[10 15 8 8]); end
+    if blnExport exportPPTfig(gcf,[fname 'FullNetwork'],[10 15 25 25]); end
     
     % now shade out rejection
     colors(Rejection.ixNoise,:) = colors(Rejection.ixNoise,:) + 0.6;  % gray for noise 
@@ -150,8 +156,10 @@ if blnVizNet
     set(allh,'LineWidth',Links)
     title('Signal/Noise split')
     % Add node labels to graph
-    for i = 1:length(Data.ixRetain); 
-        txt(i) = text(xynew(i,1),xynew(i,2),Data.nodelabels(i,:),'Fontsize',fontsize);%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
+    if blnLabel
+        for i = 1:length(Data.ixRetain); 
+            txt(i) = text(xynew(i,1),xynew(i,2),Data.nodelabels(i,:),'Fontsize',fontsize);%,'BackgroundColor',[0.9,0.9,0.9],'alpha',0.5);
+        end
     end
 end
 
