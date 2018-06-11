@@ -131,6 +131,6 @@ else
     strName = 'Unequal';
 end
 
-save([fpath 'P_rejection_Synthetic' strName '_Noise_' fname],'Results','Network','Model','rejectionpars','optionsModel','optionsReject')
+save([fpath 'P_rejection_Synthetic' strName '_Noise_' fname],'Results','Network','Model','rejectionpars','optionsModel','optionsReject','-v7.3')
 
 
