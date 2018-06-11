@@ -10,6 +10,7 @@
 clear all; close all;
 addpath('../SyntheticModel/');
 addpath('../Network_Spectra_Functions/');
+fpath = 'C:/Users/lpzmdh/Dropbox/Analyses/Networks/SyntheticModel_Rejection_Results/';
 
 %% fixed parameters of synthetic model
 % Model.N = [200,75,25];  % size of modules
@@ -21,7 +22,7 @@ Model.P.between = 0.05;  % has to be same as for No-noise network...
 
 % stength distribution parameters
 Model.Spar.distribution =  'Poisson';  % type of distribution
-Model.Spar.a = 50;                    % scale: in addition to existing edges
+Model.Spar.a = 200;                    % scale: in addition to existing edges
 Model.Spar.b = 1;                     % spread
 
 nBatch = 50;
@@ -29,7 +30,7 @@ nBatch = 50;
 %% range of parameters
 Model.F_noise = [0.25 0.5 1];
 % 3 qualitative cases of P(noise)
-Model.P_of_noise = [Model.P.between/2, Model.P.between + (Model.P.in-Model.P.between)/2, Model.P.in + (Model.P.in-Model.P.between)/2];
+Model.P_of_noise = [Model.P.between/2, Model.P.between, Model.P.between + (Model.P.in-Model.P.between)/2, Model.P.in, Model.P.in + (Model.P.in-Model.P.between)/2];
 
 %% rejection and clustering parameters
 rejectionpars.N = 100;           % repeats of permutation
@@ -115,10 +116,10 @@ for iP = 1:numel(Model.P_of_noise)
 end
 
 %% process results
-Results.ProportionModular.SpectraWCM = squeeze(sum(Results.SpectraWCMGroups > 1,3));
-Results.ProportionModular.SpectraConfig = squeeze(sum(Results.SpectraConfigGroups > 1,3));
-Results.ProportionModular.PosEigWCM = squeeze(sum(Results.PosEigWCMGroups > 1,3));
-Results.ProportionModular.PosEigConfig = squeeze(sum(Results.PosEigConfigGroups > 1,3));
+Results.ProportionModular.SpectraWCM = squeeze(sum(Results.SpectraWCM.Groups > 1,3));
+Results.ProportionModular.SpectraConfig = squeeze(sum(Results.SpectraConfig.Groups > 1,3));
+Results.ProportionModular.PosEigWCM = squeeze(sum(Results.PosEigWCM.Groups > 1,3));
+Results.ProportionModular.PosEigConfig = squeeze(sum(Results.PosEigConfig.Groups > 1,3));
 
     
 %% save
