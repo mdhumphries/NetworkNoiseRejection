@@ -8,8 +8,8 @@
 % Here in script 01: create networks and detect with spectral rejection
 %
 % Change log:
-% 5/6/2018: initial version
-%
+% 05/06/2018: initial version
+% 02/07/2018: create same networks as "noise" version
 % Mark Humphries
 
 clear all; close all;
@@ -23,11 +23,12 @@ fpath = 'C:/Users/lpzmdh/Dropbox/Analyses/Networks/SyntheticModel_Rejection_Resu
 Model.N = [100,100,100];  % size of modules
 
 Model.P.between = 0.05;   
-Model.alpha = 0;    % weights follow links exactly
+Model.F_noise = 0;
+Model.P_of_noise = 0;
 
 % stength distribution parameters
 Model.Spar.distribution =  'Poisson';  % type of distribution
-Model.Spar.a = 50;                    % scale: in addition to existing edges
+Model.Spar.a = 200;                    % scale: in addition to existing edges
 Model.Spar.b = 1;                     % spread
 
 nBatch = 100;
@@ -54,6 +55,7 @@ optionsReject.Norm = 'L2';       % L2 is default
 %% loop: make models and do rejection etc
 n = sum(Model.N);
 P.between = Model.P.between;
+P.noise = Model.P_of_noise;
 
 % group membership
 Nsum = [0 cumsum(Model.N)];
@@ -71,10 +73,11 @@ for iP = 1:numel(Model.P_of_within)
         disp(['P: ' num2str(iP) '/' num2str(numel(Model.P_of_within)) '; batch: ' num2str(iB)])
         tic
         %% make model
-        A = wire_edges(Model.N,P);  % make adjacency matrix
-        S = sample_strength(n,Model.Spar); % sample strength distribution according to current rules            
-        W = weight_edges(A,Model.N,S,Model.alpha,P); % use Poisson generative model to create Weight matrix
-
+        A = wire_edges_noise(Model.N,Model.F_noise,P);  % make adjacency matrix
+        T = size(A,1);
+        S = sample_strength(T,Model.Spar); % sample strength distribution according to current rules            
+        W = weight_edges_noise(A,S); % use Poisson generative model to create Weight matrix
+                
         %% do spectral rejection on model
         [Data,Rejection,Control] = reject_the_noise(W,rejectionpars,optionsModel,optionsReject);        
 
