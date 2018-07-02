@@ -5,7 +5,7 @@ clear all; close all;
 
 addpath('../Helper_Functions/')
 
-fname = 'P_rejection_SyntheticEqual_NoNoise_20180606T123256';
+fname = 'P_rejection_SyntheticEqual_NoNoise_20180702T124726';
 fpath = 'C:/Users/lpzmdh/Dropbox/Analyses/Networks/SyntheticModel_Rejection_Results/';
 
 blnCluster = 1;  % if done clustering, set this to 1

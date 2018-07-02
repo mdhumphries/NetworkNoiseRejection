@@ -13,7 +13,7 @@ addpath('../Network_Spectra_Functions/');
 addpath('../ZhangNewman2015/');
 
 %% load networks from rejection script
-fname = 'P_rejection_SyntheticEqual_NoNoise_20180606T123256';  % full set of 100 networks per P(within) level
+fname = 'P_rejection_SyntheticEqual_NoNoise_20180702T124726';  % full set of 100 networks per P(within) level
 fpath = 'C:/Users/lpzmdh/Dropbox/Analyses/Networks/SyntheticModel_Rejection_Results/';
 
 load([fpath fname])
