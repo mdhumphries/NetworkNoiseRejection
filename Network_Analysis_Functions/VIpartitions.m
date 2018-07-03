@@ -6,9 +6,9 @@ function VI = VIpartitions(A,B)
 % vector of integers indicating community membership of each node (i.e. entries in A are 1..i, 
 % entries in B are 1..k) with i communities in A and k communities in B
 %
-% Returns: VI, the variational information of these two partitions
+% Returns: VI, the variational information of these two partitions, in bits
 % VI = 0 : indicates identical partitions
-% VI = ln(n) : indicates total independence of the partitions (where n is the
+% VI = log2(n) : indicates total independence of the partitions (where n is the
 % total number of nodes in the original network)
 %
 % Notes:
@@ -24,7 +24,10 @@ function VI = VIpartitions(A,B)
 % (2) Karrer, B.; Levina, E. & Newman, M. E. J. (2008) Robustness of community
 % structure in networks. Phys Rev E, 77, 046119
 %
-% Mark Humphries 4/12/09
+% 04/12/2009: original implementation
+% 03/07/2018: changed to bits (log2) from nits (ln)
+%
+% Mark Humphries 
 
 nA = max(A); nB = max(B);
 
@@ -58,8 +61,8 @@ for x = 1:nA
             px = nx/NT;
             py = ny/NT;
             
-            HAB = HAB + pxy * log(pxy/py);
-            HBA = HBA + pxy * log(pxy/px);
+            HAB = HAB + pxy * log2(pxy/py);
+            HBA = HBA + pxy * log2(pxy/px);
         end
     end
 end
