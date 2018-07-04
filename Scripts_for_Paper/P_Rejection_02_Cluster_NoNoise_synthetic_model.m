@@ -8,9 +8,9 @@
 % Mark Humphries
 
 clear all; close all;
-addpath('../SyntheticModel/');
-addpath('../Network_Spectra_Functions/');
+addpath('../Network_Analysis_Functions/');
 addpath('../ZhangNewman2015/');
+addpath('../Helper_Functions/')
 
 %% load networks from rejection script
 fname = 'P_rejection_SyntheticEqual_NoNoise_20180702T124726';  % full set of 100 networks per P(within) level
@@ -42,12 +42,12 @@ parfor iB = 1:nBatch
         tic 
         % Louvain on synthetic network
         [LouvCluster,LouvQ,allCn,allIters] = LouvainCommunityUDnondeterm(Network(iP,iB).W,1,1);  % return 1st level of hierarchy only
-        ClustResults(iB).normVILouvain(iP) = VIpartitions(LouvCluster{1}{1},group_membership) ./ log(numel(group_membership));
+        [~,ClustResults(iB).normVILouvain(iP)] = VIpartitions(LouvCluster{1}{1},group_membership);
         ClustResults(iB).nGrpsLouvain(iP) = max(LouvCluster{1}{1});
 
         % multi-way spectra on synthetic network
         [bestPartition] = multiwaySpectCommDet(Network(iP,iB).W);
-        ClustResults(iB).normVIMultiway(iP) = VIpartitions(bestPartition,group_membership) / log(numel(group_membership));
+        [~,ClustResults(iB).normVIMultiway(iP)] = VIpartitions(bestPartition,group_membership);
         ClustResults(iB).nGrpsMultiway(iP) = max(bestPartition);
 
          %% specified clustering on synthetic network
@@ -56,7 +56,7 @@ parfor iB = 1:nBatch
                                                         ConsensusCommunityDetect(Network(iP,iB).W,Network(iP,iB).ExpW,Results.SpectraWCMGroups(iP,iB),Results.SpectraWCMGroups(iP,iB),clusterpars.nreps);
             % quality of estimation of retained communities
             if ~isempty(QmaxCluster)
-                ClustResults(iB).normVIQmaxSpectra(iP)=VIpartitions(QmaxCluster,group_membership) / log(numel(group_membership));
+                [~,ClustResults(iB).normVIQmaxSpectra(iP)]=VIpartitions(QmaxCluster,group_membership);
                 ClustResults(iB).nGrpsQmaxSpectra(iP) = max(QmaxCluster);
             else
                 ClustResults(iB).normVIQmaxSpectra(iP)= 0;
@@ -64,7 +64,7 @@ parfor iB = 1:nBatch
             end
             
             if ~isempty(ConsCluster)
-                ClustResults(iB).normVIConsensusSpectra(iP)=VIpartitions(ConsCluster,group_membership) / log(numel(group_membership));
+                [~,ClustResults(iB).normVIConsensusSpectra(iP)]=VIpartitions(ConsCluster,group_membership);
                 ClustResults(iB).nGrpsConsensusSpectra(iP) = max(ConsCluster);
             else
                 ClustResults(iB).normVIConsensusSpectra(iP)= 0;

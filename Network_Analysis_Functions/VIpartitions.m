@@ -1,4 +1,4 @@
-function VI = VIpartitions(A,B)
+function [VI,varargout] = VIpartitions(A,B)
 
 % VIPARTITIONS compute variational information of two graph partitions
 % VI = VIPARTITIONS(A,B) computes the variational information of the
@@ -11,12 +11,15 @@ function VI = VIpartitions(A,B)
 % VI = log2(n) : indicates total independence of the partitions (where n is the
 % total number of nodes in the original network)
 %
+% [VI,NVI] = ... also returns the normalised variational information (NVI),
+% which is VI / log2(n), so falls in [0 1].
+%
 % Notes:
 % (1) For comparison between a "real" partition and a "found" partition,
 % it is conventional to assign the real partition to A and the found partition to B.
 %
 % (2) For comparison between networks, it is useful to normalise VI by
-% ln(n)
+% log2(n); the function returns this normalised term too
 %
 % References:
 % (1) Merila, M. (2007) Comparing clusterings--an information based distance 
@@ -28,6 +31,11 @@ function VI = VIpartitions(A,B)
 % 03/07/2018: changed to bits (log2) from nits (ln)
 %
 % Mark Humphries 
+
+n = numel(A); 
+if n ~= numel(B)
+    error('Partitions A and B are different sizes')
+end
 
 nA = max(A); nB = max(B);
 
@@ -68,3 +76,5 @@ for x = 1:nA
 end
 
 VI = -HAB - HBA;
+varargout{1} = VI / log2(n);
+

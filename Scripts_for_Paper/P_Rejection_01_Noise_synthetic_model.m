@@ -53,14 +53,6 @@ n = sum(Model.N);
 P.between = Model.P.between;
 P.in = Model.P.in;
 
-% % group membership
-% Nsum = [0 cumsum(Model.N)];
-% group_membership = zeros(n,1);
-% for iG = 1:numel(Nsum)-1
-%     group_membership(Nsum(iG)+1:Nsum(iG+1)) = iG;
-% end 
-
-
 for iP = 1:numel(Model.P_of_noise)
     % assign parameters   
     P.noise = Model.P_of_noise(iP);
