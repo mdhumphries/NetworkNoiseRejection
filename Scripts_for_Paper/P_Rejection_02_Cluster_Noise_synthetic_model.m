@@ -57,22 +57,26 @@ ClustResults = emptyStruct(ResultsFields,fieldsize);
 
 blnP = autoParallel;  % set-up parallel processing with scaled number of cores.
 
-parfor iB = 1:nBatch
-% for iB = 1:nBatch
+for iF = 1:numel(Model.F_noise)
+    % make a temporary variable for broadcast to workers, to prevent
+    % machine from seizing up
+    tempNetwork = squeeze(Network(:,iF,:));
+       
+    parfor iB = 1:nBatch
+    % for iB = 1:nBatch
     
-    for iP = 1:numel(Model.P_of_noise)
-        for iF = 1:numel(Model.F_noise)
+        for iP = 1:numel(Model.P_of_noise)
             disp(['P: ' num2str(iP) '/' num2str(numel(Model.P_of_noise)) '; F:' num2str(iF) '/' num2str(numel(Model.F_noise)) '; batch: ' num2str(iB)])
 
             tic 
             % Louvain on synthetic network
-            [LouvCluster,LouvQ,allCn,allIters] = LouvainCommunityUDnondeterm(Network(iP,iF,iB).W,1,1);  % return 1st level of hierarchy only
+            [LouvCluster,LouvQ,allCn,allIters] = LouvainCommunityUDnondeterm(tempNetwork(iP,iB).W,1,1);  % return 1st level of hierarchy only
             ClustResults(iB).nGrpsLouvain(iP,iF) = max(LouvCluster{1}{1});
             [~,ClustResults(iB).normVILouvainOwn(iP,iF)] = VIpartitions(LouvCluster{1}{1},Partition(iF).owngroups);
             [~,ClustResults(iB).normVILouvainOne(iP,iF)] = VIpartitions(LouvCluster{1}{1},Partition(iF).onegroup);
-
+    
             % multi-way spectra on synthetic network
-            [bestPartition] = multiwaySpectCommDet(Network(iP,iF,iB).W);
+            [bestPartition] = multiwaySpectCommDet(tempNetwork(iP,iB).W);
             ClustResults(iB).nGrpsMultiway(iP,iF) = max(bestPartition);
             [~,ClustResults(iB).normVIMultiwayOwn(iP,iF)] = VIpartitions(bestPartition,Partition(iF).owngroups);
             [~,ClustResults(iB).normVIMultiwayOne(iP,iF)] = VIpartitions(bestPartition,Partition(iF).onegroup);
@@ -81,14 +85,14 @@ parfor iB = 1:nBatch
             if Results.SpectraWCM.Groups(iP,iF,iB) > 1
                 % using final Signal matrix: stripped down to just Signal
                 % nodes, and with giant component found and leaves removed
-                ExpW = Network(iP,iF,iB).ExpW(Network(iP,iF,iB).ixFinal,Network(iP,iF,iB).ixFinal);  % extract expected matrix for just final signal
+                ExpW = tempNetwork(iP,iB).ExpW(tempNetwork(iP,iB).ixFinal,tempNetwork(iP,iB).ixFinal);  % extract expected matrix for just final signal
                 [QmaxCluster,Qmax,ConsCluster,ConsQ,~] = ...
-                                                            ConsensusCommunityDetect(Network(iP,iF,iB).WsignalFinal,ExpW,Results.SpectraWCM.Groups(iP,iF,iB),Results.SpectraWCM.Groups(iP,iF,iB),clusterpars.nreps);
+                                                            ConsensusCommunityDetect(tempNetwork(iP,iB).WsignalFinal,ExpW,Results.SpectraWCM.Groups(iP,iF,iB),Results.SpectraWCM.Groups(iP,iF,iB),clusterpars.nreps);
                 % quality of estimation of retained communities
                 if ~isempty(QmaxCluster)
                     ClustResults(iB).nGrpsQmaxSpectra(iP,iF) = max(QmaxCluster);
-                    [~,ClustResults(iB).normVIQmaxSpectraOwn(iP,iF)] = VIpartitions(QmaxCluster,Partition(iF).owngroups(Network(iP,iF,iB).ixFinal));  % defined on retained network
-                    [~,ClustResults(iB).normVIQmaxSpectraOne(iP,iF)] = VIpartitions(QmaxCluster,Partition(iF).onegroup(Network(iP,iF,iB).ixFinal));  % defined on retained network
+                    [~,ClustResults(iB).normVIQmaxSpectraOwn(iP,iF)] = VIpartitions(QmaxCluster,Partition(iF).owngroups(tempNetwork(iP,iB).ixFinal));  % defined on retained network
+                    [~,ClustResults(iB).normVIQmaxSpectraOne(iP,iF)] = VIpartitions(QmaxCluster,Partition(iF).onegroup(tempNetwork(iP,iB).ixFinal));  % defined on retained network
                 else
                     ClustResults(iB).nGrpsQmaxSpectra(iP,iF) = nan; % error in clustering
                     ClustResults(iB).normVIQmaxSpectraOwn(iP,iF) = 0;  
@@ -98,8 +102,8 @@ parfor iB = 1:nBatch
 
                 if ~isempty(ConsCluster)
                     ClustResults(iB).nGrpsConsensusSpectra(iP,iF) = max(ConsCluster);
-                    [~,ClustResults(iB).normVIConsensusSpectraOwn(iP,iF)] = VIpartitions(ConsCluster,Partition(iF).owngroups(Network(iP,iF,iB).ixFinal));  % defined on retained network
-                    [~,ClustResults(iB).normVIConsensusSpectraOne(iP,iF)] = VIpartitions(ConsCluster,Partition(iF).onegroup(Network(iP,iF,iB).ixFinal));  % defined on retained network
+                    [~,ClustResults(iB).normVIConsensusSpectraOwn(iP,iF)] = VIpartitions(ConsCluster,Partition(iF).owngroups(tempNetwork(iP,iB).ixFinal));  % defined on retained network
+                    [~,ClustResults(iB).normVIConsensusSpectraOne(iP,iF)] = VIpartitions(ConsCluster,Partition(iF).onegroup(tempNetwork(iP,iB).ixFinal));  % defined on retained network
                     
                 else
                     ClustResults(iB).nGrpsConsensusSpectra(iP,iF) = nan; % error in clustering
