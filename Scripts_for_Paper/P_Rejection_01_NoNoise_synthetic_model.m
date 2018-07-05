@@ -12,29 +12,34 @@
 % 02/07/2018: create same networks as "noise" version
 % Mark Humphries
 
-clear all; close all;
+% clearvars
+clearvars Network Results
+
 addpath('../SyntheticModel/');
 addpath('../Network_Spectra_Functions/');
 
 fpath = 'C:/Users/lpzmdh/Dropbox/Analyses/Networks/SyntheticModel_Rejection_Results/';
 
-%% fixed parameters of synthetic model
+%% parameters to potentially explore - comment out to run batch script
 % Model.N = [200,75,25];  % size of modules
-Model.N = [100,100,100];  % size of modules
+% Model.N = [100,100,100];  % size of modules
 
-Model.P.between = 0.05;   
+% Model.P.between = 0.05;   
+% Model.Spar.a = 200;                    % scale: in addition to existing edges
+
+%% range of parameters
+% Model.P_of_within = [0.05:0.025:0.2];
+
+%% fixed parameters of synthetic model
 Model.F_noise = 0;
 Model.P_of_noise = 0;
 
 % stength distribution parameters
 Model.Spar.distribution =  'Poisson';  % type of distribution
-Model.Spar.a = 200;                    % scale: in addition to existing edges
 Model.Spar.b = 1;                     % spread
 
 nBatch = 100;
 
-%% range of parameters
-Model.P_of_within = [0.05:0.025:0.2];
 
 %% rejection and clustering parameters
 rejectionpars.N = 100;           % repeats of permutation
@@ -106,7 +111,7 @@ Results.ProportionModular.PosEigConfig = sum(Results.PosEigConfigGroups > 1,2);
 
     
 %% save
-fname = datestr(now,30);
+strDate = datestr(now,30);
 
 if all(Model.N == Model.N(1))
     strName = 'Equal';
@@ -114,6 +119,7 @@ else
     strName = 'Unequal';
 end
 
-save([fpath 'P_rejection_Synthetic' strName '_NoNoise_' fname],'Results','Network','Model','group_membership','rejectionpars','optionsModel','optionsReject')
+fname = ['P_rejection_Synthetic' strName '_NoNoise_' strDate];
+save([fpath fname],'Results','Network','Model','group_membership','rejectionpars','optionsModel','optionsReject')
 
 

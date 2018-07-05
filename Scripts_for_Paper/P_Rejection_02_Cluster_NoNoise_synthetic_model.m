@@ -7,13 +7,15 @@
 %
 % Mark Humphries
 
-clear all; close all;
+clearvars Network Results ClustResults
+
 addpath('../Network_Analysis_Functions/');
 addpath('../ZhangNewman2015/');
 addpath('../Helper_Functions/')
 
 %% load networks from rejection script
-fname = 'P_rejection_SyntheticEqual_NoNoise_20180702T124726';  % full set of 100 networks per P(within) level
+% comment out filename to run batch script
+% fname = 'P_rejection_SyntheticEqual_NoNoise_20180702T124726';  % full set of 100 networks per P(within) level
 fpath = 'C:/Users/lpzmdh/Dropbox/Analyses/Networks/SyntheticModel_Rejection_Results/';
 
 load([fpath fname])
