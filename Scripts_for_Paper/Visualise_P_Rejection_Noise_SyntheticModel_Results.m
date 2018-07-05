@@ -148,69 +148,118 @@ if blnCluster
 
     % convert into arrays...   
     for iB = 1:nBatch
-        for iP = 1:numel(Model.P_of_within)
-            % groups
-            nGrps.Louvain(iP,iB) = ClustResults(iB).nGrpsLouvain(iP);
-            nGrps.Multiway(iP,iB) = ClustResults(iB).nGrpsMultiway(iP);
-            nGrps.QmaxSpectra(iP,iB) = ClustResults(iB).nGrpsQmaxSpectra(iP);
-            nGrps.ConsensusSpectra(iP,iB) = ClustResults(iB).nGrpsConsensusSpectra(iP); 
-            % VI
-            VI.Louvain(iP,iB) = ClustResults(iB).normVILouvain(iP);
-            VI.Multiway(iP,iB) = ClustResults(iB).normVIMultiway(iP);
-            VI.QmaxSpectra(iP,iB) = ClustResults(iB).normVIQmaxSpectra(iP);
-            VI.ConsensusSpectra(iP,iB) = ClustResults(iB).normVIConsensusSpectra(iP);             
+        for iP = 1:numel(Model.P_of_noise)
+            for iF = 1:numel(Model.F_noise)
+                % groups
+                nGrps.Louvain(iP,iF,iB) = ClustResults(iB).nGrpsLouvain(iP,iF);
+                nGrps.Multiway(iP,iF,iB) = ClustResults(iB).nGrpsMultiway(iP,iF);
+                nGrps.QmaxSpectra(iP,iF,iB) = ClustResults(iB).nGrpsQmaxSpectra(iP,iF);
+                nGrps.ConsensusSpectra(iP,iF,iB) = ClustResults(iB).nGrpsConsensusSpectra(iP,iF); 
+                % VI - noise nodes in solo groups
+                VI.Solo.Louvain(iP,iF,iB) = ClustResults(iB).normVILouvainOwn(iP,iF);
+                VI.Solo.Multiway(iP,iF,iB) = ClustResults(iB).normVIMultiwayOwn(iP,iF);
+                VI.Solo.QmaxSpectra(iP,iF,iB) = ClustResults(iB).normVIQmaxSpectraOwn(iP,iF);
+                VI.Solo.ConsensusSpectra(iP,iF,iB) = ClustResults(iB).normVIConsensusSpectraOwn(iP,iF);
+                % VI - noise nodes in a single group
+                VI.One.Louvain(iP,iF,iB) = ClustResults(iB).normVILouvainOne(iP,iF);
+                VI.One.Multiway(iP,iF,iB) = ClustResults(iB).normVIMultiwayOne(iP,iF);
+                VI.One.QmaxSpectra(iP,iF,iB) = ClustResults(iB).normVIQmaxSpectraOne(iP,iF);
+                VI.One.ConsensusSpectra(iP,iF,iB) = ClustResults(iB).normVIConsensusSpectraOne(iP,iF);            
+            end
         end
     end
     % proportion of networks with modules?
     
     
     % numbers of modules
-    mLouvain = mean(nGrps.Louvain,2);
-   [bnds.Louv.L,bnds.Louv.U] = bounds(nGrps.Louvain,2);
-   mMulti = mean(nGrps.Multiway,2);
-   [bnds.Multi.L,bnds.Multi.U] = bounds(nGrps.Multiway,2);
-    mQmax = mean(nGrps.QmaxSpectra,2);
-   [bnds.Qmax.L,bnds.Qmax.U] = bounds(nGrps.QmaxSpectra,2);
+    mLouvain = mean(nGrps.Louvain,3);
+   [bnds.Louv.L,bnds.Louv.U] = bounds(nGrps.Louvain,3);
+   mMulti = mean(nGrps.Multiway,3);
+   [bnds.Multi.L,bnds.Multi.U] = bounds(nGrps.Multiway,3);
+   mQmax = mean(nGrps.QmaxSpectra,3);
+   [bnds.Qmax.L,bnds.Qmax.U] = bounds(nGrps.QmaxSpectra,3);
 
     figure
-    line([0 max(Pdiff)],[numel(Model.N), numel(Model.N)],'Color',colors.truth); hold on
-    plot(Pdiff,mLouvain,'o-','MarkerSize',M,'Color',colors.WCM,'MarkerFaceColor',colors.WCM); hold on
-    line([Pdiff; Pdiff],[bnds.Louv.L';bnds.Louv.U'],'Color',colors.WCM)
-    xlabel('P(within) - P(between)')
+    line([0 max(Model.P_of_noise)],[numel(Model.N), numel(Model.N)],'Color',colors.truth); hold on
+    plot(Model.P_of_noise,mLouvain,'o-','MarkerSize',M,'Color',colors.WCM,'MarkerFaceColor',colors.WCM); hold on
+    for iF = 1:numel(Model.F_noise)
+        line([Model.P_of_noise; Model.P_of_noise],[bnds.Louv.L(:,iF)';bnds.Louv.U(:,iF)'],'Color',colors.WCM)
+    end
+    xlabel('P(noise)')
     ylabel('Number of modules')
     box off
     if blnExport exportPPTfig(gcf,'nGrpsLouvain',[10 15 8 6]); end
     
-    plot(Pdiff,mMulti,'o-','MarkerSize',M,'Color',colors.Config,'MarkerFaceColor',colors.Config);
-    line([Pdiff; Pdiff],[bnds.Multi.L';bnds.Multi.U'],'Color',colors.Config)
+    plot(Model.P_of_noise,mMulti,'o-','MarkerSize',M,'Color',colors.Config,'MarkerFaceColor',colors.Config);
+    for iF = 1:numel(Model.F_noise)
+        line([Model.P_of_noise; Model.P_of_noise],[bnds.Multi.L(:,iF)';bnds.Multi.U(:,iF)'],'Color',colors.Config)
+    end
     if blnExport exportPPTfig(gcf,'nGrps_Louv_Multiway',[10 15 8 6]); end
 
-    plot(Pdiff,mQmax,'o-','MarkerSize',M,'Color',colors.line,'MarkerFaceColor',colors.line);
-    line([Pdiff; Pdiff],[bnds.Qmax.L';bnds.Qmax.U'],'Color',colors.line)
+    plot(Model.P_of_noise,mQmax,'o-','MarkerSize',M,'Color',colors.line,'MarkerFaceColor',colors.line);
+    for iF = 1:numel(Model.F_noise)
+        line([Model.P_of_noise; Model.P_of_noise],[bnds.Qmax.L(:,iF)';bnds.Qmax.U(:,iF)'],'Color',colors.line)
+    end
     if blnExport exportPPTfig(gcf,'nGrps_Louv_Multiway_Qmax',[10 15 8 6]); end
 
-    % VI with ground truth
-    mLouvain = mean(VI.Louvain,2);
-   [bnds.Louv.L,bnds.Louv.U] = bounds(VI.Louvain,2);
-   mMulti = mean(VI.Multiway,2);
-   [bnds.Multi.L,bnds.Multi.U] = bounds(VI.Multiway,2);
-    mQmax = mean(VI.QmaxSpectra,2);
-   [bnds.Qmax.L,bnds.Qmax.U] = bounds(VI.QmaxSpectra,2);
+    % VI with ground truth: solo groups
+    mLouvain = mean(VI.Solo.Louvain,3);
+   [bnds.Louv.L,bnds.Louv.U] = bounds(VI.Solo.Louvain,3);
+    mMulti = mean(VI.Solo.Multiway,3);
+   [bnds.Multi.L,bnds.Multi.U] = bounds(VI.Solo.Multiway,3);
+    mQmax = mean(VI.Solo.QmaxSpectra,3);
+   [bnds.Qmax.L,bnds.Qmax.U] = bounds(VI.Solo.QmaxSpectra,3);
 
     figure
-    plot(Pdiff,mLouvain,'o-','MarkerSize',M,'Color',colors.WCM,'MarkerFaceColor',colors.WCM); hold on
-    line([Pdiff; Pdiff],[bnds.Louv.L';bnds.Louv.U'],'Color',colors.WCM)
-    xlabel('P(within) - P(between)')
-    ylabel('VI (normalised)')
+    plot(Model.P_of_noise,mLouvain,'o-','MarkerSize',M,'Color',colors.WCM,'MarkerFaceColor',colors.WCM); hold on
+    for iF = 1:numel(Model.F_noise)
+        line([Model.P_of_noise; Model.P_of_noise],[bnds.Louv.L(:,iF)';bnds.Louv.U(:,iF)'],'Color',colors.WCM)
+    end
+    xlabel('P(noise)')
+    ylabel('VI (normalised): Solo')
     set(gca,'YLim',[0 1]);
     if blnExport exportPPTfig(gcf,'VILouvain',[10 15 8 6]); end
     
-    plot(Pdiff,mMulti,'o-','MarkerSize',M,'Color',colors.Config,'MarkerFaceColor',colors.Config);
-    line([Pdiff; Pdiff],[bnds.Multi.L';bnds.Multi.U'],'Color',colors.Config)
+    plot(Model.P_of_noise,mMulti,'o-','MarkerSize',M,'Color',colors.Config,'MarkerFaceColor',colors.Config);
+    for iF = 1:numel(Model.F_noise)
+        line([Model.P_of_noise; Model.P_of_noise],[bnds.Multi.L(:,iF)';bnds.Multi.U(:,iF)'],'Color',colors.Config)
+    end
     if blnExport exportPPTfig(gcf,'VILouvain_Multiway',[10 15 8 6]); end
 
-    plot(Pdiff,mQmax,'o-','MarkerSize',M,'Color',colors.line,'MarkerFaceColor',colors.line);
-    line([Pdiff; Pdiff],[bnds.Qmax.L';bnds.Qmax.U'],'Color',colors.line)
+    plot(Model.P_of_noise,mQmax,'o-','MarkerSize',M,'Color',colors.line,'MarkerFaceColor',colors.line);
+    for iF = 1:numel(Model.F_noise)
+        line([Model.P_of_noise; Model.P_of_noise],[bnds.Qmax.L(:,iF)';bnds.Qmax.U(:,iF)'],'Color',colors.line)
+    end
     if blnExport exportPPTfig(gcf,'VILouvain_Multiway_Qmax',[10 15 8 6]); end
+    
+    % VI with ground truth: one group
+    mLouvain = mean(VI.One.Louvain,3);
+   [bnds.Louv.L,bnds.Louv.U] = bounds(VI.One.Louvain,3);
+    mMulti = mean(VI.One.Multiway,3);
+   [bnds.Multi.L,bnds.Multi.U] = bounds(VI.One.Multiway,3);
+    mQmax = mean(VI.One.QmaxSpectra,3);
+   [bnds.Qmax.L,bnds.Qmax.U] = bounds(VI.One.QmaxSpectra,3);
 
+    figure
+    plot(Model.P_of_noise,mLouvain,'o-','MarkerSize',M,'Color',colors.WCM,'MarkerFaceColor',colors.WCM); hold on
+    for iF = 1:numel(Model.F_noise)
+        line([Model.P_of_noise; Model.P_of_noise],[bnds.Louv.L(:,iF)';bnds.Louv.U(:,iF)'],'Color',colors.WCM)
+    end
+    xlabel('P(noise)')
+    ylabel('VI (normalised): One')
+    set(gca,'YLim',[0 1]);
+    if blnExport exportPPTfig(gcf,'VILouvain',[10 15 8 6]); end
+    
+    plot(Model.P_of_noise,mMulti,'o-','MarkerSize',M,'Color',colors.Config,'MarkerFaceColor',colors.Config);
+    for iF = 1:numel(Model.F_noise)
+        line([Model.P_of_noise; Model.P_of_noise],[bnds.Multi.L(:,iF)';bnds.Multi.U(:,iF)'],'Color',colors.Config)
+    end
+    if blnExport exportPPTfig(gcf,'VILouvain_Multiway',[10 15 8 6]); end
+
+    plot(Model.P_of_noise,mQmax,'o-','MarkerSize',M,'Color',colors.line,'MarkerFaceColor',colors.line);
+    for iF = 1:numel(Model.F_noise)
+        line([Model.P_of_noise; Model.P_of_noise],[bnds.Qmax.L(:,iF)';bnds.Qmax.U(:,iF)'],'Color',colors.line)
+    end
+    if blnExport exportPPTfig(gcf,'VILouvain_Multiway_Qmax',[10 15 8 6]); end
+    
 end
