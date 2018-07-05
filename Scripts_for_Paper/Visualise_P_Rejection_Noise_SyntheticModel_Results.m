@@ -5,7 +5,7 @@ clear all; close all;
 
 addpath('../Helper_Functions/')
 
-fname = 'P_rejection_SyntheticEqual_Noise_20180607T132417';
+fname = 'P_rejection_SyntheticEqual_Noise_20180611T132723';
 fpath = 'C:/Users/lpzmdh/Dropbox/Analyses/Networks/SyntheticModel_Rejection_Results/';
 
 blnCluster = 0;  % if done clustering, set this to 1
@@ -22,7 +22,7 @@ nF = numel(Model.F_noise);
 I = 0.99; % 99% CI
 
 % colormaps
-perf_cmap = brewermap(10,'Blues');
+perf_cmap = brewermap(50,'Blues');
 VI_cmap = brewermap(10,'Reds');
 colors.line = [0.8 0.7 0.7];
 colors.error = [0.8 0.7 0.7];
@@ -34,46 +34,110 @@ colors.truth = [0.7 0.7 0.7];
 
 M = 5;
 
+%% proportion modular...
+figure
+[h,xplot,yplot,xtick,ytick] = plotMatrix(Model.F_noise,Model.P_of_noise,Results.ProportionModular.SpectraWCM ./nBatch,[0 0]);
+colormap(perf_cmap);
+drawgrid(gca,Model.F_noise,Model.P_of_noise,[xplot(1) xplot(end)],[yplot(1) yplot(end)],[0.7 0.7 0.7],1)
+xlabel('Size of noise halo')
+ylabel('P(noise)')
+text(xplot(end),ytick(1),'P<P(out)')
+text(xplot(end),ytick(2),'P(out)=P<P(in)')
+text(xplot(end),ytick(3),'P(out)<P<P(in)')
+text(xplot(end),ytick(4),'P = P(in)')
+text(xplot(end),ytick(5),'P(in)<P')
+title('Proportion modular')
+
+figure
+line([Model.P_of_noise(4) Model.P_of_noise(4)],[0 1],'Color',colors.error); hold on
+for iF = 1:numel(Model.F_noise)
+    plot(Model.P_of_noise,Results.ProportionModular.SpectraWCM(:,iF) ./nBatch,...
+        'o-','MarkerSize',M,'Color',colors.WCM,'MarkerFaceColor',colors.WCM); 
+end
+ylabel('Proportion modular')
+xlabel('P(noise)')
+text(Model.P_of_noise(4)-0.025,1.05,'P(noise)=P(in)')
+
 %% number of groups
 mWCM = mean(Results.SpectraWCM.Groups,3);
 
-[bndsWCM.L,bndsWCM.U] = bounds(Results.SpectraWCMGroups,2);
-[bndsPosWCM.L,bndsPosWCM.U] = bounds(Results.PosEigWCMGroups,2);
+[bndsWCM.L,bndsWCM.U] = bounds(Results.SpectraWCM.Groups,2);
+[bndsPosWCM.L,bndsPosWCM.U] = bounds(Results.PosEigWCM.Groups,2);
+
 
 figure
-imagesc(Model.F_noise,Model.P_of_noise,mWCM)
+[h,xplot,yplot,xtick,ytick] = plotMatrix(Model.F_noise,Model.P_of_noise,mWCM,[0 0]);
 colormap(perf_cmap);
+drawgrid(gca,Model.F_noise,Model.P_of_noise,[xplot(1) xplot(end)],[yplot(1) yplot(end)],[0.7 0.7 0.7],1)
 xlabel('Size of noise halo')
 ylabel('P(noise)')
-set(gca,'YDir','normal','YTick',Model.P_of_noise,'XTick',Model.F_noise)
-text(1.2,Model.P_of_noise(1),'P<P(out)')
-text(1.2,Model.P_of_noise(2),'P(out)<P<P(in)')
-text(1.2,Model.P_of_noise(3),'P(in)<P')
+text(xplot(end),ytick(1),'P<P(out)')
+text(xplot(end),ytick(2),'P(out)=P<P(in)')
+text(xplot(end),ytick(3),'P(out)<P<P(in)')
+text(xplot(end),ytick(4),'P = P(in)')
+text(xplot(end),ytick(5),'P(in)<P')
+
+figure
+line([Model.P_of_noise(4) Model.P_of_noise(4)],[0 max(max(mWCM))],'Color',colors.error); hold on
+for iF = 1:numel(Model.F_noise)
+    plot(Model.P_of_noise,mWCM(:,iF),...
+        'o-','MarkerSize',M,'Color',colors.WCM,'MarkerFaceColor',colors.WCM); 
+end
+ylabel('Number of groups')
+xlabel('P(noise)')
+text(Model.P_of_noise(4)-0.025,max(max(mWCM))+0.05,'P(noise)=P(in)')
 
 %% accuracy of rejection of nodes
 mSpec = mean(Results.SpectraWCM.Specificity,3);
 mSens = mean(Results.SpectraWCM.Sensitivity,3);
 figure
-imagesc(Model.F_noise,Model.P_of_noise,mSpec)
+[h,xplot,yplot,xtick,ytick] = plotMatrix(Model.F_noise,Model.P_of_noise,mSens,[0 0]);
 colormap(perf_cmap);
+drawgrid(gca,Model.F_noise,Model.P_of_noise,[xplot(1) xplot(end)],[yplot(1) yplot(end)],[0.7 0.7 0.7],1)
 xlabel('Size of noise halo')
 ylabel('P(noise)')
-set(gca,'YDir','normal','YTick',Model.P_of_noise,'XTick',Model.F_noise)
 title('Sensitivity (TPR): TP / TargetP ')
-text(1.2,Model.P_of_noise(1),'P<P(out)')
-text(1.2,Model.P_of_noise(2),'P(out)<P<P(in)')
-text(1.2,Model.P_of_noise(3),'P(in)<P')
+text(xplot(end),ytick(1),'P<P(out)')
+text(xplot(end),ytick(2),'P(out)=P<P(in)')
+text(xplot(end),ytick(3),'P(out)<P<P(in)')
+text(xplot(end),ytick(4),'P = P(in)')
+text(xplot(end),ytick(5),'P(in)<P')
 
 figure
-imagesc(Model.F_noise,Model.P_of_noise,mSens)
+line([Model.P_of_noise(4) Model.P_of_noise(4)],[0 1],'Color',colors.error); hold on
+for iF = 1:numel(Model.F_noise)
+    plot(Model.P_of_noise,mSens(:,iF),...
+        'o-','MarkerSize',M,'Color',colors.WCM,'MarkerFaceColor',colors.WCM); 
+end
+ylabel('Sensitivity: : TP / TargetP')
+xlabel('P(noise)')
+text(Model.P_of_noise(4)-0.025,1.05,'P(noise)=P(in)')
+
+
+
+figure
+[h,xplot,yplot,xtick,ytick] = plotMatrix(Model.F_noise,Model.P_of_noise,mSpec,[0 0]);
 colormap(perf_cmap);
+drawgrid(gca,Model.F_noise,Model.P_of_noise,[xplot(1) xplot(end)],[yplot(1) yplot(end)],[0.7 0.7 0.7],1)
+
 xlabel('Size of noise halo')
 ylabel('P(noise)')
-set(gca,'YDir','normal','YTick',Model.P_of_noise,'XTick',Model.F_noise)
 title('Specificity (TNR): TN / TargetN')
-text(1.2,Model.P_of_noise(1),'P<P(out)')
-text(1.2,Model.P_of_noise(2),'P(out)<P<P(in)')
-text(1.2,Model.P_of_noise(3),'P(in)<P')
+text(xplot(end),ytick(1),'P<P(out)')
+text(xplot(end),ytick(2),'P(out)=P<P(in)')
+text(xplot(end),ytick(3),'P(out)<P<P(in)')
+text(xplot(end),ytick(4),'P = P(in)')
+text(xplot(end),ytick(5),'P(in)<P')
+
+figure
+line([Model.P_of_noise(4) Model.P_of_noise(4)],[0 1],'Color',colors.error); hold on
+for iF = 1:numel(Model.F_noise)
+    plot(Model.P_of_noise,mSpec(:,iF),...
+        'o-','MarkerSize',M,'Color',colors.WCM,'MarkerFaceColor',colors.WCM); 
+end
+ylabel('Specificity (TNR): TN / TargetN')
+xlabel('P(noise)')
+text(Model.P_of_noise(4)-0.025,1.05,'P(noise)=P(in)')
 
 %% VI of clustering
 if blnCluster
