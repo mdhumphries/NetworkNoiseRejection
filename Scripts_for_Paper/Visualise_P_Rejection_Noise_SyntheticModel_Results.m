@@ -5,10 +5,16 @@ clear all; close all;
 
 addpath('../Helper_Functions/')
 
-fname = 'P_rejection_SyntheticEqual_Noise_20180611T132723';
-fpath = 'C:/Users/lpzmdh/Dropbox/Analyses/Networks/SyntheticModel_Rejection_Results/';
+fname = 'P_rejection_SyntheticEqual_Noise_20180611T132723';  % P(between) = 0.05
 
-blnCluster = 0;  % if done clustering, set this to 1
+% path to storage of huge analysis files
+if ispc
+    fpath = 'C:/Users/lpzmdh/Dropbox/Analyses/Networks/SyntheticModel_Rejection_Results/';
+else
+    fpath = '/Users/mqbssmhg/Dropbox/Analyses/Networks/SyntheticModel_Rejection_Results/';
+end
+
+blnCluster = 1;  % if done clustering, set this to 1
 blnExport = 0;
 
 % load results and set maps

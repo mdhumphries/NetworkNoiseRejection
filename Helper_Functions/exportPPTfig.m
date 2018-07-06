@@ -7,7 +7,7 @@ function exportPPTfig(h,figID,varargin)
 % EXPORTPPTFIG(...,S) sets the figure to size [L,B,W,H]: left L and
 % bottom-up B on screen, and W wide and H high (in cm)
 %
-exportpath = '../Figures/';
+exportpath = '../FiguresForTalks/';
 
 % common parameters
 format = 'png'; %'tiffn' for submission

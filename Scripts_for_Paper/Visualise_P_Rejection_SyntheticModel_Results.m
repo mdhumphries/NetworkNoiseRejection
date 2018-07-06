@@ -5,8 +5,16 @@ clear all; close all;
 
 addpath('../Helper_Functions/')
 
-fname = 'P_rejection_SyntheticEqual_NoNoise_20180702T124726';
-fpath = 'C:/Users/lpzmdh/Dropbox/Analyses/Networks/SyntheticModel_Rejection_Results/';
+% fname = 'P_rejection_SyntheticEqual_NoNoise_20180702T124726'; % P(between) = 0.05
+% fname = 'P_rejection_SyntheticEqual_NoNoise_20180705T141726'; % P(between) = 0.15
+fname = 'P_rejection_SyntheticUnequal_NoNoise_20180705T180300'; % P(between) = 0.05 and 3 unequal groups
+
+% path to storage of huge analysis files
+if ispc
+    fpath = 'C:/Users/lpzmdh/Dropbox/Analyses/Networks/SyntheticModel_Rejection_Results/';
+else
+    fpath = '/Users/mqbssmhg/Dropbox/Analyses/Networks/SyntheticModel_Rejection_Results/';
+end
 
 blnCluster = 1;  % if done clustering, set this to 1
 blnExport = 0;
@@ -59,14 +67,18 @@ box off
 
 %% number of groups
 mWCM = mean(Results.SpectraWCMGroups,2);
+mConfig = mean(Results.SpectraConfigGroups,2);
 mPosWCM = mean(Results.PosEigWCMGroups,2);
 [bndsWCM.L,bndsWCM.U] = bounds(Results.SpectraWCMGroups,2);
+[bndsConfig.L,bndsConfig.U] = bounds(Results.SpectraConfigGroups,2);
 [bndsPosWCM.L,bndsPosWCM.U] = bounds(Results.PosEigWCMGroups,2);
 
 figure
 line([0 max(Pdiff)],[numel(Model.N), numel(Model.N)],'Color',colors.truth); hold on
 plot(Pdiff,mWCM,'o-','MarkerSize',M,'Color',colors.WCM,'MarkerFaceColor',colors.WCM); hold on
 line([Pdiff; Pdiff],[bndsWCM.L';bndsWCM.U'],'Color',colors.WCM)
+plot(Pdiff,mConfig,'o-','MarkerSize',M,'Color',colors.Config,'MarkerFaceColor',colors.Config); hold on
+line([Pdiff; Pdiff],[bndsConfig.L';bndsConfig.U'],'Color',colors.Config)
 
 plot(Pdiff,mPosWCM,'o-','MarkerSize',M,'Color',colors.WCMpos,'MarkerFaceColor',colors.WCMpos);
 line([Pdiff; Pdiff],[bndsPosWCM.L';bndsPosWCM.U'],'Color',colors.WCMpos)
