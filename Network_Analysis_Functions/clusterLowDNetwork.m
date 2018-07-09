@@ -13,27 +13,28 @@ function Results = clusterLowDNetwork(W,P,N,M,nreps,group_membership)
  
 
  if N > 1     % if dimensions exist to cluster in...
-    [QmaxCluster,Qmax,ConsCluster,ConsQ,~] = ...
+    [Results.QmaxCluster,Qmax,Results.Results.ConsCluster,ConsQ,~] = ...
               ConsensusCommunityDetect(W,P,N,M,nreps);
     % quality of estimation of retained communities
-    if ~isempty(QmaxCluster)
-        [~,Results(iB).normVIQmaxSpectra(iP)]=VIpartitions(QmaxCluster,group_membership);
-        Results(iB).nGrpsQmaxSpectra(iP) = max(QmaxCluster);
+    if ~isempty(Results.QmaxCluster)
+        [~,Results.normVIQmaxSpectra]=VIpartitions(Results.QmaxCluster,group_membership);
+        Results.nGrpsQmaxSpectra = max(Results.QmaxCluster);
     else
-        Results(iB).normVIQmaxSpectra(iP)= 0;
-        Results(iB).nGrpsQmaxSpectra(iP) = nan;                
+        Results.normVIQmaxSpectra= 0;
+        Results.nGrpsQmaxSpectra = nan;                
     end
 
-    if ~isempty(ConsCluster)
-        [~,Results(iB).normVIConsensusSpectra(iP)]=VIpartitions(ConsCluster,group_membership);
-        Results(iB).nGrpsConsensusSpectra(iP) = max(ConsCluster);
+    if ~isempty(Results.ConsCluster)
+        [~,Results.normVIConsensusSpectra]=VIpartitions(Results.ConsCluster,group_membership);
+        Results.nGrpsConsensusSpectra = max(Results.ConsCluster);
     else
-        Results(iB).normVIConsensusSpectra(iP)= 0;
-        Results(iB).nGrpsConsensusSpectra(iP) = nan;                
+        Results.normVIConsensusSpectra= 0;
+        Results.nGrpsConsensusSpectra = nan;                
     end
-else
-    Results(iB).normVIQmaxSpectra(iP)=0;
-    Results(iB).normVIConsensusSpectra(iP)=0;
-    Results(iB).nGrpsQmaxSpectra(iP) = 0;
-    Results(iB).nGrpsConsensusSpectra(iP) = 0;
+ else
+    Results.QmaxCluster = []; Results.ConsCluster = [];
+    Results.normVIQmaxSpectra=0;
+    Results.normVIConsensusSpectra=0;
+    Results.nGrpsQmaxSpectra = 0;
+    Results.nGrpsConsensusSpectra = 0;
 end
