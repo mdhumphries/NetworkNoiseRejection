@@ -32,7 +32,7 @@ addpath('../Network_Analysis_Functions/')  % for prep_A
 blnReject = 0;
 
 if nargin > 2
-    if varargin{1} = 'Reject'; blnReject = 1; end
+    if varargin{1} == 'Reject'; blnReject = 1; end
     optionsReject = varargin{2};
 end
     

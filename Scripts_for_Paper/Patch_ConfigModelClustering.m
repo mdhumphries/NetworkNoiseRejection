@@ -48,7 +48,7 @@ for iB = 1:nBatch
         nGrps = ConfigReject.Dn+1;
         % cluster them
         LoopResults = clusterLowDNetwork(Network(iP,iB).W,ConfigReject.P,nGrps,nGrps,clusterpars.nreps,group_membership);
-        [ConfigResults(iB).normVIQmaxSpectra(iP),ConfigResults(iB).normVIConsensusSpectra(iP),nGrpsQmaxSpectra(iP),nGrpsConsensusSpectra(iP)] ...
+        [ConfigResults(iB).normVIQmaxSpectra(iP),ConfigResults(iB).normVIConsensusSpectra(iP),ConfigResults(iB).nGrpsQmaxSpectra(iP),ConfigResults(iB).nGrpsConsensusSpectra(iP)] ...
                 = deal(LoopResults.normVIQmaxSpectra,LoopResults.normVIConsensusSpectra,LoopResults.nGrpsQmaxSpectra,LoopResults.nGrpsConsensusSpectra);
     end
 end
@@ -76,7 +76,7 @@ for iB = 1:nBatch
         nGrps = ConfigReject.Dn+1;
         % cluster them
         LoopResults = clusterLowDNetwork(Network(iP,iB).W,ConfigReject.P,nGrps,nGrps,clusterpars.nreps,group_membership);
-        [ConfigResults(iB).normVIQmaxSpectra(iP),ConfigResults(iB).normVIConsensusSpectra(iP),nGrpsQmaxSpectra(iP),nGrpsConsensusSpectra(iP)] ...
+        [ConfigResults(iB).normVIQmaxSpectra(iP),ConfigResults(iB).normVIConsensusSpectra(iP),ConfigResults(iB).nGrpsQmaxSpectra(iP),ConfigResults(iB).nGrpsConsensusSpectra(iP)] ...
                 = deal(LoopResults.normVIQmaxSpectra,LoopResults.normVIConsensusSpectra,LoopResults.nGrpsQmaxSpectra,LoopResults.nGrpsConsensusSpectra);
     end
 end
@@ -105,7 +105,7 @@ for iB = 1:nBatch
         nGrps = ConfigReject.Dn+1;
         % cluster them
         LoopResults = clusterLowDNetwork(Network(iP,iB).W,ConfigReject.P,nGrps,nGrps,clusterpars.nreps,group_membership);
-        [ConfigResults(iB).normVIQmaxSpectra(iP),ConfigResults(iB).normVIConsensusSpectra(iP),nGrpsQmaxSpectra(iP),nGrpsConsensusSpectra(iP)] ...
+        [ConfigResults(iB).normVIQmaxSpectra(iP),ConfigResults(iB).normVIConsensusSpectra(iP),ConfigResults(iB).nGrpsQmaxSpectra(iP),ConfigResults(iB).nGrpsConsensusSpectra(iP)] ...
                 = deal(LoopResults.normVIQmaxSpectra,LoopResults.normVIConsensusSpectra,LoopResults.nGrpsQmaxSpectra,LoopResults.nGrpsConsensusSpectra);
     end
 end
@@ -152,7 +152,7 @@ for iF = 1:numel(Model.F_noise)
     % parfor iB = 1:nBatch
     for iB = 1:nBatch
 
-        for iP = 1:numel(Model.P_of_within)
+        for iP = 1:numel(Model.P_of_noise)
             disp(['P: ' num2str(iP) '/' num2str(numel(Model.P_of_noise)) '; F:' num2str(iF) '/' num2str(numel(Model.F_noise)) '; batch: ' num2str(iB)])
 
             % rederive WCM results, now with node rejection too
@@ -163,15 +163,16 @@ for iF = 1:numel(Model.F_noise)
             % cluster the signal matrix
             Psignal = ConfigReject.P(ConfigReject.ixSignal_Final,ConfigReject.ixSignal_Final);
             
-            LoopResults = clusterLowDNetwork(ConfigReject.Asignal_final,Psignal,nGrps,nGrps,clusterpars.nreps,Partition(iF).owngroups);
-            [ConfigResults(iB).normVIQmaxSpectraOwn(iP,iF),ConfigResults(iB).normVIConsensusSpectraOwn(iP,iF),nGrpsQmaxSpectra(iP,iF),nGrpsConsensusSpectra(iP,iF)] ...
+            LoopResults = clusterLowDNetwork(ConfigReject.Asignal_final,Psignal,nGrps,nGrps,clusterpars.nreps,Partition(iF).owngroups(ConfigReject.ixSignal_Final));
+            [ConfigResults(iB).normVIQmaxSpectraOwn(iP,iF),ConfigResults(iB).normVIConsensusSpectraOwn(iP,iF),ConfigResults(iB).nGrpsQmaxSpectra(iP,iF),ConfigResults(iB).nGrpsConsensusSpectra(iP,iF)] ...
                     = deal(LoopResults.normVIQmaxSpectra,LoopResults.normVIConsensusSpectra,LoopResults.nGrpsQmaxSpectra,LoopResults.nGrpsConsensusSpectra);
-            if ~isempty(Results.QmaxCluster)
-                ConfigResults(iB).normVIQmaxSpectraOne(iP,iF) = VIpartitions(Results.QmaxCluster,Partition(iF).onegroup);
-                ConfigResults(iB).normVIConsSpectraOne(iP,iF) = VIpartitions(Results.ConsCluster,Partition(iF).onegroup);
+            % now check against one-group ground truth
+            if ~isempty(LoopResults.QmaxCluster)
+                ConfigResults(iB).normVIQmaxSpectraOne(iP,iF) = VIpartitions(LoopResults.QmaxCluster,Partition(iF).onegroup(ConfigReject.ixSignal_Final));
+                ConfigResults(iB).normVIConsensusSpectraOne(iP,iF) = VIpartitions(LoopResults.ConsCluster,Partition(iF).onegroup(ConfigReject.ixSignal_Final));
             else
                 ConfigResults(iB).normVIQmaxSpectraOne(iP,iF) = 0;
-                ConfigResults(iB).normVIConsSpectraOne(iP,iF) = 0;
+                ConfigResults(iB).normVIConsensusSpectraOne(iP,iF) = 0;
                 
             end
         end
