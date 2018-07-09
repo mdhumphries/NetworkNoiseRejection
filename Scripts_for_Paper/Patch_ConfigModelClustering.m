@@ -53,7 +53,7 @@ for iB = 1:nBatch
     end
 end
         
-save([fname '_ClusterConfig'],'ConfigResults');
+save([fpath fname '_ClusterConfig'],'ConfigResults');
 
 %% (2) P(between) = 0.15
 fname = 'P_rejection_SyntheticEqual_NoNoise_20180705T141726';
@@ -81,7 +81,7 @@ for iB = 1:nBatch
     end
 end
         
-save([fname '_ClusterConfig'],'ConfigResults');
+save([fpath fname '_ClusterConfig'],'ConfigResults');
 
 
 %% (3) Unequal groups
@@ -110,7 +110,7 @@ for iB = 1:nBatch
     end
 end
         
-save([fname '_ClusterConfig'],'ConfigResults');
+save([fpath fname '_ClusterConfig'],'ConfigResults');
 
 
 %% (4) Noise
@@ -179,5 +179,5 @@ for iF = 1:numel(Model.F_noise)
     end
 end
 
-save([fname '_ClusterConfig'],'ConfigResults','Partition');
+save([fpath fname '_ClusterConfig'],'ConfigResults','Partition');
 
