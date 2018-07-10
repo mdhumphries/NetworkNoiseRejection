@@ -7,8 +7,8 @@ clear all; close all
 addpath('../Helper_Functions/')
 
 % fname = 'Allen_Gene_Leaf'; 
-% fname = 'LesMis'; 
-fname = 'StarWarsNetworkEp5'; 
+fname = 'LesMis'; 
+% fname = 'StarWarsNetworkEp5'; 
 
 blnLabels = 1;      % write node labels? Omit for large networks
 blnExport = 1;
@@ -28,7 +28,7 @@ if Data.Dn > 0
     plotorder = Data.ixSignal_Final(Ix);
     
     if blnLabels
-        % Add node labelss
+        % Add node labels
         set(gca,'Ytick',1:numConnected);
         set(gca,'Yticklabel',Data.nodelabels(plotorder,:),'Fontsize',fontsize);
         % set(gca,'XTickLabelRotation',90);
