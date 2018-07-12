@@ -122,6 +122,8 @@ LoopResultsFields = {'QmaxCluster','ConsCluster','normVIQmaxSpectra','normVICons
 ConfigResults = emptyStruct(NoiseResultsFields,fieldsize);
 LoopResults = emptyStruct(LoopResultsFields,fieldsize);
 
+nBatch = size(Results.Time,2);
+
 G = numel(Model.N);
 Tcluster = sum(Model.N);
 
