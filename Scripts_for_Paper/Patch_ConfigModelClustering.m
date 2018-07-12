@@ -10,6 +10,7 @@ clearvars;
 fpath = 'C:/Users/lpzmdh/Dropbox/Analyses/Networks/SyntheticModel_Rejection_Results/';
 
 addpath('../Network_Analysis_Functions/');
+addpath('../Network_Spectra_Functions/');
 addpath('../Helper_Functions/')
 
 % rejection parameters
@@ -119,10 +120,11 @@ load([fpath fname])
 NoiseResultsFields = {'normVIQmaxSpectraOwn','normVIConsensusSpectraOwn','normVIQmaxSpectraOne','normVIConsensusSpectraOne','nGrpsQmaxSpectra','nGrpsConsensusSpectra'};
 LoopResultsFields = {'QmaxCluster','ConsCluster','normVIQmaxSpectra','normVIConsensusSpectra','nGrpsQmaxSpectra','nGrpsConsensusSpectra'};
 
+nBatch = size(Results.Time,2);
+fieldsize = [nBatch,1]; % parfor cannot handle matrices of structs...
+
 ConfigResults = emptyStruct(NoiseResultsFields,fieldsize);
 LoopResults = emptyStruct(LoopResultsFields,fieldsize);
-
-nBatch = size(Results.Time,2);
 
 G = numel(Model.N);
 Tcluster = sum(Model.N);
