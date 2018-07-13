@@ -1,18 +1,18 @@
-function [allV,varargout] = ConfigModelEigs(A,N,varargin)
+function [E,varargout] = linkFullWCM(A,N,varargin)
 
-% CONFIGMODELEIGS expected eigenvalue distribution for basic configuration model
-% V = CONFIGMODELEIGS(A,N) takes the weighted, undirected (n x n) adjacency matrix A and creates N
+% LINKFULLWCM expected eigenvalue distribution for basic weighted configuration model
+% E = LINKFULLWCM(A,N) takes the weighted, undirected (n x n) adjacency matrix A and creates N
 % random realisations of the modularity matrix B by randomly generating a 
 % null model approximating the configuration model P.
 % Returns E, an n x N matrix of all n eigenvalues for each of the N random modularity
 % matrices.
 % 
-% V = CONFIGMODELEIGS(..,C) sets the conversion factor C; i.e. the amount
+% E = LINKFULLWCM(..,C) sets the conversion factor C; i.e. the amount
 % by which the weighted adjacency matrix is scaled to get integer weights.
 % C = 'all' sets the conversion factor large enough that the minimum weight
 % is converted to 1.
 %
-% [..,D,V] = CONFIGMODELEIGS(...) returns:
+% [..,D,V,ALL] = LINKFULLWCM(...) returns:
 %           D: a struct, containing diagnostic measurements of the accuracy of the null model 
 %           for each of the N repeats, with fields
 %           D(i).sAp = strength distribution of the ith repeat
@@ -20,6 +20,7 @@ function [allV,varargout] = ConfigModelEigs(A,N,varargin)
 %           D(i).dSN = absolute difference, normalised per node to its strength
 %               in the data (i.e. to measure the error relative to magnitude)
 %           V: an nxnxN matrix, containing all of the nxn eigenvector matrices of the N repeats            
+%           ALL: the nxnxN matrix of every generated network
 %
 % Notes: 
 % (1) assumes A is connected;
@@ -53,6 +54,11 @@ else
     conversion = 100; % into integer number of edges
 end
 
+blnAll = 0;
+if nargout >= 4
+    blnAll = 1;
+end
+
 % check if weights are already integers
 if ~any(rem(A(:),1))  % then is integers for all weights
     conversion = 1;
@@ -67,11 +73,11 @@ m_int = sum(stubs)/2; % so how many loops to match all stubs?
 P_appear = stubs ./ sum(stubs);
 
 % weighted configuration model {expectation]
-P = expectedA(A);
+P = expectedA(A_int);
 
 % initialise structs to full storage size, allowing parfor to slice
 % appropriately
-Pstar = emptyStruct({'Egs','V'},[N,1]);
+Pstar = emptyStruct({'Egs','V','A'},[N,1]);
 
 fieldnames = {'conversion','kAp','minW','maxW','dK','dKN','dmax'};
 diagnostics = emptyStruct(fieldnames, [N,1]);
@@ -135,20 +141,8 @@ parfor iN = 1:N
     Aperm = Aperm ./ conversion;
     
     %% diagnostics: how far does random model depart?
-    diagnostics(iN).conversion = conversion; % store
-    diagnostics(iN).kAp = sum(Aperm);  % degree
-    diagnostics(iN).minW = min(Aperm); % minimum weight
-    diagnostics(iN).maxW = max(Aperm);    % maximum weight
-    
- 
-    % figure; ecdf(kA); hold on; ecdf(kAp); title('Degree distributions of original and permuted network')
-    
-    diagnostics(iN).dK = abs(kA - diagnostics(iN).kAp);
-    diagnostics(iN).dKN = 100* diagnostics(iN).dK ./ kA; % difference as fraction of original degree
- 
-    diagnostics(iN).dmax =  max(A) - diagnostics(iN).maxW;
-    % figure; ecdf(dKN); title('ECDF of error as proportion of original degree')
-    
+    diagnostics(iN) = DiagnosticsOfModelFit(A,Aperm);
+        
     %% get eigenvalues
     % P is null model for A, assuming A = P + noise
     % B* = P* - P
@@ -156,16 +150,24 @@ parfor iN = 1:N
     [Pstar(iN).Egs,ix] = sort(Pstar(iN).Egs,'descend'); % ensure eigenvalues are sorted in order
     Pstar(iN).V = Pstar(iN).V(:,ix); % also sort eigenvectors
     
+    % if requesting all networks, then store
+    if blnAll
+        Pstar(iN).A = A;
+    end
     % keyboard
 end
 
 % now collapse all eigenvalues and vectors into matrix
 V = zeros(n,n,N);
 E = zeros(n,N);
+if blnAll A = zeros(n,n,N); end
+
 for iN = 1:N
     E(:,iN) = Pstar(iN).Egs;
     V(:,:,iN) = Pstar(iN).V;
+    if blnAll A(:,:,iN) = Pstar(iN).A; end    
 end
 
 varargout{1} = diagnostics;
 varargout{2} = V;
+varargout{3} = A;

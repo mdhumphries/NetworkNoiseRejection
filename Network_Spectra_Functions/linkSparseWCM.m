@@ -1,7 +1,7 @@
-function [E,varargout] = WeightedConfigModel(A,N,varargin)
+function [E,varargout] = linkSparseWCM(A,N,varargin)
 
-% WEIGHTEDCONFIGMODEL expected eigenvalue distribution for weighted configuration model
-% E = WEIGHTEDCONFIGMODEL(A,N) takes the weighted, undirected (n x n) adjacency matrix A and creates N
+% LINKSPARSEWCM expected eigenvalue distribution for sparse weighted configuration model
+% E =  LINKSPARSEWCM(A,N) takes the weighted, undirected (n x n) adjacency matrix A and creates N
 % random realisations of the modularity matrix B by randomly generating a 
 % null model approximating the configuration model P.
 % Returns E, an nxN matrix of all n eigenvalues for all N random modularity
@@ -13,7 +13,7 @@ function [E,varargout] = WeightedConfigModel(A,N,varargin)
 % correlation values in [0,1]. To omit, or customise, set optional
 % conversion factor as outlined below.
 %
-% ... = WEIGHTEDCONFIGMODEL(..,C,OPTIONS) sets optional settings:
+% ... =  LINKSPARSEWCM(..,C,OPTIONS) sets optional settings:
 %       C: sets the conversion factor C; i.e. the amount by which the 
 %           weighted adjacency matrix is scaled to get integer weights.
 %           C = 'all' sets the conversion factor large enough that the minimum weight
@@ -26,7 +26,7 @@ function [E,varargout] = WeightedConfigModel(A,N,varargin)
 %           .NoLoops = {0,1}: if specified (=1), prevents self-loops in the
 %           generated random models [default = 1]
 %   
-% [..,D,V,X] = WEIGHTEDCONFIGMODEL(...) returns:
+% [..,D,V,X] = LINKSPARSEWCM(...) returns:
 %           D: a struct, containing diagnostic measurements of the accuracy of the null model 
 %           for each of the N repeats, with fields
 %           D(i).sAp = strength distribution of the ith repeat
@@ -91,7 +91,7 @@ end
 
 % return all?
 blnAll = 0;
-if narargout >= 5
+if nargout >= 5
     blnAll = 1;
 end
 
@@ -120,7 +120,7 @@ end
 A_int = round(A*conversion); 
 
 % weighted configuration model [expectation]
-P = expectedA(A);  
+P = expectedA(A_int);  
 
 % initialise structs to full storage size, allowing parfor to slice
 % appropriately
@@ -131,22 +131,15 @@ fields = {'conversion','sAp','minW','maxW','dS','dSN','dmax'};
 diagnostics = emptyStruct(fields, [N,1]);
 
 % detect parallel toolbox, and enable if present
-blnParallel = license('test','Distrib_Computing_Toolbox');
-
-if blnParallel
-    nCores = feature('numCores');
-    if isempty(gcp('nocreate'))
-        parpool('local',nCores-1);  % run on all, except one to stop machine from freezing
-    end
-end
+blnParallel = autoParallel;
 
 
-parfor iN = 1:N
-% for iN = 1:N
+% parfor iN = 1:N
+for iN = 1:N
     %% Step 1: create links
     K = sum(kA);  % total number of links
    
-    pnode = expectedA(A>0); % probability of link between each pair of nodes
+    pnode = expectedA(A>0); % probability of link between each pair of nodes, defined only on existing links
     
     if Options.NoLoops
         Aperm = real(rand(n,n) < triu(pnode,1));  % don't include diagonal: no self-loops (slightly underestimates degree)
@@ -213,8 +206,7 @@ parfor iN = 1:N
         % B* = P* - P
 %         [Pstar(iN).V,Pstar(iN).Egs] = eig(Aperm - P,'vector');
 %         [Pstar(iN).Egs,ix] = sort(Pstar(iN).Egs,'descend'); % ensure eigenvalues are sorted in order
-        [Pstar(iN).V,Egs] = eig(Aperm - P);
-        Egs = diag(Egs); % extract vector from diagonal
+        [Pstar(iN).V,Egs] = eig(Aperm - P,'vector');
         [Pstar(iN).Egs,ix] = sort(Egs,'descend'); % ensure eigenvalues are sorted in order
         Pstar(iN).V = Pstar(iN).V(:,ix); % also sort eigenvectors
         if blnAll
@@ -247,11 +239,15 @@ end
 % now collapse all eigenvalues and vectors into matrix
 V = zeros(n,n,N);
 E = zeros(n,N);
+if blnAll A = zeros(n,n,N); end
+
 for iN = 1:N
     E(:,iN) = Pstar(iN).Egs;
     V(:,:,iN) = Pstar(iN).V;
+    if blnAll A(:,:,iN) = Pstar(iN).A; end
 end
 
 varargout{1} = diagnostics;
 varargout{2} = V;
-
+% 3 is assigned to the expected WCM above
+varargout{4} = A;

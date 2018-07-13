@@ -1,14 +1,8 @@
-function [E,varargout] = poissonSparseWCM(A,N,varargin)
+function [E,varargout] = poissonFullWCM(A,N,varargin)
 
-% E = POISSONSPARSEWCM(A,N) takes the weighted, undirected (n x n) adjacency matrix A and creates N
+% E = POISSONFULLWCM(A,N) takes the weighted, undirected (n x n) adjacency matrix A and creates N
 % random realisations of the modularity matrix B by randomly generating a 
-% null model approximating the *sparse* weighted configuration model P using a Poisson process.
-%
-% The sparse WCM has a two-step approach:
-% (1) Assign initial links (0,1) between nodes given WCM probability
-% (2) Assign strengths by distributing all remaining links onto the
-% assigned ones in step 1
-%
+% null model approximating the weighted configuration model P using a Poisson process.
 % Returns E, an nxN matrix of all n eigenvalues for all N random modularity
 % matrices.
 %
@@ -18,7 +12,7 @@ function [E,varargout] = poissonSparseWCM(A,N,varargin)
 % correlation values in [0,1]. To omit, or customise, set optional
 % conversion factor as outlined below.
 %
-% ... = POISSONSPARSEWCM(..,C,OPTIONS) sets optional settings:
+% ... = POISSONFULLWCM(..,C,OPTIONS) sets optional settings:
 %       C: sets the conversion factor C; i.e. the amount by which the 
 %           weighted adjacency matrix is scaled to get integer weights.
 %           C = 'all' sets the conversion factor large enough that the minimum weight
@@ -31,7 +25,7 @@ function [E,varargout] = poissonSparseWCM(A,N,varargin)
 %           .NoLoops = {0,1}: if specified (=1), prevents self-loops in the
 %           generated random models [default = 1]
 %   
-% [..,D,V,X,ALL] = POISSONSPARSEWCM(...) returns:
+% [..,D,V,X,ALL] = POISSONFULLWCM(...) returns:
 %           D: a struct, containing diagnostic measurements of the accuracy of the null model 
 %           for each of the N repeats, with fields
 %           D(i).sAp = strength distribution of the ith repeat
@@ -41,7 +35,7 @@ function [E,varargout] = poissonSparseWCM(A,N,varargin)
 %           V: an nxnxN matrix, containing all of the nxn eigenvector matrices of the N repeats            
 %           X: the nxn matrix for the expected null model: only
 %           returned if Options.Expected = 1;
-%           ALL: the nxnxN matrix of every generated network
+%           ALL: the nxnxN matrix of every generated 
 %
 % Notes: 
 % (1) assumes A is connected;
@@ -49,12 +43,7 @@ function [E,varargout] = poissonSparseWCM(A,N,varargin)
 % links, then weights	
 %
 % ChangeLog:
-% 31/08/2016: changed from weighted configuration model to random
-% poissonian generator model. Modified from WEIGHTEDCONFIGMODEL, Mark 
-% Humphries's script 26/07/2016 [SM]
-% 25/10/16: added options from WEIGHTEDCONFIGMODEL  [MH]
-% 25/10/16: updated Poisson model to be equivalent to multinomial draw from
-% WCM model [MH]
+% 13/07/2018: initial version, cloned from poissonSparseWCM
 %
 % Silvia Maggi & Mark Humphries
 addpath('../Helper_Functions/')  % for emptyStruct
@@ -129,27 +118,27 @@ fields = {'conversion','sAp','minW','maxW','dS','dSN','dmax'};
 diagnostics = emptyStruct(fields, [N,1]);
 
 % detect parallel toolbox, and enable if present
-blnParallel = license('test','Distrib_Computing_Toolbox');
+blnParallel = autoParallel;
 
-if blnParallel
-    nCores = feature('numCores');
-    if isempty(gcp('nocreate'))
-        parpool('local',nCores-1);  % run on all, except one to stop machine from freezing
-    end
-end
-
-
-parfor iN = 1:N
-% for iN = 1:N
-    %% Step 1: create links
-    K = sum(kA);  % total number of links
-   
-    pnode = expectedA(A>0); % probability of link between each pair of nodes
+% parfor iN = 1:N
+for iN = 1:N
+    Asamp = zeros
+    % self-loops or not
     if Options.NoLoops
-        Aperm = real(rand(n,n) < triu(pnode,1));  % don't include diagonal: no self-loops (slightly underestimates degree)
+        Enode = triu(expectedA,1); % expected number of links between each pair of nodes
     else
-        Aperm = real(rand(n,n) < triu(pnode,0));  % include diagonal: allow self-loops
+        Enode = triu(expectedA,0); % expected number of links between each pair of nodes
     end    
+    
+    keyboard
+    ixpairs = find(Enode>0);                % linear indices of linked pairs for upper triangular matrix
+    [irow,jcol] = ind2sub([n,n],ixpairs);   % get row, colum version
+    Nlink = poissrnd(Enode(Enode > 0));     % Poisson random number of links made
+    
+    Asamp(irow,jcol) = Nlink ./ conversion;  % assign sampled weights, and convert back
+    
+    Asamp = Asamp + Asamp';  % make symmetric
+end
     
     %% Step 2: make weights
     S = sum(sA);  % total weights
