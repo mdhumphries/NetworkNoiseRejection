@@ -126,8 +126,7 @@ P = expectedA(A_int);
 % appropriately
 Pstar = emptyStruct({'Egs','A','V'},[N,1]);
 
-
-fields = {'conversion','sAp','minW','maxW','dS','dSN','dmax'};
+fields = {'SAp','minW','maxW','dS','dSN','Stotal','dStotal','dmax','MDensity','dDensity'};
 diagnostics = emptyStruct(fields, [N,1]);
 
 % detect parallel toolbox, and enable if present
@@ -139,8 +138,11 @@ for iN = 1:N
     %% Step 1: create links
     K = sum(kA);  % total number of links
    
+    % use adjacency matrix form: (A>0); define probability of a link based
+    % on node degree (standard configuration model)
     pnode = expectedA(A>0); % probability of link between each pair of nodes, defined only on existing links
-    
+     
+    % test those probabilities to create links; with option to ignore self-loops
     if Options.NoLoops
         Aperm = real(rand(n,n) < triu(pnode,1));  % don't include diagonal: no self-loops (slightly underestimates degree)
     else
@@ -184,19 +186,7 @@ for iN = 1:N
     Aperm = Aperm + Aperm'; 
 
     %% diagnostics: how far does random model depart?
-    diagnostics(iN).conversion = conversion; % store
-    diagnostics(iN).sAp = sum(Aperm);  % degree
-    diagnostics(iN).minW = min(Aperm); % minimum weight
-    diagnostics(iN).maxW = max(Aperm);    % maximum weight
-    
- 
-    % figure; ecdf(sA); hold on; ecdf(sAp); title('Degree distributions of original and permuted network')
-    
-    diagnostics(iN).dS = abs(sA - diagnostics(iN).sAp);
-    diagnostics(iN).dSN = 100* diagnostics(iN).dS ./ sA; % difference as fraction of original degree
- 
-    diagnostics(iN).dmax =  max(A) - diagnostics(iN).maxW;
-    % figure; ecdf(dSN); title('ECDF of error as proportion of original degree')
+    diagnostics(iN) = DiagnosticsOfModelFit(A,Aperm);
     
     if Options.Expected 
         Pstar(iN).A = Aperm;  % store permuted network
@@ -206,7 +196,8 @@ for iN = 1:N
         % B* = P* - P
 %         [Pstar(iN).V,Pstar(iN).Egs] = eig(Aperm - P,'vector');
 %         [Pstar(iN).Egs,ix] = sort(Pstar(iN).Egs,'descend'); % ensure eigenvalues are sorted in order
-        [Pstar(iN).V,Egs] = eig(Aperm - P,'vector');
+        [Pstar(iN).V,Egs] = eig(Aperm - P);  % not using 'vector' option for backwards compatibility
+        Egs = diag(Egs); % extract vector from diagonal
         [Pstar(iN).Egs,ix] = sort(Egs,'descend'); % ensure eigenvalues are sorted in order
         Pstar(iN).V = Pstar(iN).V(:,ix); % also sort eigenvectors
         if blnAll

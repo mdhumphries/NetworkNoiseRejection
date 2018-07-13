@@ -55,6 +55,8 @@ function [E,varargout] = poissonSparseWCM(A,N,varargin)
 % 25/10/16: added options from WEIGHTEDCONFIGMODEL  [MH]
 % 25/10/16: updated Poisson model to be equivalent to multinomial draw from
 % WCM model [MH]
+% 13/07/2017: better diagnostics, aligned code with other similiar
+% functions
 %
 % Silvia Maggi & Mark Humphries
 addpath('../Helper_Functions/')  % for emptyStruct
@@ -125,22 +127,14 @@ P = expectedA(A_int);
 % appropriately
 Pstar = emptyStruct({'Egs','A','V'},[N,1]);
 
-fields = {'conversion','sAp','minW','maxW','dS','dSN','dmax'};
+fields = {'SAp','minW','maxW','dS','dSN','Stotal','dStotal','dmax','MDensity','dDensity'};
 diagnostics = emptyStruct(fields, [N,1]);
 
 % detect parallel toolbox, and enable if present
-blnParallel = license('test','Distrib_Computing_Toolbox');
+blnParallel = autoParallel;
 
-if blnParallel
-    nCores = feature('numCores');
-    if isempty(gcp('nocreate'))
-        parpool('local',nCores-1);  % run on all, except one to stop machine from freezing
-    end
-end
-
-
-parfor iN = 1:N
-% for iN = 1:N
+% parfor iN = 1:N
+for iN = 1:N
     %% Step 1: create links
     K = sum(kA);  % total number of links
    
@@ -168,7 +162,7 @@ parfor iN = 1:N
         
         lambda = nLinks .* Plink; % expected number of links
 
-        Nlink = poissrnd(lambda);  % Poisson random number of links made
+        Nlink = poissrnd(full(lambda));  % Poisson random number of links made
 
         Aperm(ixpairs) = Aperm(ixpairs) + Nlink'; % add to existing links
         Aperm = Aperm ./ conversion;  % convert back
@@ -179,32 +173,11 @@ parfor iN = 1:N
     end
         
     Aperm = Aperm + Aperm';  % make symmetric
-
-%         
-%                 % linear indices of linked pairs for lower triangular matrix
-        % (symmetric respect to the diagonal)
-        % linearInd = sub2ind([n,n], jcol, irow);
-
-%         Plink = poissrnd(sA(irow) .* sA(jcol));
-%         rndmat(ixpairs) = Plink;
-%         rndmat(linearInd) = Plink;
-%         Atemp = sum(sum(A))/sum(sum(rndmat))*rndmat; % normalisation
-%         % kkk = rndmat.*(ones(size(A,1))-eye(size(A,1))); % remove diagonal
-%         % Aperm = sum(sum(A))/sum(sum(kkk))*kkk; % normalisati
     
     %% diagnostics: how far does random model depart?
-    diagnostics(iN).sAp = sum(Aperm);  % degree
-    diagnostics(iN).minW = min(Aperm); % minimum weight
-    diagnostics(iN).maxW = max(Aperm);    % maximum weight
+    diagnostics(iN) = DiagnosticsOfModelFit(A,Aperm);
     
-    % figure; ecdf(sA); hold on; ecdf(sAp); title('Degree distributions of original and permuted network')
-    
-    diagnostics(iN).dS = abs(sA - diagnostics(iN).sAp);
-    diagnostics(iN).dSN = 100* diagnostics(iN).dS ./ sA; % difference as fraction of original degree
- 
-    diagnostics(iN).dmax =  max(A) - diagnostics(iN).maxW;
-    % figure; ecdf(dSN); title('ECDF of error as proportion of original degree')
-    
+    %% get eigenvalues 
     if Options.Expected 
         Pstar(iN).A = Aperm;  % store permuted network
     else

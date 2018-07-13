@@ -19,13 +19,10 @@ function [E,varargout] = poissonFullWCM(A,N,varargin)
 %           is converted to 1. Set C = [] to omit.
 %
 %       OPTIONS: struct of options:
-%           .Expected = {0,1}: if specified (=1), uses the ensemble of generated
-%           null models to estimate the expected model. Useful for
-%           non-standard null models. [default = 0]
 %           .NoLoops = {0,1}: if specified (=1), prevents self-loops in the
 %           generated random models [default = 1]
 %   
-% [..,D,V,X,ALL] = POISSONFULLWCM(...) returns:
+% [..,D,V,ALL] = POISSONFULLWCM(...) returns:
 %           D: a struct, containing diagnostic measurements of the accuracy of the null model 
 %           for each of the N repeats, with fields
 %           D(i).sAp = strength distribution of the ith repeat
@@ -33,9 +30,7 @@ function [E,varargout] = poissonFullWCM(A,N,varargin)
 %           D(i).dSN = absolute difference, normalised per node to its strength
 %               in the data (i.e. to measure the error relative to magnitude)
 %           V: an nxnxN matrix, containing all of the nxn eigenvector matrices of the N repeats            
-%           X: the nxn matrix for the expected null model: only
-%           returned if Options.Expected = 1;
-%           ALL: the nxnxN matrix of every generated 
+%           ALL: the nxnxN matrix of every generated network
 %
 % Notes: 
 % (1) assumes A is connected;
@@ -68,7 +63,6 @@ if any(A < 0)
 end
 
 % update option field values
-Options.Expected = 0;
 Options.NoLoops = 1;
 
 if nargin >= 4
@@ -83,7 +77,7 @@ end
 
 % return all?
 blnAll = 0;
-if nargout >= 5
+if nargout >= 4
     blnAll = 1;
 end
 
@@ -114,7 +108,7 @@ P = expectedA(A_int);
 % appropriately
 Pstar = emptyStruct({'Egs','A','V'},[N,1]);
 
-fields = {'conversion','sAp','minW','maxW','dS','dSN','dmax'};
+fields = {'SAp','minW','maxW','dS','dSN','Stotal','dStotal','dmax','MDensity','dDensity'};
 diagnostics = emptyStruct(fields, [N,1]);
 
 % detect parallel toolbox, and enable if present
@@ -122,113 +116,42 @@ blnParallel = autoParallel;
 
 % parfor iN = 1:N
 for iN = 1:N
-    Asamp = zeros
+    Asamp = zeros(n);
     % self-loops or not
     if Options.NoLoops
-        Enode = triu(expectedA,1); % expected number of links between each pair of nodes
+        Enode = triu(P,1); % expected number of links between each pair of nodes
     else
-        Enode = triu(expectedA,0); % expected number of links between each pair of nodes
+        Enode = triu(P,0); % expected number of links between each pair of nodes
     end    
     
-    keyboard
     ixpairs = find(Enode>0);                % linear indices of linked pairs for upper triangular matrix
     [irow,jcol] = ind2sub([n,n],ixpairs);   % get row, colum version
-    Nlink = poissrnd(Enode(Enode > 0));     % Poisson random number of links made
     
-    Asamp(irow,jcol) = Nlink ./ conversion;  % assign sampled weights, and convert back
+    % keyboard
+    Nlink = poissrnd(full(Enode(Enode > 0)));     % Poisson random number of links made
+    
+    for iL = 1:numel(Nlink)
+        Asamp(irow(iL),jcol(iL)) = Nlink(iL) ./ conversion;  % assign sampled weights, and convert back
+    end
     
     Asamp = Asamp + Asamp';  % make symmetric
-end
-    
-    %% Step 2: make weights
-    S = sum(sA);  % total weights
-    sAint = sum(A_int); % integer strength
-    Sint = sum(sAint); % integer total strength
-    
-    ixpairs = find(triu(Aperm,0)>0);     % linear indices of linked pairs for upper triangular matrix
-    nLinks = round(Sint/2) - numel(ixpairs);  % number of links left to place: total links - [already placed]
-    
-    if S ~= K && nLinks > 0 % then is weighted network and there are edges left to place       
-        % get as (i,j)
-        [irow,jcol] = ind2sub([n,n],ixpairs);
-        % get P(link): 
-        Plink = sA(irow) .* sA(jcol);
-        Plink = Plink ./ sum(Plink); % P(link is placed between each pair)
-        
-        lambda = nLinks .* Plink; % expected number of links
-
-        Nlink = poissrnd(lambda);  % Poisson random number of links made
-
-        Aperm(ixpairs) = Aperm(ixpairs) + Nlink'; % add to existing links
-        Aperm = Aperm ./ conversion;  % convert back
-
-        if any(isnan(Aperm(:)))
-            keyboard
-        end
-    end
-        
-    Aperm = Aperm + Aperm';  % make symmetric
-
-%         
-%                 % linear indices of linked pairs for lower triangular matrix
-        % (symmetric respect to the diagonal)
-        % linearInd = sub2ind([n,n], jcol, irow);
-
-%         Plink = poissrnd(sA(irow) .* sA(jcol));
-%         rndmat(ixpairs) = Plink;
-%         rndmat(linearInd) = Plink;
-%         Atemp = sum(sum(A))/sum(sum(rndmat))*rndmat; % normalisation
-%         % kkk = rndmat.*(ones(size(A,1))-eye(size(A,1))); % remove diagonal
-%         % Aperm = sum(sum(A))/sum(sum(kkk))*kkk; % normalisati
     
     %% diagnostics: how far does random model depart?
-    diagnostics(iN).sAp = sum(Aperm);  % degree
-    diagnostics(iN).minW = min(Aperm); % minimum weight
-    diagnostics(iN).maxW = max(Aperm);    % maximum weight
+    diagnostics(iN) = DiagnosticsOfModelFit(A,Asamp);
     
-    % figure; ecdf(sA); hold on; ecdf(sAp); title('Degree distributions of original and permuted network')
+    %% get eigenvalues
+    [Pstar(iN).V,Egs] = eig(Asamp - P);  % not using 'vector' option for backwards compatibility
+    Egs = diag(Egs); % extract vector from diagonal
+    [Pstar(iN).Egs,ix] = sort(Egs,'descend'); % ensure eigenvalues are sorted in order
+    Pstar(iN).V = Pstar(iN).V(:,ix); % also sort eigenvectors
     
-    diagnostics(iN).dS = abs(sA - diagnostics(iN).sAp);
-    diagnostics(iN).dSN = 100* diagnostics(iN).dS ./ sA; % difference as fraction of original degree
- 
-    diagnostics(iN).dmax =  max(A) - diagnostics(iN).maxW;
-    % figure; ecdf(dSN); title('ECDF of error as proportion of original degree')
-    
-    if Options.Expected 
-        Pstar(iN).A = Aperm;  % store permuted network
-    else
-        %% go ahead and get eigenvalues
-        % P is null model for A, assuming A = P + noise
-        % B* = P* - P
-        % [Pstar(iN).V,Pstar(iN).Egs] = eig(Aperm - P,'vector');  % not using 'vector' option for backwards compatibility
-        [Pstar(iN).V,Egs] = eig(Aperm - P);
-        Egs = diag(Egs); % extract vector from diagonal
-        [Pstar(iN).Egs,ix] = sort(Egs,'descend'); % ensure eigenvalues are sorted in order
-        Pstar(iN).V = Pstar(iN).V(:,ix); % also sort eigenvectors
-        
-        if blnAll
-            Pstar(iN).A = Aperm;  % store permuted network
-        end
+    % if requesting all networks, then store
+    if blnAll
+        Pstar(iN).A = A;
     end
+
 end
 
-if Options.Expected 
-    % generate expected matrix
-    Aall = zeros(n);
-    for iN = 1:N
-      Aall = Aall + Pstar(iN).A;
-    end
-    ExpWCM = Aall ./ N;
-    varargout{3} = ExpWCM;  % return this if asked
-    % now compute eigenvalues
-    for iN = 1:N
-        % [Pstar(iN).V,Pstar(iN).Egs] = eig(Pstar(iN).A - ExpWCM,'vector'); % difference between realisation and Expected model
-        [Pstar(iN).V,Egs] = eig(Pstar(iN).A - ExpWCM);
-        Egs = diag(Egs); % extract vector from diagonal
-        [Pstar(iN).Egs,ix] = sort(Egs,'descend'); % ensure eigenvalues are sorted in order
-        Pstar(iN).V = Pstar(iN).V(:,ix); % also sort eigenvectors
-    end
-end
 
 % now collapse all eigenvalues and vectors into matrix
 V = zeros(n,n,N);
@@ -243,5 +166,4 @@ end
 
 varargout{1} = diagnostics;
 varargout{2} = V;
-% 3 is assigned to the expected WCM above
-varargout{4} = A;
+varargout{3} = A;

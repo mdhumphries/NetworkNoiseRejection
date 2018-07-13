@@ -79,21 +79,14 @@ P = expectedA(A_int);
 % appropriately
 Pstar = emptyStruct({'Egs','V','A'},[N,1]);
 
-fieldnames = {'conversion','kAp','minW','maxW','dK','dKN','dmax'};
-diagnostics = emptyStruct(fieldnames, [N,1]);
+fields = {'SAp','minW','maxW','dS','dSN','Stotal','dStotal','dmax','MDensity','dDensity'};
+diagnostics = emptyStruct(fields, [N,1]);
 
 % detect parallel toolbox, and enable if present
-blnParallel = license('test','Distrib_Computing_Toolbox');
-
-if blnParallel
-    nCores = feature('numCores');
-    if isempty(gcp('nocreate'))
-        parpool('local',nCores-1);  % run on all except 1: don't cripple the machine...
-    end
-end
+blnParallel = autoParallel;
 
 parfor iN = 1:N
-    
+% for iN = 1:N    
     % generate random weighted configuration model
 %     Aperm = zeros(n);
 %     tic
@@ -146,8 +139,9 @@ parfor iN = 1:N
     %% get eigenvalues
     % P is null model for A, assuming A = P + noise
     % B* = P* - P
-    [Pstar(iN).V,Pstar(iN).Egs] = eig(Aperm - P,'vector');
-    [Pstar(iN).Egs,ix] = sort(Pstar(iN).Egs,'descend'); % ensure eigenvalues are sorted in order
+    [Pstar(iN).V,Egs] = eig(Aperm - P);  % not using 'vector' option for backwards compatibility
+    Egs = diag(Egs); % extract vector from diagonal
+    [Pstar(iN).Egs,ix] = sort(Egs,'descend'); % ensure eigenvalues are sorted in order
     Pstar(iN).V = Pstar(iN).V(:,ix); % also sort eigenvectors
     
     % if requesting all networks, then store
