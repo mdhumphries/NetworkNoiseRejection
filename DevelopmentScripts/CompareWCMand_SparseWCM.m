@@ -3,9 +3,9 @@ clearvars
 
 addpath ../Helper_Functions/
 
-load '../Networks/LesMis';
-A = full(Problem.A);
-pars.C = 1;             % conversion factor for real-valued weights (set=1 for integers)
+% load '../Networks/LesMis';
+% A = full(Problem.A);
+% pars.C = 1;             % conversion factor for real-valued weights (set=1 for integers)
 
 load Sep2711da01_40_120s_Sxy_Gaussian_1s.mat
 A = Sxyall{1};
@@ -42,4 +42,14 @@ plotY{4} = [poissonSparse.D(:).dStotal];
 
 figure
 UnpairedUnivariateScatterPlots(gca,plotY,'strX',{'linkF','PoissF','linkS','PoissS'});
+ylabel('Difference in total strength')
+
+plotY{1} = [linkFull.D(:).dDensity];
+plotY{2} = [poissonFull.D(:).dDensity];
+plotY{3} = [linkSparse.D(:).dDensity];
+plotY{4} = [poissonSparse.D(:).dDensity];
+
+figure
+UnpairedUnivariateScatterPlots(gca,plotY,'strX',{'linkF','PoissF','linkS','PoissS'});
+ylabel('Difference in network density')
 

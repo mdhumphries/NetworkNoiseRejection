@@ -133,8 +133,8 @@ diagnostics = emptyStruct(fields, [N,1]);
 blnParallel = autoParallel;
 
 
-% parfor iN = 1:N
-for iN = 1:N
+parfor iN = 1:N
+% for iN = 1:N
     %% Step 1: create links
     K = sum(kA);  % total number of links
    

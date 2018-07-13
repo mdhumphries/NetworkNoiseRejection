@@ -22,19 +22,32 @@ function [Control,varargout] = rejectFullWCM(A,pars,varargin)
 %       .Asignal_final : the final weight matrix, with nodes rejected and
 %                               leaves stripped
 %       .ixSignal_Final : IDs of nodes retained in the final weight matrix  
+% 
+% [C,R] = REJECTFULLWCM(...,'Exact') will construct the Full WCM models
+% to match the exact strength sequence of the network in W, using stub
+% matching (calls LINKFULLWCM). This is can take a very long time...
+%
+% NOTES: calls POISSONFULLWCM by default
 %
 %  09/07/2018 : initial version
-%  13/07/2018 : updated to call full 
+%  13/07/2018 : updated to call full WCM model functions
 %
 % Mark Humphries 
 
 addpath('../Network_Analysis_Functions/')  % for prep_A
 
 blnReject = 0;
+blnExact = 0;
 
 if nargin > 2
-    if varargin{1} == 'Reject'; blnReject = 1; end
+    if strcmp(varargin{1},'Reject'); blnReject = 1; end
     optionsReject = varargin{2};
+end
+
+if nargin > 4
+    if strcmp(varargin{3}, 'Exact')
+        blnExact = 1;
+    end
 end
     
 % Prepare A for Noise Rejection
@@ -44,7 +57,11 @@ Control.P = expectedA(Data.A);  % standard configuration model expectation
 B = Data.A - Control.P;         % modularity matrix
 
 % compute based on spectral rejection
-[Control.Emodel,~,Vmodel] = RndPoissonConfigModel(Data.A,pars.N,pars.C);  % sample from space of configuration models
+if blnExact
+    [Control.Emodel,~,Vmodel] = linkFullWCM(Data.A,pars.N,pars.C);  % sample from space of configuration models using stub matching
+else
+    [Control.Emodel,~,Vmodel] = poissonFullWCM(Data.A,pars.N,pars.C);  % sample from space of configuration models using Poisson approximation
+end
 [Control.Dspace,~,Control.Dn,Control.EigEst] = LowDSpace(B,Control.Emodel,pars.alpha); % to just obtain low-dimensional projection; Data.Dn = number of retained eigenvectors
 
 % compute groups based on just positive eigenvalues

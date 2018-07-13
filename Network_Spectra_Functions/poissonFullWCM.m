@@ -100,6 +100,7 @@ end
 
 % convert network into multi-edge version
 A_int = round(A*conversion); 
+nLinks = round(sum(sum(A_int))/2);  % total unique links to place
 
 % weighted configuration model [expectation]
 P = expectedA(A_int);  
@@ -114,8 +115,9 @@ diagnostics = emptyStruct(fields, [N,1]);
 % detect parallel toolbox, and enable if present
 blnParallel = autoParallel;
 
-% parfor iN = 1:N
-for iN = 1:N
+parfor iN = 1:N
+% for iN = 1:N
+        
     Asamp = zeros(n);
     % self-loops or not
     if Options.NoLoops
@@ -124,15 +126,28 @@ for iN = 1:N
         Enode = triu(P,0); % expected number of links between each pair of nodes
     end    
     
-    ixpairs = find(Enode>0);                % linear indices of linked pairs for upper triangular matrix
+    ixpairs = find(Enode>0);                % linear indices of included pairs for upper triangular matrix
     [irow,jcol] = ind2sub([n,n],ixpairs);   % get row, colum version
     
-    % keyboard
-    Nlink = poissrnd(full(Enode(Enode > 0)));     % Poisson random number of links made
+    Plink = sA(irow) .* sA(jcol);       % proportional probability of link between two nodes
+    Plink = Plink ./ sum(Plink);    % P(link is placed between each pair): normalised to 1 over all links
+
+    lambda = nLinks .* Plink; % expected number of links between each pair
     
-    for iL = 1:numel(Nlink)
-        Asamp(irow(iL),jcol(iL)) = Nlink(iL) ./ conversion;  % assign sampled weights, and convert back
-    end
+    % keyboard
+    
+    Nlink = poissrnd(full(lambda));  % Poisson random number of links made
+    
+    Asamp(ixpairs) = Nlink'; % add to existing links
+    Asamp = Asamp ./ conversion;  % convert back
+
+    
+%     % keyboard
+%     Nlink = poissrnd(full(Enode(Enode > 0)));     % Poisson random number of links made
+%     
+%     for iL = 1:numel(Nlink)
+%         Asamp(irow(iL),jcol(iL)) = Nlink(iL) ./ conversion;  % assign sampled weights, and convert back
+%     end
     
     Asamp = Asamp + Asamp';  % make symmetric
     
