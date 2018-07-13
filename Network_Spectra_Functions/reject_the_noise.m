@@ -61,8 +61,12 @@ Data.PosDn = sum(egs > pars.eg_min);
 Control.P = expectedA(Data.A);
 B = Data.A - Control.P;
 % compute based on spectral rejection
-[Control.Emodel,~,~] = RndPoissonConfigModel(Data.A,pars.N,pars.C);
+[Control.Emodel,~,Vmodel] = RndPoissonConfigModel(Data.A,pars.N,pars.C); % this isn't the classic WCM...
 [Control.Dspace,~,Control.Dn,Control.EigEst] = LowDSpace(B,Control.Emodel,pars.alpha); % to just obtain low-dimensional projection; Data.Dn = number of retained eigenvectors
+
+% do node rejection
+ControlRejection = NodeRejection(B,Control.Emodel,pars.alpha,Vmodel,optionsReject); % N.B. also calls LowDSpace function to find projections
+
 
 % compute groups based on just positive eigenvalues
 egs = eig(B);  % eigenspectra of data modularity matrix

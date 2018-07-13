@@ -11,7 +11,7 @@ addpath('../Network_Analysis_Functions/')
 % network to analyse
 % fname = 'Allen_Gene_Leaf'; 
 fname = 'LesMis'; 
-fname = 'StarWarsNetworkEp1'; 
+% fname = 'StarWarsNetworkEp1'; 
 
 
 % analysis parameters
@@ -115,7 +115,7 @@ Data.ixSignal_Leaves = Data.ixSignal_comp(ixLeaves);
 Data.Asignal_final = Data.Asignal_comp(ixKeep,ixKeep);
 
 %% compare to standard configuration model
-[Control.Emodel,diagnostics,Vmodel] = RndPoissonConfigModel(Data.A,pars.N,pars.C);
+[Control.Emodel,diagnostics,Vmodel,~,AllA] = RndPoissonConfigModel(Data.A,pars.N,pars.C);
 Control.P = expectedA(Data.A);
 
 B = Data.A - Control.P;

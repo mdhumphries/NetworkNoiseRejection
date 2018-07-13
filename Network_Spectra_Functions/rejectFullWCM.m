@@ -1,7 +1,7 @@
-function [Control,varargout] = rejectConfigModel(A,pars,varargin)
+function [Control,varargout] = rejectFullWCM(A,pars,varargin)
 
-% REJECTCONFIGMODEL do spectral rejection on original configuration model
-% C = REJECTCONFIGMODEL(W,PARS) does spectral rejection on the undirected,
+% REJECTFULLWCM do spectral rejection on original configuration model
+% C = REJECTFULLWCM(W,PARS) does spectral rejection on the undirected,
 % weighted network W using the original configuration model as the null
 % model. Struct PARS has fields:
 %       .N :    repeats of permutation
@@ -16,14 +16,15 @@ function [Control,varargout] = rejectConfigModel(A,pars,varargin)
 %       .PosDn: the number of retained dimensions is just using positive
 %       eigenvalues
 %
-% [C,R] = REJECTCONFIGMODEL(...,'Reject',RPARS) also runs the node
+% [C,R] = REJECTFULLWCM(...,'Reject',RPARS) also runs the node
 % rejection on the low-D projection, with parameters RPARS, returning
-% results in struct R, and adding the following to C:
+% results of NODEREJECTION in struct R, and adding the following to C:
 %       .Asignal_final : the final weight matrix, with nodes rejected and
 %                               leaves stripped
 %       .ixSignal_Final : IDs of nodes retained in the final weight matrix  
 %
 %  09/07/2018 : initial version
+%  13/07/2018 : updated to call full 
 %
 % Mark Humphries 
 
