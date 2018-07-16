@@ -15,7 +15,7 @@ addpath('../Helper_Functions/')
 
 % rejection parameters
 rejectionpars.N = 100;           % repeats of permutation
-rejectionpars.alpha = 0;         % confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
+rejectionpars.I = 0;         % confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
 rejectionpars.C = 1;            % conversion factor for real-valued weights (set=1 for integers)
 rejectionpars.eg_min = 1e-2;      % given machine error, what is acceptable as "zero" eigenvalue
 

@@ -34,8 +34,8 @@ Model.P_of_noise = [Model.P.between/2, Model.P.between, Model.P.between + (Model
 
 %% rejection and clustering parameters
 rejectionpars.N = 100;           % repeats of permutation
-rejectionpars.alpha = 0;         % confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
-rejectionpars.Model = 'Poiss';   % or 'WCM' . % which null model
+rejectionpars.I = 0;         % confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
+rejectionpars.Model = 'Link';   % or 'WCM' . % which null model
 rejectionpars.C = 1;            % conversion factor for real-valued weights (set=1 for integers)
 rejectionpars.eg_min = 1e-2;      % given machine error, what is acceptable as "zero" eigenvalue
 
@@ -69,7 +69,7 @@ for iP = 1:numel(Model.P_of_noise)
             W = weight_edges_noise(A,S); % use Poisson generative model to create Weight matrix
 
             %% do spectral rejection on model
-            [Data,Rejection,Control] = reject_the_noise(W,rejectionpars,optionsModel,optionsReject);        
+            [Data,Rejection,Control,ControlRejection] = reject_the_noise(W,rejectionpars,optionsModel,optionsReject);        
 
             % store relevant network information for clustering
             Network(iP,iF,iB).W = W;
@@ -80,27 +80,37 @@ for iP = 1:numel(Model.P_of_noise)
             % RESULTS:
             % number of groups recovered by spectra vs same count from other approaches
 
-            Results.SpectraWCM.Groups(iP,iF,iB) = Data.Dn+1;
-            Results.SpectraConfig.Groups(iP,iF,iB) = Control.Dn+1;
-            Results.PosEigWCM.Groups(iP,iF,iB) = Data.PosDn+1;
-            Results.PosEigConfig.Groups(iP,iF,iB) = Control.PosDn+1;
+            Results.SpectraSparseWCM.Groups(iP,iF,iB) = Data.Dn+1;
+            Results.SpectraFullWCM.Groups(iP,iF,iB) = Control.Dn+1;
+            Results.PosEigSparseWCM.Groups(iP,iF,iB) = Data.PosDn+1;
+            Results.PosEigFullWCM.Groups(iP,iF,iB) = Control.PosDn+1;
             
             % proportion of nodes assigned correctly...
             core = 1:n;           % indices of core nodes
             halo = n+1:T;         % indices of halo nodes
             
             % (1) True positives
-            Results.SpectraWCM.TruePos(iP,iF,iB) = numel(intersect(Rejection.ixSignal,core));
+            Results.SpectraSparseWCM.TruePos(iP,iF,iB) = numel(intersect(Rejection.ixSignal,core));
+            Results.SpectraFullWCM.TruePos(iP,iF,iB) = numel(intersect(ControlRejection.ixSignal,core));
+            
             % (2) False positives
-            Results.SpectraWCM.FalsePos(iP,iF,iB) = numel(intersect(Rejection.ixSignal,halo));
+            Results.SpectraSparseWCM.FalsePos(iP,iF,iB) = numel(intersect(Rejection.ixSignal,halo));
+            Results.SpectraFullWCM.FalsePos(iP,iF,iB) = numel(intersect(ControlRejection.ixSignal,halo));
+            
             % (3) True negatives
-            Results.SpectraWCM.TrueNeg(iP,iF,iB) = numel(intersect(Rejection.ixNoise,halo));
+            Results.SpectraSparseWCM.TrueNeg(iP,iF,iB) = numel(intersect(Rejection.ixNoise,halo));
+            Results.SpectraFullWCM.TrueNeg(iP,iF,iB) = numel(intersect(ControlRejection.ixNoise,halo));
+            
             % (4) False negatives
-            Results.SpectraWCM.FalseNeg(iP,iF,iB) = numel(intersect(Rejection.ixNoise,core));
+            Results.SpectraSparseWCM.FalseNeg(iP,iF,iB) = numel(intersect(Rejection.ixNoise,core));
+            Results.SpectraFullWCM.FalseNeg(iP,iF,iB) = numel(intersect(ControlRejection.ixNoise,core));
             
             % Rates:
-            Results.SpectraWCM.Sensitivity(iP,iF,iB) = Results.SpectraWCM.TruePos(iP,iF,iB) ./( Results.SpectraWCM.TruePos(iP,iF,iB) + Results.SpectraWCM.FalseNeg(iP,iF,iB)); % proportion of accepted  
-            Results.SpectraWCM.Specificity(iP,iF,iB) = Results.SpectraWCM.TrueNeg(iP,iF,iB) ./( Results.SpectraWCM.TrueNeg(iP,iF,iB) + Results.SpectraWCM.FalsePos(iP,iF,iB));  % proportion of rejected
+            Results.SpectraSparseWCM.Sensitivity(iP,iF,iB) = Results.SpectraSparseWCM.TruePos(iP,iF,iB) ./( Results.SpectraSparseWCM.TruePos(iP,iF,iB) + Results.SpectraSparseWCM.FalseNeg(iP,iF,iB)); % proportion of accepted  
+            Results.SpectraSparseWCM.Specificity(iP,iF,iB) = Results.SpectraSparseWCM.TrueNeg(iP,iF,iB) ./( Results.SpectraSparseWCM.TrueNeg(iP,iF,iB) + Results.SpectraSparseWCM.FalsePos(iP,iF,iB));  % proportion of rejected
+            Results.SpectraFullWCM.Sensitivity(iP,iF,iB) = Results.SpectraFullWCM.TruePos(iP,iF,iB) ./( Results.SpectraFullWCM.TruePos(iP,iF,iB) + Results.SpectraFullWCM.FalseNeg(iP,iF,iB)); % proportion of accepted  
+            Results.SpectraFullWCM.Specificity(iP,iF,iB) = Results.SpectraFullWCM.TrueNeg(iP,iF,iB) ./( Results.SpectraFullWCM.TrueNeg(iP,iF,iB) + Results.SpectraFullWCM.FalsePos(iP,iF,iB));  % proportion of rejected
+
             
             Results.Time(iP,iB) = toc;
         end
@@ -108,11 +118,10 @@ for iP = 1:numel(Model.P_of_noise)
 end
 
 %% process results
-Results.ProportionModular.SpectraWCM = squeeze(sum(Results.SpectraWCM.Groups > 1,3));
-Results.ProportionModular.SpectraConfig = squeeze(sum(Results.SpectraConfig.Groups > 1,3));
-Results.ProportionModular.PosEigWCM = squeeze(sum(Results.PosEigWCM.Groups > 1,3));
-Results.ProportionModular.PosEigConfig = squeeze(sum(Results.PosEigConfig.Groups > 1,3));
-
+Results.ProportionModular.SpectraSparseWCM = squeeze(sum(Results.SpectraSparseWCM.Groups > 1,3));
+Results.ProportionModular.SpectraFullWCM = squeeze(sum(Results.SpectraFullWCM.Groups > 1,3));
+Results.ProportionModular.PosEigSparseWCM = squeeze(sum(Results.PosEigSparseWCM.Groups > 1,3));
+Results.ProportionModular.PosEigFullWCM = squeeze(sum(Results.PosEigFullWCM.Groups > 1,3));
     
 %% save
 fname = datestr(now,30);

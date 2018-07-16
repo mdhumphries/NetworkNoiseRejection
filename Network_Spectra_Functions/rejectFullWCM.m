@@ -5,7 +5,7 @@ function [Control,varargout] = rejectFullWCM(A,pars,varargin)
 % weighted network W using the original configuration model as the null
 % model. Struct PARS has fields:
 %       .N :    repeats of permutation
-%       .alpha : confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
+%       .I : confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
 %       .C   : conversion factor for real-valued weights (set=1 for integers)
 %       .eg_min : given machine error, what is acceptable as "zero" eigenvalue
 %
@@ -62,7 +62,7 @@ if blnExact
 else
     [Control.Emodel,~,Vmodel] = poissonFullWCM(Data.A,pars.N,pars.C);  % sample from space of configuration models using Poisson approximation
 end
-[Control.Dspace,~,Control.Dn,Control.EigEst] = LowDSpace(B,Control.Emodel,pars.alpha); % to just obtain low-dimensional projection; Data.Dn = number of retained eigenvectors
+[Control.Dspace,~,Control.Dn,Control.EigEst,Control.Nspace,~,Control.Dneg,Control.NEigEst] = LowDSpace(B,Control.Emodel,pars.I); % to just obtain low-dimensional projection; Data.Dn = number of retained eigenvectors
 
 % compute groups based on just positive eigenvalues
 egs = eig(B);  % eigenspectra of data modularity matrix
@@ -71,7 +71,7 @@ Control.PosDn = sum(egs > pars.eg_min);
 
 % reject nodes if also requested
 if blnReject
-    Rejection = NodeRejection(B,Control.Emodel,pars.alpha,Vmodel,optionsReject); % N.B. also calls LowDSpace function to find projections
+    Rejection = NodeRejection(B,Control.Emodel,pars.I,Vmodel,optionsReject); % N.B. also calls LowDSpace function to find projections
         varargout{1} = Rejection;
 
         

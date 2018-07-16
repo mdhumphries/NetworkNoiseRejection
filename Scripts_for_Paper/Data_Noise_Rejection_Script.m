@@ -1,7 +1,10 @@
-%% template script for applying complete work-flow to one data network, using one choice of null model
-% data network: correlations between firing in Aplysia recording
+%% template script for applying complete work-flow to one data network
+%
 % null model: weighted configuration model
-% Mark Humphries 28/2/2017
+%
+% 28/2/2017 : make into single, organised script
+% 16/07/2018: fix all null model functions
+% Mark Humphries 
 
 clear all; close all
 
@@ -18,7 +21,7 @@ fname = 'LesMis';
 pars.N = 100;           % repeats of permutation
 % pars.alpha = 0; %0.95; % 0.95; % 0;         % confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
 pars.I = 0;      % interval: set to 0 for mean
-pars.Model = 'Poiss';   % or 'WCM' . % which null model
+pars.Model = 'Poiss';   % or 'Link'; % which version of sparse WCM null model
 pars.C = 1;             % conversion factor for real-valued weights (set=1 for integers)
 pars.eg_min = 1e-2;      % given machine error, what is acceptable as "zero" eigenvalue
 
@@ -67,19 +70,14 @@ A = (A + A') / 2; % make undirected
 [Data.A,Data.ixRetain,Data.Comps,Data.CompSizes] = prep_A(A);
 Data.nodelabels = nodelabels(Data.ixRetain,:);
 
-% % SBM generation
-% A_SBM = test_noise_rejection_planted_noise(50,2,'low',0.2);
-% A = A_SBM.adjacency;
-% nodelabels = num2str(A_SBM.membership);
-% A = round(A);
 
-%% get expected distribution of eigenvalues under null model (here, WCM)
+%% get expected distribution of eigenvalues under null model (here, sparse WCM)
 
 switch pars.Model
     case 'Poiss'
-        [Data.Emodel,diagnostics,Vmodel,Data.ExpA] = RndPoissonConfigModel(Data.A,pars.N,pars.C,optionsModel);
-    case 'WCM'
-        [Data.Emodel,diagnostics,Vmodel,Data.ExpA] = WeightedConfigModel(Data.A,pars.N,pars.C,optionsModel);
+        [Data.Emodel,diagnostics,Vmodel,Data.ExpA] = poissonSparseWCM(Data.A,pars.N,pars.C,optionsModel);
+    case 'Link'
+        [Data.Emodel,diagnostics,Vmodel,Data.ExpA] = linkSparseWCM(Data.A,pars.N,pars.C,optionsModel);
     otherwise
         error('Unrecognised null model specified')
 end
@@ -114,10 +112,14 @@ Data.ixSignal_Final = Data.ixSignal_comp(ixKeep);
 Data.ixSignal_Leaves = Data.ixSignal_comp(ixLeaves);
 Data.Asignal_final = Data.Asignal_comp(ixKeep,ixKeep);
 
-%% compare to standard configuration model
-[Control.Emodel,diagnostics,Vmodel,~,AllA] = RndPoissonConfigModel(Data.A,pars.N,pars.C);
+%% compare to standard weighted configuration model
+switch pars.Model
+    case 'Poiss'
+        [Control,ControlReject] = rejectFullWCM(Data.A,pars,'Reject',optionsReject);    
+    case 'Link'
+        [Control,ControlReject] = rejectFullWCM(Data.A,pars,'Reject',optionsReject,'Exact');    
+end 
 Control.P = expectedA(Data.A);
-
 B = Data.A - Control.P;
 
 % compute groups based on just positive eigenvalues
@@ -125,11 +127,5 @@ egs = eig(B);  % eigenspectra of data modularity matrix
 egs = sort(egs,'descend'); % sort eigenvalues into descending order 
 Control.PosDn = sum(egs > pars.eg_min);
 
-% compute groups based on estimated bounds
-[Control.Dspace,~,Control.Dn,Control.EigEst] = LowDSpace(B,Control.Emodel,pars.I); % to just obtain low-dimensional projection; Data.Dn = number of retained eigenvectors
-
-
-
-
 %% save
-save(['../Results/Rejected_' fname],'Rejection','Data','Control','pars','optionsModel','optionsReject')
+save(['../Results/Rejected_' fname],'Rejection','Data','Control','ControlReject','pars','optionsModel','optionsReject')

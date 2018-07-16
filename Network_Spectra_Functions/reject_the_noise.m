@@ -1,8 +1,8 @@
-function [Data,Rejection,Control] = reject_the_noise(A,pars,optionsModel,optionsReject)
+function [Data,Rejection,Control,ControlReject] = reject_the_noise(A,pars,optionsModel,optionsReject)
 
 % REJECT_THE_NOISE batch version of noise rejection script
-% [DATA,REJECTION,CONTROL] = REJECT_THE_NOISE(A,PARS,optionsModel,optionsReject)
-%
+% [DATA,REJECTION,CONTROL,CONTROLREJECT] = REJECT_THE_NOISE(A,PARS,optionsModel,optionsReject)
+%   PARS.I
 % Mark Humphries & Mat Evans
 
 addpath('../Network_Analysis_Functions/')  % for prep_A
@@ -13,9 +13,9 @@ addpath('../Network_Analysis_Functions/')  % for prep_A
 % get expected distribution of eigenvalues under null model (here, WCM)
 switch pars.Model
     case 'Poiss'
-        [Data.Emodel,diagnostics,Vmodel,Data.ExpA] = RndPoissonConfigModel(Data.A,pars.N,pars.C,optionsModel);
-    case 'WCM'
-        [Data.Emodel,diagnostics,Vmodel,Data.ExpA] = WeightedConfigModel(Data.A,pars.N,pars.C,optionsModel);
+        [Data.Emodel,diagnostics,Vmodel,Data.ExpA] = poissonSparseWCM(Data.A,pars.N,pars.C,optionsModel);
+    case 'Link'
+        [Data.Emodel,diagnostics,Vmodel,Data.ExpA] = linkSparseWCM(Data.A,pars.N,pars.C,optionsModel);
     otherwise
         error('Unrecognised null model specified')
 end
@@ -23,10 +23,10 @@ end
 B = Data.A - Data.ExpA;  % modularity matrix using chosen null model
 
 % find low-dimensional projection
-[Data.Dspace,~,Data.Dn,Data.EigEst] = LowDSpace(B,Data.Emodel,pars.alpha); % to just obtain low-dimensional projection; Data.Dn = number of retained eigenvectors
+[Data.Dspace,~,Data.Dn,Data.EigEst] = LowDSpace(B,Data.Emodel,pars.I); % to just obtain low-dimensional projection; Data.Dn = number of retained eigenvectors
 
 % node rejection within low-dimensional projection
-Rejection = NodeRejection(B,Data.Emodel,pars.alpha,Vmodel,optionsReject); % N.B. also calls LowDSpace function to find projections
+Rejection = NodeRejection(B,Data.Emodel,pars.I,Vmodel,optionsReject); % N.B. also calls LowDSpace function to find projections
 
 if Data.Dn > 0 
     % new signal matrix
@@ -60,13 +60,13 @@ Data.PosDn = sum(egs > pars.eg_min);
 
 Control.P = expectedA(Data.A);
 B = Data.A - Control.P;
-% compute based on spectral rejection
-[Control.Emodel,~,Vmodel] = RndPoissonConfigModel(Data.A,pars.N,pars.C); % this isn't the classic WCM...
-[Control.Dspace,~,Control.Dn,Control.EigEst] = LowDSpace(B,Control.Emodel,pars.alpha); % to just obtain low-dimensional projection; Data.Dn = number of retained eigenvectors
 
-% do node rejection
-ControlRejection = NodeRejection(B,Control.Emodel,pars.alpha,Vmodel,optionsReject); % N.B. also calls LowDSpace function to find projections
-
+switch pars.Model
+    case 'Poiss'
+        [Control,ControlReject] = rejectFullWCM(Data.A,pars,'Reject',optionsReject);    
+    case 'Link'
+        [Control,ControlReject] = rejectFullWCM(Data.A,pars,'Reject',optionsReject,'Exact');    
+end 
 
 % compute groups based on just positive eigenvalues
 egs = eig(B);  % eigenspectra of data modularity matrix

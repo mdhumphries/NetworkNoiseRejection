@@ -43,8 +43,8 @@ nBatch = 100;
 
 %% rejection and clustering parameters
 rejectionpars.N = 100;           % repeats of permutation
-rejectionpars.alpha = 0;         % confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
-rejectionpars.Model = 'Poiss';   % or 'WCM' . % which null model
+rejectionpars.I = 0;         % confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
+rejectionpars.Model = 'Poiss';   % or 'Link' . % which null model
 rejectionpars.C = 1;            % conversion factor for real-valued weights (set=1 for integers)
 rejectionpars.eg_min = 1e-2;      % given machine error, what is acceptable as "zero" eigenvalue
 
@@ -84,7 +84,7 @@ for iP = 1:numel(Model.P_of_within)
         W = weight_edges_noise(A,S); % use Poisson generative model to create Weight matrix
                 
         %% do spectral rejection on model
-        [Data,Rejection,Control] = reject_the_noise(W,rejectionpars,optionsModel,optionsReject);        
+        [Data,Rejection,Control,ControlRejection] = reject_the_noise(W,rejectionpars,optionsModel,optionsReject);        
 
         % store relevant network information for clustering
         Network(iP,iB).W = W;
@@ -94,20 +94,20 @@ for iP = 1:numel(Model.P_of_within)
         % number of groups recovered by spectra vs same count from other
         % approaches
 
-        Results.SpectraWCMGroups(iP,iB) = Data.Dn+1;
-        Results.SpectraConfigGroups(iP,iB) = Control.Dn+1;
-        Results.PosEigWCMGroups(iP,iB) = Data.PosDn+1;
-        Results.PosEigConfigGroups(iP,iB) = Control.PosDn+1;
+        Results.SpectraSparseWCM.Groups(iP,iB) = Data.Dn+1;
+        Results.SpectraFullWCM.Groups(iP,iB) = Control.Dn+1;
+        Results.PosEigSparseWCM.Groups(iP,iB) = Data.PosDn+1;
+        Results.PosEigFullWCM.Groups(iP,iB) = Control.PosDn+1;
 
         Results.Time(iP,iB) = toc;
     end
 end
 
 %% process results
-Results.ProportionModular.SpectraWCM = sum(Results.SpectraWCMGroups > 1,2);
-Results.ProportionModular.SpectraConfig = sum(Results.SpectraConfigGroups > 1,2);
-Results.ProportionModular.PosEigWCM = sum(Results.PosEigWCMGroups > 1,2);
-Results.ProportionModular.PosEigConfig = sum(Results.PosEigConfigGroups > 1,2);
+Results.ProportionModular.SpectraSparseWCM = sum(Results.SpectraSparseWCM.Groups > 1,2);
+Results.ProportionModular.SpectraFullWCM = sum(Results.SpectraFullWCM.Groups > 1,2);
+Results.ProportionModular.PosEigSparseWCM = sum(Results.PosEigSparseWCM.Groups > 1,2);
+Results.ProportionModular.PosEigFullWCM = sum(Results.PosEigFullWCM.Groups > 1,2);
 
     
 %% save
