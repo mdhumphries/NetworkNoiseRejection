@@ -12,25 +12,26 @@ addpath('../SyntheticModel/');
 addpath('../Network_Spectra_Functions/');
 fpath = 'C:/Users/lpzmdh/Dropbox/Analyses/Networks/SyntheticModel_Rejection_Results/';
 
-%% fixed parameters of synthetic model
+%% parameters to potentially explore - comment out to run batch script
+
 % Model.N = [200,75,25];  % size of modules
-Model.N = [100,100,100];  % size of modules
-
-
-Model.P.in = 0.2;   % IMPORTANT: chose this carefully...
-Model.P.between = 0.05;  % has to be same as for No-noise network...   
-
-% stength distribution parameters
-Model.Spar.distribution =  'Poisson';  % type of distribution
-Model.Spar.a = 200;                    % scale: in addition to existing edges
-Model.Spar.b = 1;                     % spread
-
-nBatch = 50;
+% Model.N = [100,100,100];  % size of modules
+% Model.Spar.a = 200;                    % scale: in addition to existing edges
+% 
+% Model.P.in = 0.2;   % IMPORTANT: chose this carefully...
+% Model.P.between = 0.05;  % has to be same as for No-noise network...   
 
 %% range of parameters
-Model.F_noise = [0.25 0.5 1];
-% 3 qualitative cases of P(noise)
+% Model.F_noise = [0.25 0.5 1];
+% 5 qualitative cases of P(noise)
 Model.P_of_noise = [Model.P.between/2, Model.P.between, Model.P.between + (Model.P.in-Model.P.between)/2, Model.P.in, Model.P.in + (Model.P.in-Model.P.between)/2];
+
+%% fixed parameters of synthetic model
+% stength distribution parameters
+Model.Spar.distribution =  'Poisson';  % type of distribution
+Model.Spar.b = 1;                     % spread
+
+% nModels = 50;
 
 %% rejection and clustering parameters
 rejectionpars.N = 100;           % repeats of permutation
@@ -59,7 +60,7 @@ for iP = 1:numel(Model.P_of_noise)
     for iF = 1:numel(Model.F_noise)
         fnoise = Model.F_noise(iF);
         
-        for iB = 1:nBatch
+        for iB = 1:nModels
             disp(['P: ' num2str(iP) '/' num2str(numel(Model.P_of_noise)) '; F:' num2str(iF) '/' num2str(numel(Model.F_noise)) '; batch: ' num2str(iB)])
             tic
             %% make model
@@ -74,8 +75,8 @@ for iP = 1:numel(Model.P_of_noise)
             % store relevant network information for clustering
             Network(iP,iF,iB).W = W;
             Network(iP,iF,iB).ExpW = Data.ExpA;
-            Network(iP,iF,iB).WsignalFinal = Data.Asignal_final;
-            Network(iP,iF,iB).ixFinal = Data.ixSignal_Final;
+            Network(iP,iF,iB).ixFinal_Sparse = Data.ixSignal_Final;        % index into W to recover final signal matrix from Sparse WCM
+            Network(iP,iF,iB).ixFinal_Full = Control.ixSignal_Final;        % index into W to recover final signal matrix from Full WCM 
             
             % RESULTS:
             % number of groups recovered by spectra vs same count from other approaches

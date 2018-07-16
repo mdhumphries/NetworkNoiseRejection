@@ -6,6 +6,8 @@
 % Change log:
 % 08/06/2018: initial version
 % 04/07/2018 : added comparison to ground-truths
+% 16/07/2018 : updated to proper Full WCM
+%
 % Mark Humphries
 
 clear all; close all;
@@ -14,7 +16,8 @@ addpath('../ZhangNewman2015/');
 addpath('../Helper_Functions/')
 
 %% load networks from rejection script
-fname = 'P_rejection_SyntheticEqual_Noise_20180611T132723';  % full set of 100 networks per P(within) level
+% comment out filename to run batch script
+% fname = 'P_rejection_SyntheticEqual_Noise_20180611T132723';  % full set of 100 networks per P(within) level
 fpath = 'C:/Users/lpzmdh/Dropbox/Analyses/Networks/SyntheticModel_Rejection_Results/';
 
 load([fpath fname])
@@ -50,10 +53,15 @@ end
 %% loop: make models and do rejection etc
 nBatch = size(Results.Time,2);
 
-ResultsFields = {'normVIQmaxSpectra','normVIConsensusSpectra','normVILouvain','normVIMultiway','Time',...
-                    'nGrpsLouvain','nGrpsMultiway','nGrpsQmaxSpectra','nGrpsConsensusSpectra'};
+ResultsFields = {'normVIQmaxFullOne','normVIConsensusFullOne','normVIQmaxSparseOne','normVIConsensusSparseOne',...
+                    'normVIQmaxFullOwn','normVIConsensusFullOwn','normVIQmaxSparseOwn','normVIConsensusSparseOwn',...
+                    'normVILouvainOne','normVIMultiwayOne','normVILouvainOwn','normVIMultiwayOwn','Time',...
+                    'nGrpsLouvain','nGrpsMultiway','nGrpsQmaxFull','nGrpsConsensusFull','nGrpsQmaxSparse','nGrpsConsensusSparse'};
+LoopResultsFields = {'QmaxCluster','ConsCluster','normVIQmaxSpectra','normVIConsensusSpectra','nGrpsQmaxSpectra','nGrpsConsensusSpectra'};
+
 fieldsize = [nBatch,1]; % parfor cannot handle matrices of structs...
 ClustResults = emptyStruct(ResultsFields,fieldsize);
+LoopResults = emptyStruct(LoopResultsFields,fieldsize);
 
 blnP = autoParallel;  % set-up parallel processing with scaled number of cores.
 
@@ -80,47 +88,41 @@ for iF = 1:numel(Model.F_noise)
             ClustResults(iB).nGrpsMultiway(iP,iF) = max(bestPartition);
             [~,ClustResults(iB).normVIMultiwayOwn(iP,iF)] = VIpartitions(bestPartition,Partition(iF).owngroups);
             [~,ClustResults(iB).normVIMultiwayOne(iP,iF)] = VIpartitions(bestPartition,Partition(iF).onegroup);
-
-             %% specified clustering on synthetic network
-            if Results.SpectraWCM.Groups(iP,iF,iB) > 1
-                % using final Signal matrix: stripped down to just Signal
-                % nodes, and with giant component found and leaves removed
-                ExpW = tempNetwork(iP,iB).ExpW(tempNetwork(iP,iB).ixFinal,tempNetwork(iP,iB).ixFinal);  % extract expected matrix for just final signal
-                [QmaxCluster,Qmax,ConsCluster,ConsQ,~] = ...
-                                                            ConsensusCommunityDetect(tempNetwork(iP,iB).WsignalFinal,ExpW,Results.SpectraWCM.Groups(iP,iF,iB),Results.SpectraWCM.Groups(iP,iF,iB),clusterpars.nreps);
-                % quality of estimation of retained communities
-                if ~isempty(QmaxCluster)
-                    ClustResults(iB).nGrpsQmaxSpectra(iP,iF) = max(QmaxCluster);
-                    [~,ClustResults(iB).normVIQmaxSpectraOwn(iP,iF)] = VIpartitions(QmaxCluster,Partition(iF).owngroups(tempNetwork(iP,iB).ixFinal));  % defined on retained network
-                    [~,ClustResults(iB).normVIQmaxSpectraOne(iP,iF)] = VIpartitions(QmaxCluster,Partition(iF).onegroup(tempNetwork(iP,iB).ixFinal));  % defined on retained network
-                else
-                    ClustResults(iB).nGrpsQmaxSpectra(iP,iF) = nan; % error in clustering
-                    ClustResults(iB).normVIQmaxSpectraOwn(iP,iF) = 0;  
-                    ClustResults(iB).normVIQmaxSpectraOne(iP,iF) = 0;
-                    
-                end
-
-                if ~isempty(ConsCluster)
-                    ClustResults(iB).nGrpsConsensusSpectra(iP,iF) = max(ConsCluster);
-                    [~,ClustResults(iB).normVIConsensusSpectraOwn(iP,iF)] = VIpartitions(ConsCluster,Partition(iF).owngroups(tempNetwork(iP,iB).ixFinal));  % defined on retained network
-                    [~,ClustResults(iB).normVIConsensusSpectraOne(iP,iF)] = VIpartitions(ConsCluster,Partition(iF).onegroup(tempNetwork(iP,iB).ixFinal));  % defined on retained network
-                    
-                else
-                    ClustResults(iB).nGrpsConsensusSpectra(iP,iF) = nan; % error in clustering
-                    ClustResults(iB).normVIConsensusSpectraOwn(iP,iF) = 0;  
-                    ClustResults(iB).normVIConsensusSpectraOne(iP,iF) = 0;      
-                end
+            
+            %% clustering on low-D space from rejection: on signal network
+            % (1) sparse WCM
+            Wsignal = tempNetwork(iP,iB).W(tempNetwork(iP,iB).ixFinal_Sparse,tempNetwork(iP,iB).ixFinal_Sparse);        % get final signal matrix
+            ExpWsignal = tempNetwork(iP,iB).ExpW(tempNetwork(iP,iB).ixFinal_Sparse,tempNetwork(iP,iB).ixFinal_Sparse);  % extract expected matrix for just final signal
+            LoopResults = clusterLowDNetwork(Wsignal,ExpWsignal,Results.SpectraSparseWCM.Groups(iP,iF,iB),Results.SpectraSparseWCM.Groups(iP,iF,iB),clusterpars.nreps,Partition(iF).owngroups(tempNetwork(iP,iB).ixFinal_Sparse));
+            [ClustResults(iB).normVIQmaxSparseOwn(iP,iF),ClustResults(iB).normVIConsensusSparseOwn(iP,iF),ClustResults(iB).nGrpsQmaxSparse(iP,iF),ClustResults(iB).nGrpsConsensusSparse(iP,iF)] ...
+                    = deal(LoopResults.normVIQmaxSpectra,LoopResults.normVIConsensusSpectra,LoopResults.nGrpsQmaxSpectra,LoopResults.nGrpsConsensusSpectra);
+            % also compute one-group VI
+            if ~isempty(LoopResults.QmaxCluster)
+                ClustResults(iB).normVIQmaxSparseOne(iP,iF) = VIpartitions(LoopResults.QmaxCluster,Partition(iF).onegroup(tempNetwork(iP,iB).ixFinal_Sparse));
+                ClustResults(iB).normVIConsensusSparseOne(iP,iF) = VIpartitions(LoopResults.ConsCluster,Partition(iF).onegroup(tempNetwork(iP,iB).ixFinal_Sparse));
             else
-                % no clusters detected, so set to 0
-                QmaxCluster = []; Qmax = 0; ConsCluster = []; ConsQ = 0;
-                ClustResults(iB).nGrpsQmaxSpectra(iP,iF) = 0;
-                ClustResults(iB).nGrpsConsensusSpectra(iP,iF) = 0;
-                ClustResults(iB).normVIConsensusSpectraOwn(iP,iF) = 0;  
-                ClustResults(iB).normVIConsensusSpectraOne(iP,iF) = 0;
-                ClustResults(iB).normVIQmaxSpectraOwn(iP,iF) = 0;  
-                ClustResults(iB).normVIQmaxSpectraOne(iP,iF) = 0;
+                ClustResults(iB).normVIQmaxSparseOne(iP,iF) = 0;
+                ClustResults(iB).normVIConsensusSparseOne(iP,iF) = 0;
                 
             end
+              
+            % (2) full WCM
+            Wsignal = tempNetwork(iP,iB).W(tempNetwork(iP,iB).ixFinal_Full,tempNetwork(iP,iB).ixFinal_Full);        % get final signal matrix            
+            P = expectedA(tempNetwork(iP,iB).W);
+            Psignal = P(tempNetwork(iP,iB).ixFinal_Full,tempNetwork(iP,iB).ixFinal_Full);
+            LoopResults = clusterLowDNetwork(Wsignal,Psignal,Results.SpectraFullWCM.Groups(iP,iF,iB),Results.SpectraFullWCM.Groups(iP,iF,iB),clusterpars.nreps,Partition(iF).owngroups(tempNetwork(iP,iB).ixFinal_Full));
+            [ClustResults(iB).normVIQmaxFullOwn(iP,iF),ClustResults(iB).normVIConsensusFullOwn(iP,iF),ClustResults(iB).nGrpsQmaxFull(iP,iF),ClustResults(iB).nGrpsConsensusFull(iP,iF)] ...
+                    = deal(LoopResults.normVIQmaxSpectra,LoopResults.normVIConsensusSpectra,LoopResults.nGrpsQmaxSpectra,LoopResults.nGrpsConsensusSpectra);
+            % also compute one-group VI
+            if ~isempty(LoopResults.QmaxCluster)
+                ClustResults(iB).normVIQmaxFullOne(iP,iF) = VIpartitions(LoopResults.QmaxCluster,Partition(iF).onegroup(tempNetwork(iP,iB).ixFinal_Full));
+                ClustResults(iB).normVIConsensusFullOne(iP,iF) = VIpartitions(LoopResults.ConsCluster,Partition(iF).onegroup(tempNetwork(iP,iB).ixFinal_Full));
+            else
+                ClustResults(iB).normVIQmaxFullOne(iP,iF) = 0;
+                ClustResults(iB).normVIConsensusFullOne(iP,iF) = 0;
+                
+            end
+           
             ClustResults(iB).Time(iP,iF) = toc;
         end
     end

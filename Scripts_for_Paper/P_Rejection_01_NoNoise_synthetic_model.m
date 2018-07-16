@@ -38,7 +38,7 @@ Model.P_of_noise = 0;
 Model.Spar.distribution =  'Poisson';  % type of distribution
 Model.Spar.b = 1;                     % spread
 
-nBatch = 100;
+% nModels = 100;
 
 
 %% rejection and clustering parameters
@@ -74,7 +74,7 @@ for iP = 1:numel(Model.P_of_within)
     % assign parameters   
     P.in = Model.P_of_within(iP);
 
-    for iB = 1:nBatch
+    for iB = 1:nModels
         disp(['P: ' num2str(iP) '/' num2str(numel(Model.P_of_within)) '; batch: ' num2str(iB)])
         tic
         %% make model
