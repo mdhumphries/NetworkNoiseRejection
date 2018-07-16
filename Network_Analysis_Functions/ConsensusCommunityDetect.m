@@ -172,13 +172,18 @@ while ~blnConverged
             % set: find consensus in that space.
             if L == M && ~blnExplore
                 T = sum(reshape(Allowed,nreps,1+M-L));  % count how many at each K were retained
-                [D,~,~] = EmbedConsensusNull(CCons,'sweep',L:M,T);  % option 'expected' available as well as 'sweep'
+                [D,~,Mcons] = EmbedConsensusNull(CCons,'sweep',L:M,T);  % option 'expected' available as well as 'sweep'
                 % do k-means sweep using D, restricted to original M
-                C = kmeansSweep(D(:,1:M),L,M,nreps,dims);  % find groups in embedding dimensions
+                if Mcons >= M
+                    C = kmeansSweep(D(:,1:M),L,M,nreps,dims);  % find groups in embedding dimensions
+                else
+                    % use all of D if less than M returned
+                    C = kmeansSweep(D,L,M,nreps,dims);  % find groups in embedding dimensions 
+                end
             end
             
 %             % find upper limit of groups - replicate this code when using
-%             null model for consensus
+%             null model for consensus 
 %             [D,~,Mcons] = EmbedConsensusWishart(CCons);
 %              % do k-means sweep using found M
 %             C = kmeansSweep(D,L,Mcons,nreps,dims);  % find groups in embedding dimensions
