@@ -67,6 +67,7 @@ Model.F_noise = [0.25,1];
 % properties....
 run P_Rejection_01_Noise_synthetic_model.m
 
+fname = 'P_rejection_SyntheticEqual_Noise_20180716T123952';
 % cluster results: fname is in workspace
 run P_Rejection_02_Cluster_Noise_synthetic_model.m
 

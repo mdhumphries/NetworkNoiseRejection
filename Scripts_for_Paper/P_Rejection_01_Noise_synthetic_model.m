@@ -7,7 +7,9 @@
 %
 % Mark Humphries
 
-clear all; close all;
+% clear all; close all;
+clearvars Network Results
+
 addpath('../SyntheticModel/');
 addpath('../Network_Spectra_Functions/');
 fpath = 'C:/Users/lpzmdh/Dropbox/Analyses/Networks/SyntheticModel_Rejection_Results/';
@@ -125,7 +127,7 @@ Results.ProportionModular.PosEigSparseWCM = squeeze(sum(Results.PosEigSparseWCM.
 Results.ProportionModular.PosEigFullWCM = squeeze(sum(Results.PosEigFullWCM.Groups > 1,3));
     
 %% save
-fname = datestr(now,30);
+strDate = datestr(now,30);
 
 if all(Model.N == Model.N(1))
     strName = 'Equal';
@@ -133,6 +135,8 @@ else
     strName = 'Unequal';
 end
 
-save([fpath 'P_rejection_Synthetic' strName '_Noise_' fname],'Results','Network','Model','rejectionpars','optionsModel','optionsReject','-v7.3')
+fname = ['P_rejection_Synthetic' strName '_Noise_' strDate];
+
+save([fpath fname],'Results','Network','Model','rejectionpars','optionsModel','optionsReject','-v7.3')
 
 

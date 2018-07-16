@@ -28,8 +28,8 @@ clusterpars.nLouvain = 1;
 n = sum(Model.N);
 nBatch = size(Results.Time,2);
 
-ResultsFields = {'normVIQmaxFull','normVIConsensusFull','normVIQmaxSparse','normVIConsensusSparse','normVILouvain','normVIMultiway','Time',...
-                    'nGrpsLouvain','nGrpsMultiway','nGrpsQmaxFull','nGrpsConsensusFull','nGrpsQmaxSparse','nGrpsConsensusSparse'};
+ResultsFields = {'normVIQmaxFull','normVIConsensusFull','normVIQmaxSparse','normVIConsensusSparse','normVILouvain','normVIMultiway','normVIMultiwayQ','Time',...
+                    'nGrpsLouvain','nGrpsMultiway','nGrpsMultiwayQ','nGrpsQmaxFull','nGrpsConsensusFull','nGrpsQmaxSparse','nGrpsConsensusSparse'};
 fieldsize = [nBatch,1]; % parfor cannot handle matrices of structs...
 ClustResults = emptyStruct(ResultsFields,fieldsize);
 LoopResults = emptyStruct(ResultsFields,fieldsize);
@@ -49,10 +49,12 @@ parfor iB = 1:nBatch
         ClustResults(iB).nGrpsLouvain(iP) = max(LouvCluster{1}{1});
 
         % multi-way spectra on synthetic network
-        [bestPartition] = multiwaySpectCommDet(Network(iP,iB).W);
+        [bestPartition,maxQPartition] = multiwaySpectCommDet(Network(iP,iB).W,Results.SpectraSparseWCM.Groups(iP,iF,iB)*2);
         [~,ClustResults(iB).normVIMultiway(iP)] = VIpartitions(bestPartition,group_membership);
         ClustResults(iB).nGrpsMultiway(iP) = max(bestPartition);
-            
+        [~,ClustResults(iB).normVIMultiwayQ(iP)] = VIpartitions(maxQPartition,group_membership);
+        ClustResults(iB).nGrpsMultiwayQ(iP) = max(maxQPartition);
+           
         %% specified clustering on synthetic network
         % (1) sparse WCM
         LoopResults = clusterLowDNetwork(Network(iP,iB).W,Network(iP,iB).ExpW,Results.SpectraSparseWCM.Groups(iP,iB),Results.SpectraSparseWCM.Groups(iP,iB),clusterpars.nreps,group_membership);

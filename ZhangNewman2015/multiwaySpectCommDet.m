@@ -1,4 +1,4 @@
-function [bestPartition] = multiwaySpectCommDet(varargin)
+function [bestPartition,maxQPartition] = multiwaySpectCommDet(varargin)
 % Implementation of: X Zhang, MEJ Newman (2015), Multiway spectral community
 % detection in networks, Phys Rev E, (92)052808. This function tests for up
 % to 50 possible groups and the best number (not reported outside) is that 
@@ -8,32 +8,42 @@ function [bestPartition] = multiwaySpectCommDet(varargin)
 % 
 % Syntax...
 % ... if ground truth is known:
-% partition = multiwaySpectCommDet(Adj, groupMemb)
+% [partition,maxQpartition] = multiwaySpectCommDet(Adj, maxGroup, groupMemb)
 %
 % ... if there's no known ground truth:
-% partition = multiwaySpectCommDet(Adj)
+% [partition,maxQpartition] = multiwaySpectCommDet(Adj,maxGroup)
 %
 % Where:
 % Adj: binary (symmetric) adjacency matrix. The algorithm assumes an  
 %      undirected, unweighted network, but in practice it works well with
 %      weights.
+% maxGroup: maximum number of groups to test
 % groupMemb: Ground-truth partition, i.e. vector of indices of the groups  
 %      to which each vertex belongs. Its length must be the same as that of 
 %      any of the dimensions of Adj.
 % partition: Found partition. Vector of indices, up to maxGroups, reporting 
-%      the best partition found.
-% 
+%      the best partition found (as knee on Q vs groups plot).
+% maxQpartition: over all partitions, the maximum Q
+%
 % Ver. 1.0, Javier Caballero, 24-Oct-2016
 % Ver. 1.01, Javier Caballero, 04-Nov-2016
+
 
 
 %% SET UP DATA
 % adjacency matrix
 A_adjMat = varargin{1};
 
+% maximum number of groups tested for
+if nargin > 1 && ~isempty(varargin{1})
+    maxGroups = varargin{2};
+else
+    maxGroups = 50;
+end
+
 % ground-truth membership vector if given
-if length(varargin) > 1
-    g_iGroupsVerts = varargin{2};
+if length(varargin) > 2
+    g_iGroupsVerts = varargin{3};
 end
 
 % remove any auto-connections
@@ -131,8 +141,7 @@ if indGroundTruth == 1
     % success rate vs ground truth
     normMutInfo = 0;
 end
-% maximum number of groups tested for
-maxGroups = 50;
+
 % pre-allocate memory for group indices matrix
 g_iGroupsCurrent = nan(n_NoVerts, maxGroups);
 
@@ -294,6 +303,20 @@ for count = 1:numel(uniqueGroupI)
 end
 bestPartition = nan(numel(unconnectVerts), 1);
 bestPartition(unconnectVerts == 0) = dummy;
+
+% max Q 
+bestNoOfGroupsQ = find(Q_currentMod == max(Q_currentMod));
+% detected best partition, indices starting at 1, unconnected nodes'
+% membership is reported as NaN
+dummy = nan(n_NoVerts, 1);
+uniqueGroupQmax = unique(g_iGroupsCurrent(:, bestNoOfGroupsQ));
+for count = 1:numel(uniqueGroupQmax)
+    dummy(g_iGroupsCurrent(:, bestNoOfGroupsQ) ==...
+        uniqueGroupQmax(count)) = count;
+end
+maxQPartition = nan(numel(unconnectVerts), 1);
+maxQPartition(unconnectVerts == 0) = dummy;
+
 
 % report results in command window
 disp(' ')

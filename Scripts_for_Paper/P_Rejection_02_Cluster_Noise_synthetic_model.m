@@ -10,7 +10,7 @@
 %
 % Mark Humphries
 
-clear all; close all;
+clearvars Network Results ClustResults
 addpath('../Network_Analysis_Functions/');
 addpath('../ZhangNewman2015/');
 addpath('../Helper_Functions/')
@@ -55,8 +55,8 @@ nBatch = size(Results.Time,2);
 
 ResultsFields = {'normVIQmaxFullOne','normVIConsensusFullOne','normVIQmaxSparseOne','normVIConsensusSparseOne',...
                     'normVIQmaxFullOwn','normVIConsensusFullOwn','normVIQmaxSparseOwn','normVIConsensusSparseOwn',...
-                    'normVILouvainOne','normVIMultiwayOne','normVILouvainOwn','normVIMultiwayOwn','Time',...
-                    'nGrpsLouvain','nGrpsMultiway','nGrpsQmaxFull','nGrpsConsensusFull','nGrpsQmaxSparse','nGrpsConsensusSparse'};
+                    'normVILouvainOne','normVIMultiwayOne','normVIMultiwayQOne','normVILouvainOwn','normVIMultiwayOwn','normVIMultiwayQOwn','Time',...
+                    'nGrpsLouvain','nGrpsMultiway','nGrpsMultiwayQ','nGrpsQmaxFull','nGrpsConsensusFull','nGrpsQmaxSparse','nGrpsConsensusSparse'};
 LoopResultsFields = {'QmaxCluster','ConsCluster','normVIQmaxSpectra','normVIConsensusSpectra','nGrpsQmaxSpectra','nGrpsConsensusSpectra'};
 
 fieldsize = [nBatch,1]; % parfor cannot handle matrices of structs...
@@ -70,8 +70,8 @@ for iF = 1:numel(Model.F_noise)
     % machine from seizing up
     tempNetwork = squeeze(Network(:,iF,:));
        
-    parfor iB = 1:nBatch
-    % for iB = 1:nBatch
+    % parfor iB = 1:nBatch
+    for iB = 1:nBatch
     
         for iP = 1:numel(Model.P_of_noise)
             disp(['P: ' num2str(iP) '/' num2str(numel(Model.P_of_noise)) '; F:' num2str(iF) '/' num2str(numel(Model.F_noise)) '; batch: ' num2str(iB)])
@@ -84,11 +84,18 @@ for iF = 1:numel(Model.F_noise)
             [~,ClustResults(iB).normVILouvainOne(iP,iF)] = VIpartitions(LouvCluster{1}{1},Partition(iF).onegroup);
     
             % multi-way spectra on synthetic network
-            [bestPartition] = multiwaySpectCommDet(tempNetwork(iP,iB).W);
+            tic
+            [bestPartition,maxQPartition] = multiwaySpectCommDet(tempNetwork(iP,iB).W,Results.SpectraSparseWCM.Groups(iP,iF,iB)*2);
+            toc
+            % keyboard
             ClustResults(iB).nGrpsMultiway(iP,iF) = max(bestPartition);
             [~,ClustResults(iB).normVIMultiwayOwn(iP,iF)] = VIpartitions(bestPartition,Partition(iF).owngroups);
             [~,ClustResults(iB).normVIMultiwayOne(iP,iF)] = VIpartitions(bestPartition,Partition(iF).onegroup);
-            
+
+            ClustResults(iB).nGrpsMultiwayQ(iP,iF) = max(maxQPartition);
+            [~,ClustResults(iB).normVIMultiwayQOwn(iP,iF)] = VIpartitions(maxQPartition,Partition(iF).owngroups);
+            [~,ClustResults(iB).normVIMultiwayQOne(iP,iF)] = VIpartitions(maxQPartition,Partition(iF).onegroup);
+
             %% clustering on low-D space from rejection: on signal network
             % (1) sparse WCM
             Wsignal = tempNetwork(iP,iB).W(tempNetwork(iP,iB).ixFinal_Sparse,tempNetwork(iP,iB).ixFinal_Sparse);        % get final signal matrix

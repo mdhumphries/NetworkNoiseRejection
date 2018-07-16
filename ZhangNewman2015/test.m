@@ -23,18 +23,27 @@ A_adjMat = A_adjMat(largestComp, :);
 % number of trials
 noTrials = 50;
 
+nGroups = 10;
+
 for count = 1:noTrials
     if exist('g_iGroupsVerts', 'var') == 1
-        [bestNoOfGroups(count), bestPartition] =...
-            multiwaySpectCommDet(A_adjMat, g_iGroupsVerts);
+        [bestPartition] =...
+            multiwaySpectCommDet(A_adjMat, nGroups, g_iGroupsVerts); 
     else
-        [bestNoOfGroups(count), bestPartition] =...
-            multiwaySpectCommDet(A_adjMat);
+        [bestPartition,maxQPartition] =...
+            multiwaySpectCommDet(A_adjMat,nGroups);
     end
+     bestNoOfGroups(count) = max(bestPartition);
+     QmaxNoOfGroups(count) = max(maxQPartition);
 end
 
 figure(1)
+subplot(211),
 hist(bestNoOfGroups, 1:max(bestNoOfGroups))
 ylabel('frequency')
-xlabel('No. of groups detected')
+xlabel('No. of groups detected: knee')
+subplot(212),
+hist(QmaxNoOfGroups, 1:max(QmaxNoOfGroups))
+ylabel('frequency')
+xlabel('No. of groups detected: Qmax')
 
