@@ -25,6 +25,7 @@ load([fpath fname])
 %% clustering parameters
 clusterpars.nreps = 50;
 clusterpars.nLouvain = 1;
+clusterpars.maxMultiway = 20;
 
 %% define ground-truths
 G = numel(Model.N);
@@ -85,9 +86,9 @@ for iF = 1:numel(Model.F_noise)
     
             % multi-way spectra on synthetic network
             tic
-            [bestPartition,maxQPartition] = multiwaySpectCommDet(tempNetwork(iP,iB).W,Results.SpectraSparseWCM.Groups(iP,iF,iB)*2);
+            [bestPartition,maxQPartition] = multiwaySpectCommDet(tempNetwork(iP,iB).W,50); % clusterpars.maxMultiway);
             toc
-            % keyboard
+            keyboard
             ClustResults(iB).nGrpsMultiway(iP,iF) = max(bestPartition);
             [~,ClustResults(iB).normVIMultiwayOwn(iP,iF)] = VIpartitions(bestPartition,Partition(iF).owngroups);
             [~,ClustResults(iB).normVIMultiwayOne(iP,iF)] = VIpartitions(bestPartition,Partition(iF).onegroup);
@@ -98,6 +99,7 @@ for iF = 1:numel(Model.F_noise)
 
             %% clustering on low-D space from rejection: on signal network
             % (1) sparse WCM
+            tic
             Wsignal = tempNetwork(iP,iB).W(tempNetwork(iP,iB).ixFinal_Sparse,tempNetwork(iP,iB).ixFinal_Sparse);        % get final signal matrix
             ExpWsignal = tempNetwork(iP,iB).ExpW(tempNetwork(iP,iB).ixFinal_Sparse,tempNetwork(iP,iB).ixFinal_Sparse);  % extract expected matrix for just final signal
             LoopResults = clusterLowDNetwork(Wsignal,ExpWsignal,Results.SpectraSparseWCM.Groups(iP,iF,iB),Results.SpectraSparseWCM.Groups(iP,iF,iB),clusterpars.nreps,Partition(iF).owngroups(tempNetwork(iP,iB).ixFinal_Sparse));
@@ -106,13 +108,17 @@ for iF = 1:numel(Model.F_noise)
             % also compute one-group VI
             if ~isempty(LoopResults.QmaxCluster)
                 ClustResults(iB).normVIQmaxSparseOne(iP,iF) = VIpartitions(LoopResults.QmaxCluster,Partition(iF).onegroup(tempNetwork(iP,iB).ixFinal_Sparse));
-                ClustResults(iB).normVIConsensusSparseOne(iP,iF) = VIpartitions(LoopResults.ConsCluster,Partition(iF).onegroup(tempNetwork(iP,iB).ixFinal_Sparse));
             else
                 ClustResults(iB).normVIQmaxSparseOne(iP,iF) = 0;
-                ClustResults(iB).normVIConsensusSparseOne(iP,iF) = 0;
-                
             end
-              
+            if ~isempty(LoopResults.ConsCluster)
+                ClustResults(iB).normVIConsensusSparseOne(iP,iF) = VIpartitions(LoopResults.ConsCluster,Partition(iF).onegroup(tempNetwork(iP,iB).ixFinal_Sparse));
+            else
+                ClustResults(iB).normVIConsensusSparseOne(iP,iF) = nan;                
+            end
+            toc
+            
+            tic
             % (2) full WCM
             Wsignal = tempNetwork(iP,iB).W(tempNetwork(iP,iB).ixFinal_Full,tempNetwork(iP,iB).ixFinal_Full);        % get final signal matrix            
             P = expectedA(tempNetwork(iP,iB).W);
@@ -129,7 +135,8 @@ for iF = 1:numel(Model.F_noise)
                 ClustResults(iB).normVIConsensusFullOne(iP,iF) = 0;
                 
             end
-           
+            toc
+            
             ClustResults(iB).Time(iP,iF) = toc;
         end
     end

@@ -40,6 +40,9 @@ end
 switch Model
     case 'sweep'
         [E,~] = nullmodelConsensusSweep(K,T,N);
+%        [E,Var] = nullmodelConsensusSweep(K,T,N);
+%         CI = CIfromSEM(sqrt(Var),zeros(N)+T*numel(K),0.95);
+%         E95 = E + CI;
     case 'expect'
         E = nullmodelConsensusExpectation(C);
     otherwise
@@ -55,7 +58,7 @@ B = C - E;
 V = V(:,ix);                       % ditto the eigenvectors 
 
 ixE = find(egs > egmin);             % eigenvalues that exceed model
-
+% ixE = knee_pt(egs,1:N);            % eigenvalues beyond knee point 
 D = V(:,ixE);                      % embedding dimensions
 M = numel(ixE)+1;                  % number of groups
 

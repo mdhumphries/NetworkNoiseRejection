@@ -12,6 +12,7 @@ fontsize = 6;
 
 clusterpars.nreps = 100;
 clusterpars.nLouvain = 5;
+clusterpars.explore = 'explore';  % allow consensus to use more groups than specified by spectral rejection
 
 % load data
 load(['../Results/Rejected_' fname])
@@ -32,7 +33,7 @@ P = Data.ExpA(Data.ixSignal_Final,Data.ixSignal_Final); % extract relevant part 
 % then cluster
 if Data.Dn > 0
     [Connected.QmaxCluster,Connected.Qmax,Connected.ConsCluster,Connected.ConsQ,ctr] = ...
-                                        ConsensusCommunityDetect(Data.Asignal_final,P,1+Data.Dn,1+Data.Dn,clusterpars.nreps);
+                                        ConsensusCommunityDetect(Data.Asignal_final,P,1+Data.Dn,1+Data.Dn,clusterpars.nreps,[],clusterpars.explore);
 else
     Connected.QmaxCluster = []; Connected.Qmax = 0; Connected.ConsCluster = []; Connected.ConsQ = 0;
 end
@@ -42,7 +43,7 @@ end
 %% cluster - without noise rejection
 if Data.Dn > 0
     [Full.QmaxCluster,Full.Qmax,Full.ConsCluster,Full.ConsQ,~] = ...
-                                                ConsensusCommunityDetect(Data.A,Data.ExpA,1+Data.Dn,1+Data.Dn);
+                                                ConsensusCommunityDetect(Data.A,Data.ExpA,1+Data.Dn,1+Data.Dn,clusterpars.nreps,[],clusterpars.explore);
 else
     Full.QmaxCluster = []; Full.Qmax = 0; Full.ConsCluster = []; Full.ConsQ = 0;
 end

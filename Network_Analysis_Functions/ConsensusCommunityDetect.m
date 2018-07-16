@@ -6,7 +6,7 @@ function [grps,Qmax,grpscon,Qcon,ctr,varargout] = ConsensusCommunityDetect(W,P,L
 %   expected null model P, and minimum L and maximum M number of groups to detect.
 %   
 %   Returns: 
-%       C: column vector indicating group membership for the parition with maximum
+%       C: column vector indicating group membership for the partition with maximum
 %           modularity
 %       Qmax: the corresponding modularity score. 
 %       Ccon: column vector indicating group membership for the consensus
@@ -14,10 +14,12 @@ function [grps,Qmax,grpscon,Qcon,ctr,varargout] = ConsensusCommunityDetect(W,P,L
 %       Qcon: the corresponding is the modularity score for the consensus partition.
 %       N:  the number of iterations until consensus was reached. 
 %   
-%   ...= CONSENSUSCOMMUNITYDETECT(...,N,DIMS) sets k-means to run  N times for each 
-%       specified group size (default is 50); uses either 'all' (default)
-%       or 'scaled' embedding dimensions for each tested K. See KMEANSSWEEP
-%
+%   ...= CONSENSUSCOMMUNITYDETECT(...,N,DIMS,'explore') 
+%           N : sets k-means to run  N times for each specified group size (default is 50)
+%           DIMS : 'all' (default), 'scaled'; the embedding dimensions for each tested K. See KMEANSSWEEP
+%           'explore': if M==L, then set this option to let the consensus
+%               algorithm explore greater numbers of groups
+%   
 %   [...,CLU] = CONSENSUSCOMMUNITYDETECT(...) where CLU is an optional output argument, 
 %   returns every single clustering of the adjacency matrix A in the first
 %   pass (i.e. before the consensus) - this is useful for further
@@ -61,9 +63,15 @@ function [grps,Qmax,grpscon,Qcon,ctr,varargout] = ConsensusCommunityDetect(W,P,L
 %   (4) Arthur, D. & Vassilvitskii, S. (2007) k-means++: the advantages of careful seeding. 
 %   SODA '07: Proceedings of the eighteenth annual ACM-SIAM symposium on Discrete algorithms, Society for Industrial and Applied Mathematics, 1027-1035
 %
-%   Mark Humphries 2/3/2017
+%   2/3/2017 : initial version
+%   16/07/2018: made consensus exploration optional
+%
+%   Mark Humphries 
+
+% defaults
 nreps = 50;     % of each distance metric
 dims = 'all';   % use all embedding dimensions for each k-means clustering
+blnExplore = 0;
 
 %% check if the passed matrix is a graph: catch common errors when passing a similarity matrix
 
@@ -85,6 +93,10 @@ end
 
 if nargin >= 6 && ~isempty(varargin{2}) 
     dims = varargin{2}; 
+end    
+
+if nargin >= 7 && strcmp(varargin{3},'explore') 
+    blnExplore = 1; 
 end    
 
 % % set up saving of each iteration
@@ -154,6 +166,17 @@ while ~blnConverged
             Qcon = 0;
             blnConverged = 1;
         else
+            
+            % if a single size of groups was requested, and not exploring
+            % just use the same number of groups as the original requested
+            % set: find consensus in that space.
+            if L == M && ~blnExplore
+                T = sum(reshape(Allowed,nreps,1+M-L));  % count how many at each K were retained
+                [D,~,~] = EmbedConsensusNull(CCons,'sweep',L:M,T);  % option 'expected' available as well as 'sweep'
+                % do k-means sweep using D, restricted to original M
+                C = kmeansSweep(D(:,1:M),L,M,nreps,dims);  % find groups in embedding dimensions
+            end
+            
 %             % find upper limit of groups - replicate this code when using
 %             null model for consensus
 %             [D,~,Mcons] = EmbedConsensusWishart(CCons);
@@ -161,12 +184,14 @@ while ~blnConverged
 %             C = kmeansSweep(D,L,Mcons,nreps,dims);  % find groups in embedding dimensions
            
             % keyboard
-            T = sum(reshape(Allowed,nreps,1+M-L));  % count how many at each K were retained
-            [D,~,Mcons] = EmbedConsensusNull(CCons,'sweep',L:M,T);  % option 'expected' available as well as 'sweep'
-            M = Mcons;
-             % do k-means sweep using found M
-            C = kmeansSweep(D,L,M,nreps,dims);  % find groups in embedding dimensions
-
+            if L~=M || (L==M && blnExplore)
+                T = sum(reshape(Allowed,nreps,1+M-L));  % count how many at each K were retained
+                [D,~,Mcons] = EmbedConsensusNull(CCons,'sweep',L:M,T);  % option 'expected' available as well as 'sweep'
+                M = Mcons;
+                 % do k-means sweep using found M
+                C = kmeansSweep(D,L,M,nreps,dims);  % find groups in embedding dimensions
+            end
+            
 %             % do Laplacian on consensus matrix, using original M
 %             D = ProjectLaplacian(CCons,M);
 %             keyboard

@@ -35,7 +35,6 @@ run P_Rejection_02_Cluster_NoNoise_synthetic_model
 %% 2. P(between) higher
 Model.P.between = 0.15;   
 Model.P_of_within = [Model.P.between:0.025:0.3];
-Model.P_of_within = [Model.P.between,0.3];
 % 2.a reject
 run P_Rejection_01_NoNoise_synthetic_model
 
@@ -46,7 +45,6 @@ run P_Rejection_02_Cluster_NoNoise_synthetic_model
 Model.N = [200,100,75,25];  % size of modules
 Model.P.between = 0.05;   
 Model.P_of_within = [Model.P.between:0.025:0.2];
-Model.P_of_within = [Model.P.between,0.2];
 
 % rejection
 run P_Rejection_01_NoNoise_synthetic_model
@@ -55,14 +53,12 @@ run P_Rejection_01_NoNoise_synthetic_model
 run P_Rejection_02_Cluster_NoNoise_synthetic_model
 
 %% 4. adding noise nodes to equal sized groups
-nModels = 2;
-
+nModels = 50;
 
 Model.P.in = 0.2;   % IMPORTANT: chose this carefully...
 Model.P.between = 0.05;
 Model.N = [100,100,100,100];  % size of modules
 Model.F_noise = [0.25 0.5 1];
-Model.F_noise = [0.25,1];
 % note: Model.P_of_noise is determined in the script, given all other
 % properties....
 run P_Rejection_01_Noise_synthetic_model.m

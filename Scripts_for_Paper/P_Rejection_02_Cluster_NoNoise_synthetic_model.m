@@ -23,6 +23,7 @@ load([fpath fname])
 %% clustering parameters
 clusterpars.nreps = 50;
 clusterpars.nLouvain = 1;
+clusterpars.maxMultiway = 20;
 
 %% loop: make models and do rejection etc
 n = sum(Model.N);
@@ -49,7 +50,7 @@ parfor iB = 1:nBatch
         ClustResults(iB).nGrpsLouvain(iP) = max(LouvCluster{1}{1});
 
         % multi-way spectra on synthetic network
-        [bestPartition,maxQPartition] = multiwaySpectCommDet(Network(iP,iB).W,Results.SpectraSparseWCM.Groups(iP,iF,iB)*2);
+        [bestPartition,maxQPartition] = multiwaySpectCommDet(Network(iP,iB).W,clusterpars.maxMultiway);
         [~,ClustResults(iB).normVIMultiway(iP)] = VIpartitions(bestPartition,group_membership);
         ClustResults(iB).nGrpsMultiway(iP) = max(bestPartition);
         [~,ClustResults(iB).normVIMultiwayQ(iP)] = VIpartitions(maxQPartition,group_membership);

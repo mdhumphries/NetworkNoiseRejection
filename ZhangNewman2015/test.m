@@ -21,9 +21,9 @@ A_adjMat = A_adjMat(:, largestComp);
 A_adjMat = A_adjMat(largestComp, :);
 
 % number of trials
-noTrials = 50;
+noTrials = 30;
 
-nGroups = 10;
+nGroups = 20;
 
 for count = 1:noTrials
     if exist('g_iGroupsVerts', 'var') == 1
