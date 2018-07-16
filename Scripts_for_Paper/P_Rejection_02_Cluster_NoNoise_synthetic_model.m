@@ -28,10 +28,11 @@ clusterpars.nLouvain = 1;
 n = sum(Model.N);
 nBatch = size(Results.Time,2);
 
-ResultsFields = {'normVIQmaxSpectra','normVIConsensusSpectra','normVILouvain','normVIMultiway','Time',...
-                    'nGrpsLouvain','nGrpsMultiway','nGrpsQmaxSpectra','nGrpsConsensusSpectra'};
+ResultsFields = {'normVIQmaxFull','normVIConsensusFull','normVIQmaxSparse','normVIConsensusSparse','normVILouvain','normVIMultiway','Time',...
+                    'nGrpsLouvain','nGrpsMultiway','nGrpsQmaxFull','nGrpsConsensusFull','nGrpsQmaxSparse','nGrpsConsensusSparse'};
 fieldsize = [nBatch,1]; % parfor cannot handle matrices of structs...
 ClustResults = emptyStruct(ResultsFields,fieldsize);
+LoopResults = emptyStruct(ResultsFields,fieldsize);
 
 blnP = autoParallel;  % set-up parallel processing with scaled number of cores.
 
@@ -51,34 +52,20 @@ parfor iB = 1:nBatch
         [bestPartition] = multiwaySpectCommDet(Network(iP,iB).W);
         [~,ClustResults(iB).normVIMultiway(iP)] = VIpartitions(bestPartition,group_membership);
         ClustResults(iB).nGrpsMultiway(iP) = max(bestPartition);
-
-         %% specified clustering on synthetic network
-        if Results.SpectraWCMGroups(iP,iB) > 1
-            [QmaxCluster,Qmax,ConsCluster,ConsQ,~] = ...
-                                                        ConsensusCommunityDetect(Network(iP,iB).W,Network(iP,iB).ExpW,Results.SpectraWCMGroups(iP,iB),Results.SpectraWCMGroups(iP,iB),clusterpars.nreps);
-            % quality of estimation of retained communities
-            if ~isempty(QmaxCluster)
-                [~,ClustResults(iB).normVIQmaxSpectra(iP)]=VIpartitions(QmaxCluster,group_membership);
-                ClustResults(iB).nGrpsQmaxSpectra(iP) = max(QmaxCluster);
-            else
-                ClustResults(iB).normVIQmaxSpectra(iP)= 0;
-                ClustResults(iB).nGrpsQmaxSpectra(iP) = nan;                
-            end
             
-            if ~isempty(ConsCluster)
-                [~,ClustResults(iB).normVIConsensusSpectra(iP)]=VIpartitions(ConsCluster,group_membership);
-                ClustResults(iB).nGrpsConsensusSpectra(iP) = max(ConsCluster);
-            else
-                ClustResults(iB).normVIConsensusSpectra(iP)= 0;
-                ClustResults(iB).nGrpsConsensusSpectra(iP) = nan;                
-            end
-        else
-            QmaxCluster = []; Qmax = 0; ConsCluster = []; ConsQ = 0;
-            ClustResults(iB).normVIQmaxSpectra(iP)=0;
-            ClustResults(iB).normVIConsensusSpectra(iP)=0;
-            ClustResults(iB).nGrpsQmaxSpectra(iP) = 0;
-            ClustResults(iB).nGrpsConsensusSpectra(iP) = 0;
-        end
+        %% specified clustering on synthetic network
+        % (1) sparse WCM
+        LoopResults = clusterLowDNetwork(Network(iP,iB).W,Network(iP,iB).ExpW,Results.SpectraSparseWCM.Groups(iP,iB),Results.SpectraSparseWCM.Groups(iP,iB),clusterpars.nreps,group_membership);
+        [Clust(iB).normVIQmaxFull(iP),Clust(iB).normVIConsensusFull(iP),Clust(iB).nGrpsQmaxFull(iP),Clust(iB).nGrpsConsensusFull(iP)] ...
+            = deal(LoopResults.normVIQmaxSpectra,LoopResults.normVIConsensusSpectra,LoopResults.nGrpsQmaxSpectra,LoopResults.nGrpsConsensusSpectra);
+
+        % (2) full WCM
+        P = expectedA(Network(iP,iB).W);  % construct P on the fly, as is quick...
+        LoopResults = clusterLowDNetwork(Network(iP,iB).W,P,Results.SpectraFullWCM.Groups(iP,iB),Results.SpectraFullWCM.Groups(iP,iB),clusterpars.nreps,group_membership);
+        [Clust(iB).normVIQmaxFull(iP),Clust(iB).normVIConsensusFull(iP),Clust(iB).nGrpsQmaxFull(iP),Clust(iB).nGrpsConsensusFull(iP)] ...
+            = deal(LoopResults.normVIQmaxSpectra,LoopResults.normVIConsensusSpectra,LoopResults.nGrpsQmaxSpectra,LoopResults.nGrpsConsensusSpectra);
+
+            
         ClustResults(iB).Time(iP) = toc;
     end
 end

@@ -2,7 +2,7 @@ function [Control,varargout] = rejectFullWCM(A,pars,varargin)
 
 % REJECTFULLWCM do spectral rejection on original configuration model
 % C = REJECTFULLWCM(W,PARS) does spectral rejection on the undirected,
-% weighted network W using the original configuration model as the null
+% weighted network W using the original weighted configuration model as the null
 % model. Struct PARS has fields:
 %       .N :    repeats of permutation
 %       .I : confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
