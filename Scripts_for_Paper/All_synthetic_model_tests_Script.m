@@ -15,12 +15,11 @@
 % Mark Humphries 
 clearvars
 
-nModels = 2;
+nModels = 100;
 
 %% 1. P(between) baseline model
 Model.P.between = 0.05;   
 Model.P_of_within = [Model.P.between:0.025:0.2];
-Model.P_of_within = [Model.P.between,0.2];
 
 Model.N = [100,100,100,100];  % size of modules
 Model.Spar.a = 200;                    % scale: in addition to existing edges
@@ -63,7 +62,6 @@ Model.F_noise = [0.25 0.5 1];
 % properties....
 run P_Rejection_01_Noise_synthetic_model.m
 
-fname = 'P_rejection_SyntheticEqual_Noise_20180716T123952';
 % cluster results: fname is in workspace
 run P_Rejection_02_Cluster_Noise_synthetic_model.m
 
