@@ -17,7 +17,7 @@ function [D,B,M,varargout] = EmbedConsensusNull(C,Model,varargin)
 %   D: the n*d array of n-length vectors corresponding to the d embedding
 %   dimensions (i.e. the top d eigenvectors)
 %   B: the n*n modularity matrix
-%   M: the estimated number of groups in C
+%   M: the estimated number of groups in C (= d+1)
 %
 % Notes:
 %   (1) 'sweep' uses NULLMODELCONSENSUSSWEEP

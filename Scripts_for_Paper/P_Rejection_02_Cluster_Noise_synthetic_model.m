@@ -99,7 +99,7 @@ for iF = 1:numel(Model.F_noise)
 
             %% clustering on low-D space from rejection: on signal network
             % (1) sparse WCM
-            tic
+           
             Wsignal = tempNetwork(iP,iB).W(tempNetwork(iP,iB).ixFinal_Sparse,tempNetwork(iP,iB).ixFinal_Sparse);        % get final signal matrix
             ExpWsignal = tempNetwork(iP,iB).ExpW(tempNetwork(iP,iB).ixFinal_Sparse,tempNetwork(iP,iB).ixFinal_Sparse);  % extract expected matrix for just final signal
             LoopResults = clusterLowDNetwork(Wsignal,ExpWsignal,Results.SpectraSparseWCM.Groups(iP,iF,iB),Results.SpectraSparseWCM.Groups(iP,iF,iB),clusterpars.nreps,Partition(iF).owngroups(tempNetwork(iP,iB).ixFinal_Sparse));
@@ -116,9 +116,9 @@ for iF = 1:numel(Model.F_noise)
             else
                 ClustResults(iB).normVIConsensusSparseOne(iP,iF) = nan;                
             end
-            toc
             
-            tic
+            
+           
             % (2) full WCM
             Wsignal = tempNetwork(iP,iB).W(tempNetwork(iP,iB).ixFinal_Full,tempNetwork(iP,iB).ixFinal_Full);        % get final signal matrix            
             P = expectedA(tempNetwork(iP,iB).W);
@@ -135,7 +135,7 @@ for iF = 1:numel(Model.F_noise)
                 ClustResults(iB).normVIConsensusFullOne(iP,iF) = 0;
                 
             end
-            toc
+            
             
             ClustResults(iB).Time(iP,iF) = toc;
         end

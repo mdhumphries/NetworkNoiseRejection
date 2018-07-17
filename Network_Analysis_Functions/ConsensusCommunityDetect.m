@@ -20,7 +20,10 @@ function [grps,Qmax,grpscon,Qcon,ctr,varargout] = ConsensusCommunityDetect(W,P,L
 %           'explore': if M==L, then set this option to let the consensus
 %               algorithm explore greater numbers of groups
 %   
-%   [...,CLU] = CONSENSUSCOMMUNITYDETECT(...) where CLU is an optional output argument, 
+%   [...,bCON,CLU] = CONSENSUSCOMMUNITYDETECT(...) where:
+%   bCON : a Boolean flag indicating whether the consensus algorithm
+%   converged or not
+%   CLU is an optional output argument, 
 %   returns every single clustering of the adjacency matrix A in the first
 %   pass (i.e. before the consensus) - this is useful for further
 %   post-processsing.
@@ -65,7 +68,7 @@ function [grps,Qmax,grpscon,Qcon,ctr,varargout] = ConsensusCommunityDetect(W,P,L
 %
 %   2/3/2017 : initial version
 %   16/07/2018: made consensus exploration optional
-%
+%   17/07/2018: fixed bugs in forced consensus
 %   Mark Humphries 
 
 % defaults
@@ -120,14 +123,15 @@ B = W - P;          % initial modularity matrix, given data matrix W and specifi
 [~,ix] = sort(egs,'descend');    % sort into descending order
 V = V(:,ix);                       % ditto the eigenvectors 
 
-% C = kmeansSweep(V(:,1:M-1),L,M,nreps,dims);  % find groups in embedding dimensions: sweep from L to M
-C = kmeansSweep(V(:,1:M),L,M,nreps,dims);  % find groups in embedding dimensions: sweep from L to M
+C = kmeansSweep(V(:,1:M-1),L,M,nreps,dims);  % find groups in embedding dimensions: sweep from L to M
+% C = kmeansSweep(V(:,1:M),L,M,nreps,dims);  % find groups in embedding dimensions: sweep from L to M
 
 for iQ = 1:size(C,2)
     Q(iQ) = computeQ(C(:,iQ),B,m); % compute modularity Q for each clustering
 end
 
 %% check for exit or store Qmax results
+varargout{1} = blnConverged;
 if isempty(C) || all(Q(:) <= 0)
     % then no groups detected; return empty
     grps = zeros(nIDs,1);
@@ -135,14 +139,14 @@ if isempty(C) || all(Q(:) <= 0)
     grpscon = zeros(nIDs,1);
     Qcon = 0;
     ctr = 0; 
-    varargout{1} = C;
-    blnConverged = 1;  % no answer
+    varargout{2} = C;
+    blnConverged = 0;  % no answer
     return
 else
     Qmax = max(Q);
     ix = find(Qmax == Q);
     grps = C(:,ix(1));  
-    varargout{1} = C;
+    varargout{2} = C;
 end
 %% loop: consensus matrix and its clustering until converged
 
@@ -164,7 +168,7 @@ while ~blnConverged
             warning('Did not converge in 50 iterations - exiting without consensus answer')
             grpscon = [];
             Qcon = 0;
-            blnConverged = 1;
+            blnConverged = 0;
         else
             
             % if a single size of groups was requested, and not exploring
@@ -173,9 +177,12 @@ while ~blnConverged
             if L == M && ~blnExplore
                 T = sum(reshape(Allowed,nreps,1+M-L));  % count how many at each K were retained
                 [D,~,Mcons] = EmbedConsensusNull(CCons,'sweep',L:M,T);  % option 'expected' available as well as 'sweep'
-                % do k-means sweep using D, restricted to original M
+                % do k-means sweep using D, restricted to original M groups
+                % (thus M-1 dimensions)
                 if Mcons >= M
-                    C = kmeansSweep(D(:,1:M),L,M,nreps,dims);  % find groups in embedding dimensions
+                    C = kmeansSweep(D(:,1:M-1),L,M,nreps,dims);  % find groups in embedding dimensions
+                elseif isempty(D)
+                    C = [];
                 else
                     % use all of D if less than M returned
                     C = kmeansSweep(D,L,M,nreps,dims);  % find groups in embedding dimensions 
@@ -201,18 +208,27 @@ while ~blnConverged
 %             D = ProjectLaplacian(CCons,M);
 %             keyboard
 %             C = kmeansSweep(D,M,M,nreps,dims);  % find groups in embedding dimensions
+
+            if isempty(C)
+                warning('Consensus matrix projection is empty - exiting without consensus answer')
+                grpscon = [];
+                Qcon = 0;
+                blnConverged = 0;               
+                return
+            else
              
-            % compute Q
-            Q = zeros(size(C,2),1);
-            for iQ = 1:size(C,2)
-                Q(iQ) = computeQ(C(:,iQ),B,m); % compute modularity Q for each clustering using original modularity matrix
+                % compute Q
+                Q = zeros(size(C,2),1);
+                for iQ = 1:size(C,2)
+                    Q(iQ) = computeQ(C(:,iQ),B,m); % compute modularity Q for each clustering using original modularity matrix
+                end
             end
         end
     end
 end
 
-
-
+% overwrite convergence flag if successful
+varargout{1} = blnConverged;
     
      
 

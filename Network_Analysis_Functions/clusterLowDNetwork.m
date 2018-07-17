@@ -1,9 +1,9 @@
-function Results = clusterLowDNetwork(W,P,N,M,nreps,group_membership)
+function Results = clusterLowDNetwork(W,P,L,M,nreps,group_membership)
 
 % CLUSTERLOWDNETWORK clusters low-dimensional projection of network
 % R = CLUSTERLOWDNETWORK(W,P,N,M,nreps,G) clusters the (n*n) network W using
-% its projection into a low-dimensonal space, between N and M dimensions
-% (often N==M). Also needs:
+% its projection into a low-dimensonal space, to detect 
+% between L and M groups (often L==M). Also needs:
 %       P : expected null model used to define the low-D space
 %       nreps : number of repeats of k-means at each number of dimensions
 %       G : ground-truth clustering as an n-length array
@@ -12,9 +12,9 @@ function Results = clusterLowDNetwork(W,P,N,M,nreps,group_membership)
 % Mark Humphries 
  
 
- if N > 1     % if dimensions exist to cluster in...
+ if L > 1     % if dimensions exist to cluster in...
     [Results.QmaxCluster,Qmax,Results.ConsCluster,ConsQ,~] = ...
-              ConsensusCommunityDetect(W,P,N,M,nreps);
+              ConsensusCommunityDetect(W,P,L,M,nreps);
     % quality of estimation of retained communities
     if ~isempty(Results.QmaxCluster)
         [~,Results.normVIQmaxSpectra]=VIpartitions(Results.QmaxCluster,group_membership);
