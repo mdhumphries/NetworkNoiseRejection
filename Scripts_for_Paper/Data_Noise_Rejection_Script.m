@@ -59,7 +59,11 @@ elseif strfind(fname,'CosyneYear')
 elseif exist('Problem')
     A = full(Problem.A);
     % Generate node labels for later visualisation to work
-    nodelabels = Problem.aux.nodename;
+    if isfield(Problem,'aux')
+        nodelabels = Problem.aux.nodename;
+    else
+        nodelabels = string(1:size(A,1))';
+    end
 end
 
 % make undirected if necessary

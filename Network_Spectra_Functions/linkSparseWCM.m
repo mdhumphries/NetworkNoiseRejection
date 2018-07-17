@@ -228,9 +228,9 @@ if Options.Expected
 end
 
 % now collapse all eigenvalues and vectors into matrix
-V = zeros(n,n,N);
+V = zeros(n,n,N,'single');
 E = zeros(n,N);
-if blnAll A = zeros(n,n,N); end
+if blnAll A = zeros(n,n,N,'single'); end
 
 for iN = 1:N
     E(:,iN) = Pstar(iN).Egs;
