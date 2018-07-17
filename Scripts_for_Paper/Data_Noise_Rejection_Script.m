@@ -6,14 +6,14 @@
 % 16/07/2018: fix all null model functions
 % Mark Humphries 
 
-clear all; close all
+% clear all; close all
 
 addpath('../Network_Spectra_Functions/')
 addpath('../Network_Analysis_Functions/')
 
 % network to analyse
 % fname = 'Allen_Gene_Leaf'; 
-fname = 'LesMis'; 
+% fname = 'LesMis'; 
 % fname = 'StarWarsNetworkEp1'; 
 
 

@@ -41,8 +41,9 @@ for ngrps = LowerK:UpperK
     end
     
     for rep = 1:Treps
+
         cpos = kmeansplus(thisVector, ngrps); % initialise centers (chooses starting position at random)
-        % keyboard
+
         try            
             allgrps(:,ixNow) = kmeans(thisVector,ngrps,'Distance','sqeuclidean','Start',cpos);
 
