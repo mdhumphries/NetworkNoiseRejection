@@ -36,7 +36,7 @@ load(['../Results/Rejected_' fname])
 % [~,~,Signal.Dn,~] = LowDSpace(P,Signal.Emodel,pars.alpha); % to just obtain low-dimensional projection
 
 % then cluster: Sparse WCM
-if Data.Dn > 0 && numel(Data.ixSignal_Final > 3)
+if Data.Dn > 0 && numel(Data.ixSignal_Final) > 3
     % construct new null model
     P = Data.ExpA(Data.ixSignal_Final,Data.ixSignal_Final); % extract relevant part of null model
    
@@ -52,7 +52,7 @@ else
 end
 
 % full WCM
-if Control.Dn > 0 && numel(Control.ixSignal_Final > 3)
+if Control.Dn > 0 && numel(Control.ixSignal_Final) > 3
     P = Control.P(Control.ixSignal_Final,Control.ixSignal_Final); % extract relevant part of null model
 
     [Connected.QmaxClusterFullWCM,Connected.QmaxFullWCM,Connected.ConsClusterFullWCM,Connected.ConsQFullWCM,ctr] = ...

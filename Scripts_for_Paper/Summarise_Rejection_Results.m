@@ -13,12 +13,31 @@ for iF = 1:nF
         result(netCtr).NetworkName = fnames(iF).name(10:end-4); % strip out 'Rejected' and .mat
         load(['../Results/' fnames(iF).name]);
         result(netCtr).Network_Size = numel(Data.ixRetain); 
-        result(netCtr).Signal_Size_WCM = numel(Data.ixSignal_Final);        
-        result(netCtr).WCM_Dn = Data.PosDn;
-        result(netCtr).WCM_RejectionDn = Data.Dn;
-        result(netCtr).Config_Dn = Control.PosDn;
-        result(netCtr).Config_RejectionDn = Control.Dn;
-        result(netCtr).Signal_Components = numel(Data.SignalComp_sizes);
+        % network density
+        % keyboard
+        result(netCtr).Network_Density = sum(sum(Data.A>0)) / (result(netCtr).Network_Size.^2 - result(netCtr).Network_Size);  % undirected, no self-loops 
+        % network type
+        if all(Data.A(Data.A>0) == 1)
+            result(netCtr).LinkType = 'binary';
+        elseif ~any(rem(Data.A(:),1))  % then is integers for all weights
+            result(netCtr).LinkType = 'integer';
+        else
+            result(netCtr).LinkType = 'real';
+        end
+        % results of rejection
+        result(netCtr).Signal_Size_Sparse = numel(Data.ixSignal_Final);   
+        result(netCtr).Signal_Size_Full = numel(Control.ixSignal_Final); 
+        result(netCtr).SparseWCM_Dn = Data.Dn;
+        result(netCtr).FullWCM_Dn = Control.Dn;
+        result(netCtr).SparseWCM_PosDn = Data.PosDn;
+        result(netCtr).FullWCM_PosDn = Control.PosDn;
+        result(netCtr).Signal_Components_Sparse = numel(Data.SignalComp_sizes);
+        % result(netCtr).Signal_Components_Full = numel(Control.SignalComp_sizes);
+        
+        % negative eigenvalues
+        result(netCtr).SparseWCM_NegDn = Data.Dneg;
+        result(netCtr).FullWCM_NegDn = Control.Dneg;
+        
     end
 end
 

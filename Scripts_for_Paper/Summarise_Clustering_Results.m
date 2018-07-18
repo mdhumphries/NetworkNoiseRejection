@@ -12,7 +12,8 @@ for iF = 1:nF
         netCtr = netCtr + 1;
         result(netCtr).NetworkName = fnames(iF).name(11:end-4); % strip out 'Clustered' and .mat
         load(['../Results/' fnames(iF).name]);
-        % keyboard
+        
+        keyboard
         result(netCtr).Signal_Consensus_Grps = numel(unique(Connected.ConsCluster)); 
         n = cellfun(@(x) numel(unique(x{1})),Connected.LouvCluster);    % number of groups in each Louvain clustering
         result(netCtr).Signal_Louvain_MeanGrps = mean(n); 
