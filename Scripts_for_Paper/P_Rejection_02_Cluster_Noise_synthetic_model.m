@@ -71,8 +71,8 @@ for iF = 1:numel(Model.F_noise)
     % machine from seizing up
     tempNetwork = squeeze(Network(:,iF,:));
        
-    % parfor iB = 1:nBatch
-    for iB = 1:nBatch
+    parfor iB = 1:nBatch
+    % for iB = 1:nBatch
     
         for iP = 1:numel(Model.P_of_noise)
             disp(['P: ' num2str(iP) '/' num2str(numel(Model.P_of_noise)) '; F:' num2str(iF) '/' num2str(numel(Model.F_noise)) '; batch: ' num2str(iB)])
@@ -85,10 +85,7 @@ for iF = 1:numel(Model.F_noise)
             [~,ClustResults(iB).normVILouvainOne(iP,iF)] = VIpartitions(LouvCluster{1}{1},Partition(iF).onegroup);
     
             % multi-way spectra on synthetic network
-            tic
-            [bestPartition,maxQPartition] = multiwaySpectCommDet(tempNetwork(iP,iB).W,50); % clusterpars.maxMultiway);
-            toc
-            keyboard
+            [bestPartition,maxQPartition] = multiwaySpectCommDet(tempNetwork(iP,iB).W,clusterpars.maxMultiway);
             ClustResults(iB).nGrpsMultiway(iP,iF) = max(bestPartition);
             [~,ClustResults(iB).normVIMultiwayOwn(iP,iF)] = VIpartitions(bestPartition,Partition(iF).owngroups);
             [~,ClustResults(iB).normVIMultiwayOne(iP,iF)] = VIpartitions(bestPartition,Partition(iF).onegroup);
