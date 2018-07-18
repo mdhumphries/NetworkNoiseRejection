@@ -12,3 +12,7 @@ run P_Rejection_02_Cluster_NoNoise_synthetic_model
 % Unequal groups
 fname = 'P_rejection_SyntheticUnequal_NoNoise_20180717T194810';
 run P_Rejection_02_Cluster_NoNoise_synthetic_model
+
+% noise
+fname = 'P_rejection_SyntheticEqual_Noise_20180718T043153';
+run P_Rejection_02_Cluster_Noise_synthetic_model

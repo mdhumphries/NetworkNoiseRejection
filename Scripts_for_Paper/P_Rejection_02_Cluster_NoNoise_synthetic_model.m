@@ -37,8 +37,8 @@ LoopResults = emptyStruct(ResultsFields,fieldsize);
 
 blnP = autoParallel;  % set-up parallel processing with scaled number of cores.
 
-% parfor iB = 1:nBatch
-for iB = 1:nBatch
+parfor iB = 1:nBatch
+% for iB = 1:nBatch
     
     for iP = 1:numel(Model.P_of_within)
         disp(['P: ' num2str(iP) '/' num2str(numel(Model.P_of_within)) '; batch: ' num2str(iB)])
