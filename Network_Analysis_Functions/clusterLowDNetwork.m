@@ -32,9 +32,10 @@ function Results = clusterLowDNetwork(W,P,L,M,nreps,group_membership)
         Results.nGrpsConsensusSpectra = nan;                
     end
  else
+    % no modules detected: just one group!
     Results.QmaxCluster = []; Results.ConsCluster = [];
     Results.normVIQmaxSpectra=0;
     Results.normVIConsensusSpectra=0;
-    Results.nGrpsQmaxSpectra = 0;
-    Results.nGrpsConsensusSpectra = 0;
+    Results.nGrpsQmaxSpectra = 1;
+    Results.nGrpsConsensusSpectra = 1;
 end

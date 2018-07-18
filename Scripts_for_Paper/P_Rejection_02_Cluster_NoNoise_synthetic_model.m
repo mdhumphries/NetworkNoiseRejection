@@ -15,7 +15,7 @@ addpath('../Helper_Functions/')
 
 %% load networks from rejection script
 % comment out filename to run batch script
-% fname = 'P_rejection_SyntheticEqual_NoNoise_20180702T124726';  % full set of 100 networks per P(within) level
+% fname = 'P_rejection_SyntheticEqual_NoNoise_20180717T123206';  % full set of 100 networks per P(within) level
 fpath = 'C:/Users/lpzmdh/Dropbox/Analyses/Networks/SyntheticModel_Rejection_Results/';
 
 load([fpath fname])
@@ -37,8 +37,8 @@ LoopResults = emptyStruct(ResultsFields,fieldsize);
 
 blnP = autoParallel;  % set-up parallel processing with scaled number of cores.
 
-parfor iB = 1:nBatch
-% for iB = 1:nBatch
+% parfor iB = 1:nBatch
+for iB = 1:nBatch
     
     for iP = 1:numel(Model.P_of_within)
         disp(['P: ' num2str(iP) '/' num2str(numel(Model.P_of_within)) '; batch: ' num2str(iB)])
@@ -59,13 +59,14 @@ parfor iB = 1:nBatch
         %% specified clustering on synthetic network
         % (1) sparse WCM
         LoopResults = clusterLowDNetwork(Network(iP,iB).W,Network(iP,iB).ExpW,Results.SpectraSparseWCM.Groups(iP,iB),Results.SpectraSparseWCM.Groups(iP,iB),clusterpars.nreps,group_membership);
-        [Clust(iB).normVIQmaxFull(iP),Clust(iB).normVIConsensusFull(iP),Clust(iB).nGrpsQmaxFull(iP),Clust(iB).nGrpsConsensusFull(iP)] ...
+
+        [ClustResults(iB).normVIQmaxFull(iP),ClustResults(iB).normVIConsensusFull(iP),ClustResults(iB).nGrpsQmaxFull(iP),ClustResults(iB).nGrpsConsensusFull(iP)] ...
             = deal(LoopResults.normVIQmaxSpectra,LoopResults.normVIConsensusSpectra,LoopResults.nGrpsQmaxSpectra,LoopResults.nGrpsConsensusSpectra);
 
         % (2) full WCM
         P = expectedA(Network(iP,iB).W);  % construct P on the fly, as is quick...
         LoopResults = clusterLowDNetwork(Network(iP,iB).W,P,Results.SpectraFullWCM.Groups(iP,iB),Results.SpectraFullWCM.Groups(iP,iB),clusterpars.nreps,group_membership);
-        [Clust(iB).normVIQmaxFull(iP),Clust(iB).normVIConsensusFull(iP),Clust(iB).nGrpsQmaxFull(iP),Clust(iB).nGrpsConsensusFull(iP)] ...
+        [ClustResults(iB).normVIQmaxFull(iP),ClustResults(iB).normVIConsensusFull(iP),ClustResults(iB).nGrpsQmaxFull(iP),ClustResults(iB).nGrpsConsensusFull(iP)] ...
             = deal(LoopResults.normVIQmaxSpectra,LoopResults.normVIConsensusSpectra,LoopResults.nGrpsQmaxSpectra,LoopResults.nGrpsConsensusSpectra);
 
             
