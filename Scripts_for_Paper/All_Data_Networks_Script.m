@@ -17,9 +17,9 @@ end
 for iN = 1:nNet
     fname = networks{iN}
     
-%     % run rejection
-%     clearvars -except fname networks iN nNet
-%     run Data_Noise_Rejection_Script.m
+    % run rejection
+    clearvars -except fname networks iN nNet
+    run Data_Noise_Rejection_Script.m
     
     clearvars -except fname networks iN nNet
     % run clustering
