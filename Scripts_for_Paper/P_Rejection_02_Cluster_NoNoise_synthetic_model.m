@@ -60,7 +60,7 @@ parfor iB = 1:nBatch
         % (1) sparse WCM
         LoopResults = clusterLowDNetwork(Network(iP,iB).W,Network(iP,iB).ExpW,Results.SpectraSparseWCM.Groups(iP,iB),Results.SpectraSparseWCM.Groups(iP,iB),clusterpars.nreps,group_membership);
         
-        [ClustResults(iB).normVIQmaxSpectra(iP),ClustResults(iB).normVIConsensusSpectra(iP),ClustResults(iB).nGrpsQmaxSpectra(iP),ClustResults(iB).nGrpsConsensusSpectra(iP)] ...
+        [ClustResults(iB).normVIQmaxSparse(iP),ClustResults(iB).normVIConsensusSparse(iP),ClustResults(iB).nGrpsQmaxSparse(iP),ClustResults(iB).nGrpsConsensusSparse(iP)] ...
             = deal(LoopResults.normVIQmaxSpectra,LoopResults.normVIConsensusSpectra,LoopResults.nGrpsQmaxSpectra,LoopResults.nGrpsConsensusSpectra);
         
         % (2) full WCM
