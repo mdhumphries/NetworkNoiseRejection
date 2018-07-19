@@ -8,11 +8,18 @@ function Results = clusterLowDNetwork(W,P,L,M,nreps,group_membership)
 %       nreps : number of repeats of k-means at each number of dimensions
 %       G : ground-truth clustering as an n-length array
 % 
+%  Note: will return groups = 1 and VI = 0 if either:
+%       L = 1    % there is nothing to cluster: 1 group requested
+%       n < M+1  % network is too small to cluster
+%
 % 9/7/2018 : initial version
+% 19/07/2018: min network size
+%
 % Mark Humphries 
  
+n = size(W,1);  % size of network
 
- if L > 1     % if dimensions exist to cluster in...
+ if L > 1 && n > M+1      % if dimensions exist to cluster in, and enough nodes exist to make clusters...
     [Results.QmaxCluster,Qmax,Results.ConsCluster,ConsQ,~] = ...
               ConsensusCommunityDetect(W,P,L,M,nreps);
     % quality of estimation of retained communities

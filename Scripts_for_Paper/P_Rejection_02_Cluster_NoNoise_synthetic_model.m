@@ -59,10 +59,10 @@ parfor iB = 1:nBatch
         %% specified clustering on synthetic network
         % (1) sparse WCM
         LoopResults = clusterLowDNetwork(Network(iP,iB).W,Network(iP,iB).ExpW,Results.SpectraSparseWCM.Groups(iP,iB),Results.SpectraSparseWCM.Groups(iP,iB),clusterpars.nreps,group_membership);
-
-        [ClustResults(iB).normVIQmaxFull(iP),ClustResults(iB).normVIConsensusFull(iP),ClustResults(iB).nGrpsQmaxFull(iP),ClustResults(iB).nGrpsConsensusFull(iP)] ...
+        
+        [ClustResults(iB).normVIQmaxSpectra(iP),ClustResults(iB).normVIConsensusSpectra(iP),ClustResults(iB).nGrpsQmaxSpectra(iP),ClustResults(iB).nGrpsConsensusSpectra(iP)] ...
             = deal(LoopResults.normVIQmaxSpectra,LoopResults.normVIConsensusSpectra,LoopResults.nGrpsQmaxSpectra,LoopResults.nGrpsConsensusSpectra);
-
+        
         % (2) full WCM
         P = expectedA(Network(iP,iB).W);  % construct P on the fly, as is quick...
         LoopResults = clusterLowDNetwork(Network(iP,iB).W,P,Results.SpectraFullWCM.Groups(iP,iB),Results.SpectraFullWCM.Groups(iP,iB),clusterpars.nreps,group_membership);

@@ -69,8 +69,18 @@ blnP = autoParallel;  % set-up parallel processing with scaled number of cores.
 for iF = 1:numel(Model.F_noise)
     % make a temporary variable for broadcast to workers, to prevent
     % machine from seizing up
-    tempNetwork = squeeze(Network(:,iF,:));
-       
+    % tempNetwork = squeeze(Network(:,iF,:));
+    tempNetwork(1:numel(Model.P_of_noise),1:nBatch) = struct('W',[],'ExpW',[],'ixFinal_Sparse',[],'ixFinal_Full',[]);
+    % make loop to recast as single
+    for iB  = 1:nBatch
+        for iP = 1:numel(Model.P_of_noise)
+             tempNetwork(iP,iB).W = single(Network(iP,iF,iB).W);
+             tempNetwork(iP,iB).ExpW = single(Network(iP,iF,iB).ExpW);
+             tempNetwork(iP,iB).ixFinal_Sparse = Network(iP,iF,iB).ixFinal_Sparse;
+             tempNetwork(iP,iB).ixFinal_Full = Network(iP,iF,iB).ixFinal_Full;
+        end
+    end
+    
     parfor iB = 1:nBatch
     % for iB = 1:nBatch
     
