@@ -17,7 +17,7 @@ addpath('../Helper_Functions/')
 
 %% load networks from rejection script
 % comment out filename to run batch script
-% fname = 'P_rejection_SyntheticEqual_Noise_20180611T132723';  % full set of 100 networks per P(within) level
+fname = 'P_rejection_SyntheticEqual_Noise_20180718T043153';  % full set of 100 networks per P(within) level
 fpath = 'C:/Users/lpzmdh/Dropbox/Analyses/Networks/SyntheticModel_Rejection_Results/';
 
 load([fpath fname])
@@ -90,12 +90,15 @@ for iF = 1:numel(Model.F_noise)
             tic 
             % Louvain on synthetic network
             [LouvCluster,LouvQ,allCn,allIters] = LouvainCommunityUDnondeterm(tempNetwork(iP,iB).W,1,1);  % return 1st level of hierarchy only
+            ClustResults(iB).LouvPartition{iP,iF} = LouvCluster{1}{1};
             ClustResults(iB).nGrpsLouvain(iP,iF) = max(LouvCluster{1}{1});
             [~,ClustResults(iB).normVILouvainOwn(iP,iF)] = VIpartitions(LouvCluster{1}{1},Partition(iF).owngroups);
             [~,ClustResults(iB).normVILouvainOne(iP,iF)] = VIpartitions(LouvCluster{1}{1},Partition(iF).onegroup);
     
             % multi-way spectra on synthetic network
             [bestPartition,maxQPartition] = multiwaySpectCommDet(tempNetwork(iP,iB).W,clusterpars.maxMultiway);
+            ClustResults(iB).MultiwayBestPartition{iP,iF} = bestPartition;
+            ClustResults(iB).MultiwayQmaxPartition{iP,iF} = maxQPartition;
             ClustResults(iB).nGrpsMultiway(iP,iF) = max(bestPartition);
             [~,ClustResults(iB).normVIMultiwayOwn(iP,iF)] = VIpartitions(bestPartition,Partition(iF).owngroups);
             [~,ClustResults(iB).normVIMultiwayOne(iP,iF)] = VIpartitions(bestPartition,Partition(iF).onegroup);
@@ -110,18 +113,19 @@ for iF = 1:numel(Model.F_noise)
             Wsignal = tempNetwork(iP,iB).W(tempNetwork(iP,iB).ixFinal_Sparse,tempNetwork(iP,iB).ixFinal_Sparse);        % get final signal matrix
             ExpWsignal = tempNetwork(iP,iB).ExpW(tempNetwork(iP,iB).ixFinal_Sparse,tempNetwork(iP,iB).ixFinal_Sparse);  % extract expected matrix for just final signal
             LoopResults = clusterLowDNetwork(Wsignal,ExpWsignal,Results.SpectraSparseWCM.Groups(iP,iF,iB),Results.SpectraSparseWCM.Groups(iP,iF,iB),clusterpars.nreps,Partition(iF).owngroups(tempNetwork(iP,iB).ixFinal_Sparse));
-            [ClustResults(iB).normVIQmaxSparseOwn(iP,iF),ClustResults(iB).normVIConsensusSparseOwn(iP,iF),ClustResults(iB).nGrpsQmaxSparse(iP,iF),ClustResults(iB).nGrpsConsensusSparse(iP,iF)] ...
-                    = deal(LoopResults.normVIQmaxSpectra,LoopResults.normVIConsensusSpectra,LoopResults.nGrpsQmaxSpectra,LoopResults.nGrpsConsensusSpectra);
+            [ClustResults(iB).normVIQmaxSparseOwn(iP,iF),ClustResults(iB).normVIConsensusSparseOwn(iP,iF),ClustResults(iB).nGrpsQmaxSparse(iP,iF),...
+                ClustResults(iB).nGrpsConsensusSparse(iP,iF),ClustResults(iB).SparseQmaxPartition{iP,iF},ClustResults(iB).SparseConsensusPartition{iP,iF}] ...
+                    = deal(LoopResults.normVIQmaxSpectra,LoopResults.normVIConsensusSpectra,LoopResults.nGrpsQmaxSpectra,LoopResults.nGrpsConsensusSpectra,LoopResults.QmaxCluster,LoopResults.ConsCluster);
             % also compute one-group VI
             if ~isempty(LoopResults.QmaxCluster)
-                ClustResults(iB).normVIQmaxSparseOne(iP,iF) = VIpartitions(LoopResults.QmaxCluster,Partition(iF).onegroup(tempNetwork(iP,iB).ixFinal_Sparse));
+                [~,ClustResults(iB).normVIQmaxSparseOne(iP,iF)] = VIpartitions(LoopResults.QmaxCluster,Partition(iF).onegroup(tempNetwork(iP,iB).ixFinal_Sparse));
             else
                 ClustResults(iB).normVIQmaxSparseOne(iP,iF) = 0;
             end
             if ~isempty(LoopResults.ConsCluster)
-                ClustResults(iB).normVIConsensusSparseOne(iP,iF) = VIpartitions(LoopResults.ConsCluster,Partition(iF).onegroup(tempNetwork(iP,iB).ixFinal_Sparse));
+                [~,ClustResults(iB).normVIConsensusSparseOne(iP,iF)] = VIpartitions(LoopResults.ConsCluster,Partition(iF).onegroup(tempNetwork(iP,iB).ixFinal_Sparse));
             else
-                ClustResults(iB).normVIConsensusSparseOne(iP,iF) = nan;                
+                ClustResults(iB).normVIConsensusSparseOne(iP,iF) = 0;                
             end
             
             
@@ -131,8 +135,9 @@ for iF = 1:numel(Model.F_noise)
             P = expectedA(tempNetwork(iP,iB).W);
             Psignal = P(tempNetwork(iP,iB).ixFinal_Full,tempNetwork(iP,iB).ixFinal_Full);
             LoopResults = clusterLowDNetwork(Wsignal,Psignal,Results.SpectraFullWCM.Groups(iP,iF,iB),Results.SpectraFullWCM.Groups(iP,iF,iB),clusterpars.nreps,Partition(iF).owngroups(tempNetwork(iP,iB).ixFinal_Full));
-            [ClustResults(iB).normVIQmaxFullOwn(iP,iF),ClustResults(iB).normVIConsensusFullOwn(iP,iF),ClustResults(iB).nGrpsQmaxFull(iP,iF),ClustResults(iB).nGrpsConsensusFull(iP,iF)] ...
-                    = deal(LoopResults.normVIQmaxSpectra,LoopResults.normVIConsensusSpectra,LoopResults.nGrpsQmaxSpectra,LoopResults.nGrpsConsensusSpectra);
+            [ClustResults(iB).normVIQmaxFullOwn(iP,iF),ClustResults(iB).normVIConsensusFullOwn(iP,iF),ClustResults(iB).nGrpsQmaxFull(iP,iF),...
+                ClustResults(iB).nGrpsConsensusFull(iP,iF),ClustResults(iB).FullQmaxPartition{iP,iF},ClustResults(iB).FullConsensusPartition{iP,iF}] ...
+                    = deal(LoopResults.normVIQmaxSpectra,LoopResults.normVIConsensusSpectra,LoopResults.nGrpsQmaxSpectra,LoopResults.nGrpsConsensusSpectra,LoopResults.QmaxCluster,LoopResults.ConsCluster);
             % also compute one-group VI
             if ~isempty(LoopResults.QmaxCluster)
                 ClustResults(iB).normVIQmaxFullOne(iP,iF) = VIpartitions(LoopResults.QmaxCluster,Partition(iF).onegroup(tempNetwork(iP,iB).ixFinal_Full));
@@ -150,6 +155,6 @@ for iF = 1:numel(Model.F_noise)
 end
 
 %% save
-save([fpath 'Clustering' fname],'ClustResults','clusterpars')
+save([fpath 'Clustering' fname],'ClustResults','clusterpars','Partition')
 
 
