@@ -99,7 +99,7 @@ if nargin >= 6 && ~isempty(varargin{2})
 end    
 
 if nargin >= 7 && strcmp(varargin{3},'explore') 
-    blnExplore = 1; 
+    blnExplore = 1
 end    
 
 % % set up saving of each iteration
@@ -175,6 +175,7 @@ while ~blnConverged
             % just use the same number of groups as the original requested
             % set: find consensus in that space.
             if L == M && ~blnExplore
+                disp('I am not exploring')
                 T = sum(reshape(Allowed,nreps,1+M-L));  % count how many at each K were retained
                 [D,~,Mcons] = EmbedConsensusNull(CCons,'sweep',L:M,T);  % option 'expected' available as well as 'sweep'
                 % do k-means sweep using D, restricted to original M groups
@@ -196,7 +197,8 @@ while ~blnConverged
 %             C = kmeansSweep(D,L,Mcons,nreps,dims);  % find groups in embedding dimensions
            
             % keyboard
-            if L~=M || (L==M && blnExplore)
+            if L~=M || blnExplore
+                disp('I am exploring')
                 T = sum(reshape(Allowed,nreps,1+M-L));  % count how many at each K were retained
                 [D,~,Mcons] = EmbedConsensusNull(CCons,'sweep',L:M,T);  % option 'expected' available as well as 'sweep'
                 M = Mcons;

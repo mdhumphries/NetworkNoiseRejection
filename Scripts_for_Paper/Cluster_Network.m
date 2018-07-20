@@ -7,14 +7,14 @@
 
 
 % uncomment to use as standalone
-% clear all; close all;
+clearvars; close all;
 
 addpath('../Helper_Functions/')
 addpath('../Network_Analysis_Functions/')
 
 % add fname here to use as standalone script
 % fname = 'LesMis'; 
-% fname = 'StarWarsNetworkEp3';
+fname = 'Allen_Gene_Leaf';
 blnPlot = 0;
 blnLabels = 1;      % write node labels? Omit for large networks
 fontsize = 6;

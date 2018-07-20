@@ -13,16 +13,16 @@ addpath('../Network_Analysis_Functions/')
 
 % network to analyse
 % fname = 'Allen_Gene_Leaf'; 
+% fname = 'polblogs'
 % fname = 'LesMis'; 
 % fname = 'StarWarsNetworkEp1'; 
 
 
-% analysis parameters
+% analysis parameters: weight conversion is set dynamically, see below
 pars.N = 100;           % repeats of permutation
 % pars.alpha = 0; %0.95; % 0.95; % 0;         % confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
 pars.I = 0;      % interval: set to 0 for mean
 pars.Model = 'Poiss';   % or 'Link'; % which version of sparse WCM null model
-pars.C = 1;             % conversion factor for real-valued weights (set=1 for integers)
 pars.eg_min = 1e-2;      % given machine error, what is acceptable as "zero" eigenvalue
 
 % null model options
@@ -73,6 +73,19 @@ A = (A + A') / 2; % make undirected
 % all indices are with reference to Data.A
 [Data.A,Data.ixRetain,Data.Comps,Data.CompSizes] = prep_A(A);
 Data.nodelabels = nodelabels(Data.ixRetain,:);
+
+%% set conversion parameter
+if all(Data.A(Data.A>0) == 1) || ~any(rem(Data.A(:),1)) % binary or integers
+    pars.C = 1;
+else % has real values
+    switch fname
+        case {'celegansneural','polblogs'}
+            pars.C = 2;  % has just full and half counts (1,1.5, etc)
+        otherwise
+            % assume is continuous real-valued
+            pars.C = 100;
+    end
+end
 
 
 %% get expected distribution of eigenvalues under null model (here, sparse WCM)
