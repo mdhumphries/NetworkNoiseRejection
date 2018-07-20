@@ -169,6 +169,7 @@ while ~blnConverged
             grpscon = [];
             Qcon = 0;
             blnConverged = 0;
+            return
         else
             
             % if a single size of groups was requested, and not exploring
