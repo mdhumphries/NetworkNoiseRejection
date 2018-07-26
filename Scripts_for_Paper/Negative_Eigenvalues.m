@@ -35,8 +35,15 @@ for iF = 1:numel(fnames)
         title([fnames{iF} ' 2nd negative eigenvector'])   
     end
     
-    %% make into two clusters
+    %% load null model eigenvectors
     
+    %% do node rejection in this negative-D space
+    
+    %% make into clusters
+    
+    % if 1 eigenvector, just +/- entries after node rejection
+    
+    % if 2 or more, pass to Qmax....
     
     
 end
