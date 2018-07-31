@@ -14,8 +14,8 @@ for iN = 1:nNet
 end
 
 %% analyse each network
-%for iN = 1:nNet
-for iN = [10,13]
+for iN = 1:nNet
+% for iN = [10,13]
     fname = networks{iN}
     
     % run rejection

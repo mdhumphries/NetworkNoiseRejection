@@ -2,7 +2,7 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 
 % NODEREJECTION separates nodes into "signal" and "noise"
 % D = NODEREJECTION(B,E,I,V) splits the nodes in a network into signal 
-% and noise components, given: 
+% and noise components using the bounds on eigenvalues predicted by a  null model, given: 
 %       B: the (nxn) modularity matrix of the network, defined using a null model (e.g Weighted Configuration Model)
 %       E: the null-model eigenvalue distribution (n x #repeats of null model) (from e.g. WeightedConfigModel) 
 %       I: specified prediction or confidence interval (e.g. I = 0.9 for 90%); if I is specified as an n-length array {I1,I2,...,In], 
@@ -47,6 +47,11 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 %               'CI': [Default] confidence intervals on the mean values from the null
 %               model (if using this option, set I=0 to just use the mean)
 %
+%           .Bounds: defines which null model boundary to use:
+%               'Upper': creates node projections in space defined by eigenvalues that 
+%                        pass the upper-bound of the null model prediction (for e.g. modular structures) [default]
+%
+%               'Lower': uses the lower-bound of the null model prediction (for e.g. k-partite structures) 
 %
 % Notes: 
 % (1) determines the low dimensional space for projecting the network for the specified rejection interval;
@@ -69,6 +74,7 @@ function [D,varargout] = NodeRejection(B,Emodel,I,Vmodel,varargin)
 % 24/7/2017: fixed multiple CI bug; returns estimates of mean and CI for
 % all nodes; fixed bug in non-default weighting options
 % 25/7/2017: added Prediction Intervals  
+% 31/7/2018: added option to project in space defined by lower-bound
 %
 % Mark Humphries 
 
@@ -78,6 +84,7 @@ addpath('../Helper_Functions/')  % for empty_struct and CIfromSEM
 Options.Weight = 'linear';
 Options.Norm = 'L2';
 Options.Intervals = 'CI';
+Options.Bounds = 'Upper';
 
 N = size(Vmodel,3); 
 n = size(Vmodel,1);
@@ -100,37 +107,49 @@ egs = sort(eig(B),'descend');
 D = emptyStruct({'ixSignal','ixNoise'},[numel(I) 1]);
 for i = 1:numel(I)
     % find bounds, and calculate dimensions to retain
-    [Vpos,ixpos,~] = LowDSpace(B,Emodel,I(i));
+    % [Vpos,ixpos,~] = LowDSpace(B,Emodel,I(i));
+    
+    % choose which projection to use
+    switch Options.Bounds
+        case 'Upper'
+                [Vs,ixVs,~,~] = LowDSpace(B,Emodel,I(i));
+                disp('Hello, upper bound here')
+        case 'Lower'
+                [~,~,~,~,Vs,ixVs] = LowDSpace(B,Emodel,I(i));
+                disp('Hello, lower bound here')
+        otherwise 
+            error('Unknown option for Bounds')
+    end
     
     %% project data and model
-    nPos = numel(ixpos);
+    nPos = numel(ixVs);
     VmodelW = zeros(n,nPos,N);
     switch Options.Weight
         case 'none'
             % no weighting
-            Vweighted = Vpos;   % data
+            Vweighted = Vs;   % data
             % for each model network, project into the same P dimensions
             % (top P eigenvalues)
  
-            VmodelW = Vmodel(:,ixpos,:);
+            VmodelW = Vmodel(:,ixVs,:);
 
         case 'linear'  % default
-            egMat = repmat(egs(ixpos)',n,1);
-            Vweighted = Vpos .* egMat;  %weight by eigenvalues
+            egMat = repmat(egs(ixVs)',n,1);
+            Vweighted = Vs .* egMat;  %weight by eigenvalues
             % now do the same for each model repeat: projection, weighted
             % by eigenvalues
             for iN = 1:N
-                egMat = repmat(Emodel(ixpos,iN)',n,1);
-                VmodelW(:,:,iN) = egMat.*Vmodel(:,ixpos,iN);
+                egMat = repmat(Emodel(ixVs,iN)',n,1);
+                VmodelW(:,:,iN) = egMat.*Vmodel(:,ixVs,iN);
             end
         case 'sqrt'
             % weight by square root of eigenvalue: cf Zhang & Newman 2015
             % Phys Rev E
-            egMat = repmat((sqrt(egs(ixpos)))',n,1);
-            Vweighted = Vpos .* egMat;
+            egMat = repmat((sqrt(egs(ixVs)))',n,1);
+            Vweighted = Vs .* egMat;
             for iN = 1:N
-                egMat = repmat((sqrt(Emodel(ixpos,iN)))',n,1);
-                VmodelW(:,iN) = egMat.*Vmodel(:,ixpos,iN);
+                egMat = repmat((sqrt(Emodel(ixVs,iN)))',n,1);
+                VmodelW(:,iN) = egMat.*Vmodel(:,ixVs,iN);
             end          
         otherwise
             error('Unknown weighting option')
