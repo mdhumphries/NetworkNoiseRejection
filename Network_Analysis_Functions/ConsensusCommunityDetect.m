@@ -99,7 +99,7 @@ if nargin >= 6 && ~isempty(varargin{2})
 end    
 
 if nargin >= 7 && strcmp(varargin{3},'explore') 
-    blnExplore = 1
+    blnExplore = 1;
 end    
 
 % % set up saving of each iteration

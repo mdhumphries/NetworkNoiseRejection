@@ -11,6 +11,11 @@ storepath = 'C:\Users\lpzmdh\Dropbox\Analyses\Networks\DataNets_Null_EigVectors\
 
 addpath('../Network_Spectra_Functions/')
 addpath('../Network_Analysis_Functions/')
+addpath('../Helper_Functions/')
+
+fontsize = 6;
+nreps = 50;     % of each distance metric
+dims = 'all';   % use all embedding dimensions for each k-means clustering
 
 %% find networks with negative eigenvalues below lower limit
 fnames = Network_Rejection_Table.NetworkName(Network_Rejection_Table.SparseWCM_NegDn > 0);
@@ -50,33 +55,61 @@ for iF = 1:numel(fnames)
     
     % use rejection parts, but on lower-bound...
     optionsReject.Bounds = 'Lower';
-    Rejection = NodeRejection(B,Data.Emodel,pars.I,Vmodel,optionsReject); % N.B. also calls LowDSpace function to find projections
-
-    keyboard
-    
-    
+    Rejection = NodeRejection(B,Data.Emodel,pars.I,Vmodel,optionsReject); % N.B. also calls LowDSpace function to find projections   
     
     %% make into clusters
-    
-    % if 1 eigenvector, just +/- entries after node rejection
-    Grp_Neg = ones(numel(Rejection.ixSignal),1);
-    Grp_Neg(Data.Nspace(Rejection.ixSignal) > 0) = 2;
     Asignal = Data.A(Rejection.ixSignal,Rejection.ixSignal); 
+
+    if NNegDims(iF) == 1
+        % if 1 eigenvector, just +/- entries after node rejection
+        Grp_Neg = ones(numel(Rejection.ixSignal),1);
+        Grp_Neg(Data.Nspace(Rejection.ixSignal) > 0) = 2;
+
+        [H,C,I] = plotClusterMap(Asignal,Grp_Neg,[],[],'S'); 
+         plotorder = Rejection.ixSignal(I);
     
+        % Add node labels
+        set(gca,'Ytick',1:length(Rejection.ixSignal));
+        set(gca,'Yticklabel',Data.nodelabels(plotorder,:),'Fontsize',fontsize);
+        % set(gca,'XTickLabelRotation',90);
+        title(fnames{iF})
+    else
+        % keyboard
     %% if 2 or more, pass to Qmax....
     
-    % refine signal matrix for clustering
-%     % connected signal matrix: find largest component, and use that - store
-%     % others
-%     [Asignal_comp,ixRetain,~,~] = prep_A(Asignal); 
-%     ixSignal_comp = Rejection.ixSignal(ixRetain);  % original node indices
-% 
-%     % and then strip out leaves - nodes with single links
-%     K = sum(Asignal_comp);
-%     ixLeaves = find(K==1); ixKeep = find(K > 1);
-% 
-%     ixSignal_Final = ixSignal_comp(ixKeep);
-%     ixSignal_Leaves = ixSignal_comp(ixLeaves);
-%     Asignal_final = Asignal_comp(ixKeep,ixKeep);
+        % refine signal matrix for clustering
+        % connected signal matrix: find largest component, and use that - store
+        % others
+        [Asignal_comp,ixRetain,~,~] = prep_A(Asignal); 
+        ixSignal_comp = Rejection.ixSignal(ixRetain);  % original node indices
 
+        % and then strip out leaves - nodes with single links
+        K = sum(Asignal_comp);
+        ixLeaves = find(K==1); ixKeep = find(K > 1);
+
+        ixSignal_Final = ixSignal_comp(ixKeep);
+        ixSignal_Leaves = ixSignal_comp(ixLeaves);
+        Asignal_final = Asignal_comp(ixKeep,ixKeep);
+    
+        
+        figure
+        plot(Data.Nspace(:,1),Data.Nspace(:,2),'o'); hold on
+        plot(Data.Nspace(ixSignal_Final,1),Data.Nspace(ixSignal_Final,2),'o','MarkerFaceColor',[0 0 0])
+        
+        % construct new null model
+        P = Data.ExpA(ixSignal_Final,ixSignal_Final); % extract relevant part of null model
+        B = Asignal_final - P;          % create a signal modularity matrix
+        C = kmeansSweep(Data.Nspace(ixSignal_Final,:),NNegDims(iF)+1,NNegDims(iF)+1,nreps,dims);  % find groups in embedding dimensions: sweep from L to M
+        m = sum(sum(Asignal_final))/2;    % number of unique links (or total unique weights)
+
+        for iQ = 1:size(C,2)
+            Q(iQ) = computeQ(C(:,iQ),B,m); % compute modularity Q for each clustering
+        end
+        ixQ = find(Q == min(Q));
+        
+        Grp_Neg = C(:,ixQ(1));
+        [H,C,I] = plotClusterMap(Asignal,Grp_Neg,[],[],'S'); 
+        plotorder = Rejection.ixSignal(I);
+        title(fnames{iF})
+    end
 end
