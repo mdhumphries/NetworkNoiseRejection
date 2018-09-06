@@ -38,8 +38,18 @@ for iF = 1:nF
         result(netCtr).SparseWCM_NegDn = Data.Dneg;
         result(netCtr).FullWCM_NegDn = Control.Dneg;
         
+        % basic properties
+        property(netCtr).Name = fnames(iF).name(10:end-4);
+        property(netCtr).N = result(netCtr).Network_Size;
+        property(netCtr).m = sum(sum(Data.A>0));
+        property(netCtr).density = result(netCtr).Network_Density;
+        property(netCtr).LinkType = result(netCtr).LinkType;
     end
 end
 
 Network_Rejection_Table = struct2table(result);
 save('../Results/Network_Rejection_Table','Network_Rejection_Table');
+
+Network_Property_Table = struct2table(property);
+save('../Results/Network_Property_Table','Network_Property_Table');
+
