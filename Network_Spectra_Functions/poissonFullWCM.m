@@ -162,7 +162,7 @@ parfor iN = 1:N
     
     % if requesting all networks, then store
     if blnAll
-        Pstar(iN).A = Aperm;
+        Pstar(iN).A = Asamp;
     end
 
 end
