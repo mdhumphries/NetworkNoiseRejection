@@ -17,7 +17,7 @@ noTrials = 30;
 nGroups = 20;
 
 for count = 1:noTrials
-    [bestPartition,maxQPartition,Results.Q(count,:),Results.ixBest(count),Results.ixQ(count)] =...
+    [bestPartition,maxQPartition,Results.Q(count,:),Results.ixBest(count),Results.ixQ(count),Results.nGroups(count,:)] =...
             multiwaySpectCommDet(A,nGroups);
 
      Results.bestNoOfGroups(count) = max(bestPartition);
@@ -35,12 +35,17 @@ ylabel('frequency')
 xlabel('No. of groups detected: Qmax')
 
 %% plateaus 
-
 figure
 %for iN = 1:noTrials
-    plot(1:nGroups,Results.Q(:,1:end),'.-','Color',[0 0 0],'Linewidth',0.5)
+yyaxis left
+plot(1:nGroups,Results.nGroups(:,1:end),'.-','Linewidth',0.5)
 %end
 xlabel('Number of groups tested')
+ylabel('Number of groups found')
+
+yyaxis right
+plot(1:nGroups,Results.Q(:,1:end),'.-','Linewidth',0.5)
+%end
 ylabel('Q')
 
 save ../Results/MultiwayExample Results noTrials nGroups
