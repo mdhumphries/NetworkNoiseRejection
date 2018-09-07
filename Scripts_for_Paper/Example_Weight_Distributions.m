@@ -55,8 +55,51 @@ end
 figure
 for iN = 1:pars.N
     stairs(Full(iN).xECDF,Full(iN).ECDF,'Color',[0.8 0.6 0.5],'Linewidth',0.4); hold on
-    % stairs(Sparse(iN).xECDF,Sparse(iN).ECDF,'Color',[0.5 0.6 0.8],'Linewidth',0.4);
+    stairs(Sparse(iN).xECDF,Sparse(iN).ECDF,'Color',[0.5 0.6 0.8],'Linewidth',0.4);
 
 end
-stairs(Data.xECDF,Data.ECDF,'k'); hold on
+stairs(Data.xECDF,Data.ECDF,'k','Linewidth',2); hold on
 set(gca,'Yscale','log')
+
+% (2) as histogram
+binW = [0 max(A(index))];
+
+[Data.Hist,Data.Edges] = histcounts(A(index),'BinLimits',binW,'BinMethod','integers');
+for iN = 1:pars.N
+    Afull = poissonFull.A(:,:,iN);
+    [Full(iN).Hist] = histcounts(Afull(index),'BinLimits',binW,'BinMethod','integers');
+    Full(iN).Diff = Data.Hist - Full(iN).Hist;
+    Asparse = poissonSparse.A(:,:,iN);
+    [Sparse(iN).Hist] = histcounts(Asparse(index),'BinLimits',binW,'BinMethod','integers');
+    Sparse(iN).Diff = Data.Hist - Sparse(iN).Hist;
+end
+
+centres = (Data.Edges(1:end-1) + Data.Edges(2:end))/2;
+centres(1) = binW(1); centres(end) = binW(end);
+
+% plot all histograms (skipping 0 entry)
+figure
+for iN = 1:pars.N
+    stairs(centres(2:end),Full(iN).Hist(2:end),'Color',[0.8 0.6 0.5],'Linewidth',0.4); hold on
+    stairs(centres(2:end),Sparse(iN).Hist(2:end),'Color',[0.5 0.6 0.8],'Linewidth',0.4); hold on
+    
+end
+stairs(centres(2:end),Data.Hist(2:end),'k','Linewidth',2)
+
+% set(gca,'Yscale','log','XLim',[-0.5 35],'YLim',[10^-1 10^4])
+
+% plot difference in counts
+figure
+for iN = 1:pars.N
+    stairs(centres,Full(iN).Diff,'Color',[0.8 0.6 0.5],'Linewidth',0.4); hold on
+    stairs(centres,Sparse(iN).Diff,'Color',[0.5 0.6 0.8],'Linewidth',0.4); hold on 
+end
+
+% plot proportional difference in counts
+figure
+for iN = 1:pars.N
+    stairs(centres,Full(iN).Diff ./ Data.Hist,'Color',[0.8 0.6 0.5],'Linewidth',0.4); hold on
+    stairs(centres,Sparse(iN).Diff ./ Data.Hist,'Color',[0.5 0.6 0.8],'Linewidth',0.4); hold on 
+end
+
+save ../Results/WeightDistributionExample Data Full Sparse
