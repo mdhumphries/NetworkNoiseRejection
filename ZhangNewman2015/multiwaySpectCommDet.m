@@ -22,14 +22,18 @@ function [bestPartition,maxQPartition,varargout] = multiwaySpectCommDet(varargin
 %      to which each vertex belongs. Its length must be the same as that of 
 %      any of the dimensions of Adj.
 % partition: Found partition. Vector of indices, up to maxGroups, reporting 
-%      the best partition found (as knee on Q vs groups plot).
+%      the best partition found (as knee on Q vs groups plot). 
 % maxQpartition: over all partitions, the maximum Q
 %
+% NOTE: the number of returned groups per partition can be much less than the number
+% of initially tested vectors
+% 
 % Optional outputs:
 % [...,Q,ixBest,ixMax] = multiwaySpectCommDet(...)
 %   Q: the array of Q values, one per tested number of groups
 %   ixBest: index into Q of the best partition (knee)
 %   ixMax: index into Q of the maximum Q partition
+%   Ngroups: the number of detected groups at each tested number
 %
 % Ver. 1.0, Javier Caballero, 24-Oct-2016
 % Ver. 1.01, Javier Caballero, 04-Nov-2016
@@ -318,6 +322,7 @@ bestNoOfGroupsQ = find(Q_currentMod == max(Q_currentMod));
 % membership is reported as NaN
 dummy = nan(n_NoVerts, 1);
 uniqueGroupQmax = unique(g_iGroupsCurrent(:, bestNoOfGroupsQ));
+% keyboard
 for count = 1:numel(uniqueGroupQmax)
     dummy(g_iGroupsCurrent(:, bestNoOfGroupsQ) ==...
         uniqueGroupQmax(count)) = count;
@@ -355,6 +360,12 @@ end
 varargout{1} = Q_currentMod;
 varargout{2} = bestNoOfGroups;
 varargout{3} = bestNoOfGroupsQ;
+
+Ngroups(1) = 1;
+for i = 2:size(g_iGroupsCurrent,2)
+    Ngroups(i) = numel(unique(g_iGroupsCurrent(:,i))); % count groups per tested initial size
+end
+varargout{4} = Ngroups;
 
 
 

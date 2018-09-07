@@ -102,4 +102,4 @@ for iN = 1:pars.N
     stairs(centres,Sparse(iN).Diff ./ Data.Hist,'Color',[0.5 0.6 0.8],'Linewidth',0.4); hold on 
 end
 
-save ../Results/WeightDistributionExample Data Full Sparse
+save ../Results/WeightDistributionExample Data Full Sparse pars optionsModel binW
