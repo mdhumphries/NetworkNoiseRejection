@@ -230,15 +230,15 @@ end
 % now collapse all eigenvalues and vectors into matrix
 V = zeros(n,n,N,'single');
 E = zeros(n,N);
-if blnAll A = zeros(n,n,N,'single'); end
+if blnAll Aall = zeros(n,n,N,'single'); end
 
 for iN = 1:N
     E(:,iN) = Pstar(iN).Egs;
     V(:,:,iN) = Pstar(iN).V;
-    if blnAll A(:,:,iN) = Pstar(iN).A; end
+    if blnAll Aall(:,:,iN) = Pstar(iN).A; end
 end
 
 varargout{1} = diagnostics;
 varargout{2} = V;
 % 3 is assigned to the expected WCM above
-varargout{4} = A;
+varargout{4} = Aall;

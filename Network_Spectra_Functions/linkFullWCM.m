@@ -146,7 +146,7 @@ parfor iN = 1:N
     
     % if requesting all networks, then store
     if blnAll
-        Pstar(iN).A = A;
+        Pstar(iN).A = Aperm;
     end
     % keyboard
 end
@@ -154,14 +154,14 @@ end
 % now collapse all eigenvalues and vectors into matrix
 V = zeros(n,n,N,'single');
 E = zeros(n,N);
-if blnAll A = zeros(n,n,N,'single'); end
+if blnAll Aall = zeros(n,n,N,'single'); end
 
 for iN = 1:N
     E(:,iN) = Pstar(iN).Egs;
     V(:,:,iN) = Pstar(iN).V;
-    if blnAll A(:,:,iN) = Pstar(iN).A; end    
+    if blnAll Aall(:,:,iN) = Pstar(iN).A; end    
 end
 
 varargout{1} = diagnostics;
 varargout{2} = V;
-varargout{3} = A;
+varargout{3} = Aall;

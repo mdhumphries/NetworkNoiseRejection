@@ -2,14 +2,16 @@
 clearvars
 
 addpath ../Helper_Functions/
+addpath ../Network_Spectra_Functions/
+addpath ../Network_Analysis_Functions/
 
-% load '../Networks/LesMis';
-% A = full(Problem.A);
-% pars.C = 1;             % conversion factor for real-valued weights (set=1 for integers)
+load '../Networks/LesMis';
+A = full(Problem.A);
+pars.C = 1;             % conversion factor for real-valued weights (set=1 for integers)
 
-load Sep2711da01_40_120s_Sxy_Gaussian_1s.mat
-A = Sxyall{1};
-pars.C = 100;
+%load Sep2711da01_40_120s_Sxy_Gaussian_1s.mat
+% A = Sxyall{1};
+% pars.C = 100;
 
  % analysis parameters
 pars.N = 100;           % repeats of sampling

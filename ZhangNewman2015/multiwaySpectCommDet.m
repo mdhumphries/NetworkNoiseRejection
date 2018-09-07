@@ -1,4 +1,4 @@
-function [bestPartition,maxQPartition] = multiwaySpectCommDet(varargin)
+function [bestPartition,maxQPartition,varargout] = multiwaySpectCommDet(varargin)
 % Implementation of: X Zhang, MEJ Newman (2015), Multiway spectral community
 % detection in networks, Phys Rev E, (92)052808. This function tests for up
 % to 50 possible groups and the best number (not reported outside) is that 
@@ -25,8 +25,16 @@ function [bestPartition,maxQPartition] = multiwaySpectCommDet(varargin)
 %      the best partition found (as knee on Q vs groups plot).
 % maxQpartition: over all partitions, the maximum Q
 %
+% Optional outputs:
+% [...,Q,ixBest,ixMax] = multiwaySpectCommDet(...)
+%   Q: the array of Q values, one per tested number of groups
+%   ixBest: index into Q of the best partition (knee)
+%   ixMax: index into Q of the maximum Q partition
+%
 % Ver. 1.0, Javier Caballero, 24-Oct-2016
 % Ver. 1.01, Javier Caballero, 04-Nov-2016
+% Ver 1.02 Mark Humphries 07-Sept-2018 (add maxQ partition, and returning
+% Q]
 
 
 
@@ -344,8 +352,9 @@ end
 
 
 
-
-
+varargout{1} = Q_currentMod;
+varargout{2} = bestNoOfGroups;
+varargout{3} = bestNoOfGroupsQ;
 
 
 
