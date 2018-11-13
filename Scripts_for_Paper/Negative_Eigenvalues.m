@@ -7,7 +7,11 @@ clearvars; close all
 load('../Results/Network_Rejection_Table')
 
 % location of null model eigenvectors
-storepath = 'C:\Users\lpzmdh\Dropbox\Analyses\Networks\DataNets_Null_EigVectors\';
+if ispc
+    storepath = 'C:\Users\lpzmdh\Dropbox\Analyses\Networks\DataNets_Null_EigVectors\';
+else
+    storepath = '/Users/mqbssmhg/Dropbox/Analyses/Networks/DataNets_Null_EigVectors/';
+end
 
 addpath('../Network_Spectra_Functions/')
 addpath('../Network_Analysis_Functions/')
@@ -28,22 +32,25 @@ for iF = 1:numel(fnames)
     % plot eigenvector
     [Nvec,ix] = sort(Data.Nspace(:,1));
     
-    ytick = find(abs(Nvec) > prctile(abs(Nvec),90));
-    
+    % ytick = find(abs(Nvec) > prctile(abs(Nvec),90));
+    ytick = [1 numel(Nvec)];
     figure
     barh(Nvec)
     ylabel('Weight')
     set(gca,'YTick',ytick,'YTickLabel',Data.nodelabels(ix(ytick),:))
     title(fnames{iF})
+    exportPPTfig(gcf,[fnames{iF} '_EigVec1'],[10 15 9 9])
     
     if NNegDims(iF) > 1
         [Nvec,ix] = sort(Data.Nspace(:,2));
-        ytick = find(abs(Nvec) > prctile(abs(Nvec),90));
+        % ytick = find(abs(Nvec) > prctile(abs(Nvec),90));
+        tick = [1 numel(Nvec)];
         figure
         barh(Nvec)
         ylabel('Weight')
         set(gca,'YTick',ytick,'YTickLabel',Data.nodelabels(ix(ytick),:))
         title([fnames{iF} ' 2nd negative eigenvector'])   
+        exportPPTfig(gcf,[fnames{iF} '_EigVec2'],[10 15 9 9])
     end
     
     %% load null model eigenvectors
@@ -56,6 +63,9 @@ for iF = 1:numel(fnames)
     % use rejection parts, but on lower-bound...
     optionsReject.Bounds = 'Lower';
     Rejection = NodeRejection(B,Data.Emodel,pars.I,Vmodel,optionsReject); % N.B. also calls LowDSpace function to find projections   
+    
+    % proportions rejected
+    PropNodesRetained(iF) = numel(Rejection.ixSignal) ./ numel(Nvec);
     
     %% make into clusters
     Asignal = Data.A(Rejection.ixSignal,Rejection.ixSignal); 
@@ -73,6 +83,7 @@ for iF = 1:numel(fnames)
         set(gca,'Yticklabel',Data.nodelabels(plotorder,:),'Fontsize',fontsize);
         % set(gca,'XTickLabelRotation',90);
         title(fnames{iF})
+        exportPPTfig(gcf,[fnames{iF} '_ClusterMap'],[10 15 12 12])
     else
         % keyboard
     %% if 2 or more, pass to Qmax....
@@ -111,5 +122,6 @@ for iF = 1:numel(fnames)
         [H,C,I] = plotClusterMap(Asignal,Grp_Neg,[],[],'S'); 
         plotorder = Rejection.ixSignal(I);
         title(fnames{iF})
+        exportPPTfig(gcf,[fnames{iF} '_QmaxClusterMap'],[10 15 12 12])
     end
 end
