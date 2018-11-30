@@ -51,6 +51,11 @@ function [grps,Qmax,grpscon,Qcon,ctr,varargout] = ConsensusCommunityDetect(W,P,L
 %   proportion of clusterings that placed nodes i and j in the same group.
 %   A loop of cluster-then-consensus-matrix is repeated until the consensus matrix defines a unique grouping.
 %
+%   (4) The modularity matrix B_con for the consensus matrix is constructed using a separate null model P_con, specifically
+%   for the consensus matrix. If option 'explore' is used, then the maximum number of groups is defined as the
+%   number E of positive eigenvalues of B_con. In rare cases, this might be
+%   fewer than the minimum requested number of groups L; if so, we set L = M = E
+%
 %   (5) For the community-detection algorithm, kmeans centres are initialised using the kmeans++ algorithm (Arthur & Vassilvitskii, 2007)
 %
 %   References: 
@@ -69,6 +74,9 @@ function [grps,Qmax,grpscon,Qcon,ctr,varargout] = ConsensusCommunityDetect(W,P,L
 %   2/3/2017 : initial version
 %   16/07/2018: made consensus exploration optional
 %   17/07/2018: fixed bugs in forced consensus
+%   20/11/2018: added handling of when exploring consensus returns upper
+%   limit of groups lower than requested lower limit
+%
 %   Mark Humphries 
 
 % defaults
@@ -203,7 +211,12 @@ while ~blnConverged
                 T = sum(reshape(Allowed,nreps,1+M-L));  % count how many at each K were retained
                 [D,~,Mcons] = EmbedConsensusNull(CCons,'sweep',L:M,T);  % option 'expected' available as well as 'sweep'
                 M = Mcons;
-                 % do k-means sweep using found M
+                if M < L
+                    % if M < L, fix both to new M
+                   L = M;     
+                end
+                
+                % do k-means sweep using found M
                 C = kmeansSweep(D,L,M,nreps,dims);  % find groups in embedding dimensions
             end
             
