@@ -25,6 +25,10 @@ dims = 'all';   % use all embedding dimensions for each k-means clustering
 fnames = Network_Rejection_Table.NetworkName(Network_Rejection_Table.SparseWCM_NegDn > 0);
 NNegDims = Network_Rejection_Table.SparseWCM_NegDn(Network_Rejection_Table.SparseWCM_NegDn > 0);
 
+% hack worm in...
+fnames{end+1} = 'Worm279_Wmatrix';
+NNegDims(end+1) = 1;
+
 for iF = 1:numel(fnames)
     % get rejection results
     load(['../Results/Rejected_' fnames{iF}])
