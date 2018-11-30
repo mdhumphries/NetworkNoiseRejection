@@ -16,8 +16,8 @@ addpath('../Network_Analysis_Functions/')
 % fname = 'polblogs'
 % fname = 'LesMis'; 
 % fname = 'StarWarsNetworkEp1'; 
-fname = 'cosyneFinalData';
-
+% fname = 'cosyneFinalData';
+fname = 'Worm279_Wmatrix';
 
 % analysis parameters: weight conversion is set dynamically, see below
 pars.N = 100;           % repeats of permutation
@@ -64,6 +64,14 @@ elseif exist('Problem')
         nodelabels = Problem.aux.nodename;
     else
         nodelabels = string(1:size(A,1))';
+    end
+elseif strfind(fname,'Worm')
+    A = Worm279_Wmatrix;
+    m = cellfun('length',Worm279_labels);
+    nodelabels = [];
+    for i = 1:numel(Worm279_labels)
+        leng = numel(Worm279_labels{i});
+        nodelabels = [nodelabels; Worm279_labels{i} blanks(max(m)-leng)];
     end
 end
 

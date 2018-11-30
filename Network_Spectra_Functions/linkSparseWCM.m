@@ -26,7 +26,7 @@ function [E,varargout] = linkSparseWCM(A,N,varargin)
 %           .NoLoops = {0,1}: if specified (=1), prevents self-loops in the
 %           generated random models [default = 1]
 %   
-% [..,D,V,X] = LINKSPARSEWCM(...) returns:
+% [..,D,V,X,ALL] = LINKSPARSEWCM(...) returns:
 %           D: a struct, containing diagnostic measurements of the accuracy of the null model 
 %           for each of the N repeats, with fields
 %           D(i).sAp = strength distribution of the ith repeat
@@ -36,6 +36,7 @@ function [E,varargout] = linkSparseWCM(A,N,varargin)
 %           V: an nxnxN matrix, containing all of the nxn eigenvector matrices of the N repeats            
 %           X: the nxn matrix for the expected configuration model: only
 %           returned if Options.Expected = 1;%
+%           ALL: the nxnxN matrix of every generated network
 %
 % Notes: 
 % (1) assumes A is connected;
@@ -53,7 +54,8 @@ function [E,varargout] = linkSparseWCM(A,N,varargin)
 % 30/8/2016: Option to return expected network
 %            Option to eliminate self-loops
 %
-% Mark Humphries 30/8/2016
+% Mark Humphries 
+
 addpath('../Helper_Functions/')  % for emptyStruct and discreteinvrnd
 addpath('../Network_Analysis_Functions/')  % for expectedA
 
@@ -230,8 +232,11 @@ end
 % now collapse all eigenvalues and vectors into matrix
 V = zeros(n,n,N,'single');
 E = zeros(n,N);
-if blnAll Aall = zeros(n,n,N,'single'); end
-
+if blnAll 
+    Aall = zeros(n,n,N,'single'); 
+else 
+    Aall = [];
+end
 for iN = 1:N
     E(:,iN) = Pstar(iN).Egs;
     V(:,:,iN) = Pstar(iN).V;
