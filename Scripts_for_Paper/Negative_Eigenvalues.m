@@ -75,19 +75,19 @@ for iF = 1:numel(fnames)
     Results(iF).PropNodesRetained(iF) = numel(Rejection.ixSignal) ./ numel(Nvec);
     
     %% make into clusters
-    Asignal = Data.A(Rejection.ixSignal,Rejection.ixSignal); 
+    Asignal = Data.A(Results(iF).Rejection.ixSignal,Results(iF).Rejection.ixSignal); 
 
     if NNegDims(iF) == 1
         Results(iF).Asignal = Asignal;
         % if 1 eigenvector, just +/- entries after node rejection
-        Results(iF).Grp_Neg = ones(numel(Rejection.ixSignal),1);
-        Results(iF).Grp_Neg(Data.Nspace(Rejection.ixSignal) > 0) = 2;
+        Results(iF).Grp_Neg = ones(numel(Results(iF).Rejection.ixSignal),1);
+        Results(iF).Grp_Neg(Data.Nspace(Results(iF).Rejection.ixSignal) > 0) = 2;
 
         [H,C,I] = plotClusterMap(Results(iF).Asignal,Results(iF).Grp_Neg,[],[],'S'); 
-         plotorder = Rejection.ixSignal(I);
+         plotorder = Results(iF).Rejection.ixSignal(I);
     
         % Add node labels
-        set(gca,'Ytick',1:length(Rejection.ixSignal));
+        set(gca,'Ytick',1:length(Results(iF).Rejection.ixSignal));
         set(gca,'Yticklabel',Data.nodelabels(plotorder,:),'Fontsize',fontsize);
         % set(gca,'XTickLabelRotation',90);
         title(fnames{iF})
@@ -114,7 +114,7 @@ for iF = 1:numel(fnames)
         
         figure
         plot(Data.Nspace(:,1),Data.Nspace(:,2),'o'); hold on
-        plot(Data.Nspace(ixSignal_Final,1),Data.Nspace(Results(iF).ixSignal_Final,2),'o','MarkerFaceColor',[0 0 0])
+        plot(Data.Nspace(Results(iF).ixSignal_Final,1),Data.Nspace(Results(iF).ixSignal_Final,2),'o','MarkerFaceColor',[0 0 0])
         
         % construct new null model
         P = Data.ExpA(Results(iF).ixSignal_Final,Results(iF).ixSignal_Final); % extract relevant part of null model
@@ -129,7 +129,7 @@ for iF = 1:numel(fnames)
         
         Results(iF).Grp_Neg = Results(iF).sweep(:,ixQ(1));
         [H,C,I] = plotClusterMap(Results(iF).Asignal_final,Results(iF).Grp_Neg,[],[],'S'); 
-        plotorder = Rejection.ixSignal(I);
+        plotorder = Results(iF).ixSignal_Final(I);
         title(fnames{iF})
         exportPPTfig(gcf,[fnames{iF} '_QmaxClusterMap'],[10 15 12 12])
     end
@@ -152,18 +152,18 @@ for i=1:numel(ixJump)
     count(i) = sum(rs == ixJump(i));
 end
 
-figure  % there are just two nodes!
+figure 
 bar(count)
 
-ixTri = rs(count > median(count));
+ixTri = ixJump(count > median(count));
 
 % make groups
 [blnC,G] = CheckConvergenceConsensus(CCon);
 
-Results(iF).Grp_ConNeg = G;
-[H,C,I] = plotClusterMap(Results(iF).Asignal_final,Results(iF).Grp_ConNeg,[],[],'S'); 
-
-save('../Results/NegEigResults','Results')
+% Results(iF).Grp_ConNeg = G;
+% [H,C,I] = plotClusterMap(Results(iF).Asignal_final,Results(iF).Grp_ConNeg,[],[],'S'); 
+% 
+% save('../Results/NegEigResults','Results')
 
 
 
