@@ -34,7 +34,7 @@ for iF = 1:numel(fnames)
     load(['../Results/Rejected_' fnames{iF}])
     
     Results(iF).NetName = fnames{iF};
-     
+    Results(iF).nodelabels = Data.nodelabels;
     % plot eigenvector
     [Nvec,ix] = sort(Data.Nspace(:,1));
     
