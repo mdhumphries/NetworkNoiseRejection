@@ -104,21 +104,22 @@ for iF = 1:numel(fnames)
 
         % and then strip out leaves - nodes with single links
         K = sum(Asignal_comp);
-        ixLeaves = find(K==1); ixKeep = find(K > 1);
+        ixLeaves = find(K==1); 
+        ixKeep = find(K > 1);
 
-        ixSignal_Final = ixSignal_comp(ixKeep);
-        ixSignal_Leaves = ixSignal_comp(ixLeaves);
+        Results(iF).ixSignal_Final = ixSignal_comp(ixKeep);
+        Results(iF).ixSignal_Leaves = ixSignal_comp(ixLeaves);
         Results(iF).Asignal_final = Asignal_comp(ixKeep,ixKeep);
     
         
         figure
         plot(Data.Nspace(:,1),Data.Nspace(:,2),'o'); hold on
-        plot(Data.Nspace(ixSignal_Final,1),Data.Nspace(ixSignal_Final,2),'o','MarkerFaceColor',[0 0 0])
+        plot(Data.Nspace(ixSignal_Final,1),Data.Nspace(Results(iF).ixSignal_Final,2),'o','MarkerFaceColor',[0 0 0])
         
         % construct new null model
-        P = Data.ExpA(ixSignal_Final,ixSignal_Final); % extract relevant part of null model
+        P = Data.ExpA(Results(iF).ixSignal_Final,Results(iF).ixSignal_Final); % extract relevant part of null model
         B = Results(iF).Asignal_final - P;          % create a signal modularity matrix
-        Results(iF).sweep = kmeansSweep(Data.Nspace(ixSignal_Final,:),NNegDims(iF)+1,NNegDims(iF)+1,nreps,dims);  % find groups in embedding dimensions: sweep from L to M
+        Results(iF).sweep = kmeansSweep(Data.Nspace(Results(iF).ixSignal_Final,:),NNegDims(iF)+1,NNegDims(iF)+1,nreps,dims);  % find groups in embedding dimensions: sweep from L to M
         m = sum(sum(Results(iF).Asignal_final))/2;    % number of unique links (or total unique weights)
 
         for iQ = 1:size(Results(iF).sweep,2)
