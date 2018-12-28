@@ -1,10 +1,17 @@
+%% script to compute adjacency matrices of C. elegans neuron network
+%
+% 11/11/2018: created
+%
+% Javier Caballero, 
+
+
 clc
 clear
 
 
 
 %% import data
-filename = 'D:\Kronos\Chamba\Postdoc\Manchester\Documentation\Publications\netNoiseRejection\cElegansNetwork\cElegansConnectome.csv';
+filename = 'cElegansConnectome.csv';
 delimiter = ',';
 startRow = 2;
 
