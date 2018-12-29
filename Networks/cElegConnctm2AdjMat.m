@@ -4,7 +4,6 @@
 %
 % Javier Caballero, 
 
-
 clc
 clear
 
@@ -105,12 +104,23 @@ for countMat = 1:3% matrix-type-wise
     colorbar
 end
 
+% make undirected versions
+adjMatAllUndirected = adjMatAll + adjMatAll' - adjMatElect;% electric synapses are taken as single links
+adjMatChemUndirected = adjMatChem + adjMatChem';
+adjMatElectUndirected = adjMatElect;% this was already undirected
+
 
 
 %% save
-save('cElegAdjMatAllSynap.mat', 'adjMatAll')
-save('cElegAdjMatChemSynap.mat', 'adjMatChem')
-save('cElegAdjMatElectSynap.mat', 'adjMatElect')
+% adjacency matrices as directed networks
+save('cElegAdjMatAllSynap.mat', 'adjMatAll')% all synapses
+save('cElegAdjMatChemSynap.mat', 'adjMatChem')% only chemical
+save('cElegAdjMatElectSynap.mat', 'adjMatElect')% only electrical
+% adjacency matrices as undirected networks
+save('cElegAdjMatAllSynapUndirected.mat', 'adjMatAllUndirected')% all synapses
+save('cElegAdjMatChemSynapUndirected.mat', 'adjMatChemUndirected')% only chemical
+save('cElegAdjMatElectSynapUndirected.mat', 'adjMatElectUndirected')% only electrical
+% ordered names of neurons
 save('cElegNeuronList.mat', 'neuronNames')
 
 
