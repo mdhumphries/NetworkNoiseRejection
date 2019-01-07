@@ -17,7 +17,7 @@ addpath('../Network_Analysis_Functions/')
 % fname = 'LesMis'; 
 % fname = 'StarWarsNetworkEp1'; 
 % fname = 'cosyneFinalData';
-fname = 'Worm279_Wmatrix';
+fname = 'cElegAdjMatAllSynapUndirected.mat';
 
 % analysis parameters: weight conversion is set dynamically, see below
 pars.N = 100;           % repeats of permutation
@@ -65,13 +65,23 @@ elseif exist('Problem')
     else
         nodelabels = string(1:size(A,1))';
     end
-elseif strfind(fname,'Worm')
-    A = Worm279_Wmatrix;
-    m = cellfun('length',Worm279_labels);
+% elseif strfind(fname,'Worm')
+%     A = Worm279_Wmatrix;
+%     m = cellfun('length',Worm279_labels);
+%     nodelabels = [];
+%     for i = 1:numel(Worm279_labels)
+%         leng = numel(Worm279_labels{i});
+%         nodelabels = [nodelabels; Worm279_labels{i} blanks(max(m)-leng)];
+%     end
+elseif strfind(fname,'cEleg')
+    A = adjMatAllUndirected;
+    load('../Networks/cElegNeuronList'); 
+    temp = cellstr(neuronNames);
+     m = cellfun('length',temp);
     nodelabels = [];
-    for i = 1:numel(Worm279_labels)
-        leng = numel(Worm279_labels{i});
-        nodelabels = [nodelabels; Worm279_labels{i} blanks(max(m)-leng)];
+    for i = 1:numel(temp)
+        leng = numel(temp{i});
+        nodelabels = [nodelabels; temp{i} blanks(max(m)-leng)];
     end
 end
 

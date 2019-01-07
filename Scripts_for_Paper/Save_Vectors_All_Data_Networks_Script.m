@@ -8,7 +8,7 @@ storepath = 'C:\Users\lpzmdh\Dropbox\Analyses\Networks\DataNets_Null_EigVectors\
 
 
 networks = {'StarWarsNetworkEp1','StarWarsNetworkEp2','StarWarsNetworkEp3','StarWarsNetworkEp4','StarWarsNetworkEp5','StarWarsNetworkEp6',...
-            'Allen_Gene_Leaf','Lesmis','adjnoun','polblogs','dolphins','cosyneFinalData','celegansneural','power','Worm279_Wmatrix'};
+            'Allen_Gene_Leaf','Lesmis','adjnoun','polblogs','dolphins','cosyneFinalData','celegansneural','power','cElegAdjMatAllSynapUndirected'};
 
 nNet = numel(networks);
 % sanity check: run through list, and check all can be loaded without error
@@ -21,6 +21,7 @@ addpath('../Network_Analysis_Functions/')
 
 %% get null model eigenvectors for each network, and store
 for iN = 1:nNet
+
     fname = networks{iN}
     % load rejected network to get processed original weight matrix in
     % Data.A

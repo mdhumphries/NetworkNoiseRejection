@@ -29,6 +29,10 @@ NNegDims = Network_Rejection_Table.SparseWCM_NegDn(Network_Rejection_Table.Spars
 % fnames{end+1} = 'Worm279_Wmatrix';
 % NNegDims(end+1) = 1;
 
+% fnames{end+1} = 'cElegAdjMatAllSynapUndirected';
+% NNegDims(end+1) = 1;
+
+
 for iF = 1:numel(fnames)
     % get rejection results
     load(['../Results/Rejected_' fnames{iF}])
