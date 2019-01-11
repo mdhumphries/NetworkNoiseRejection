@@ -1,4 +1,4 @@
-%% script to compute adjacency matrices of C. elegans neuron network
+%% script to compute weight matrices of C. elegans neuron network
 %
 % 11/11/2018: created
 %
@@ -35,7 +35,7 @@ data = table(data{1:end-1}, 'VariableNames', ...
 
 
 
-%% make adjacency matrices
+%% make weight matrices
 % verify send + received chemical synapse integrity (S + Sp = R + Rp)
 sentEqual2Received = (sum(data.Nbr(data.Type == 'S' | ...
     data.Type == 'Sp')) - sum(data.Nbr(data.Type == 'R' |...
@@ -54,11 +54,11 @@ typesChem = categorical({'S'; 'Sp'});
 % ... all electric
 typesElect = 'EJ';
 
-% fill adjacency matrices
+% fill weight matrices
 for countMat = 1:3% matrix-type-wise
     
-    % initialize adjacency matrix
-    adjMat = zeros(size(neuronNames, 1), size(neuronNames, 1));
+    % initialize weight matrix
+    wMat = zeros(size(neuronNames, 1), size(neuronNames, 1));
     
     % types of synapse to be used
     if countMat == 1
@@ -75,51 +75,48 @@ for countMat = 1:3% matrix-type-wise
             data.Neuron1 == neuronNames(countSend), :);
         
         for countRec = 1:size(dataTemp, 1)% receiving neuron
-            adjMat(countSend, neuronNames == ...
-                dataTemp.Neuron2(countRec)) = adjMat(countSend,...
+            wMat(countSend, neuronNames == ...
+                dataTemp.Neuron2(countRec)) = wMat(countSend,...
                 neuronNames == dataTemp.Neuron2(countRec)) +...
                 dataTemp.Nbr(countRec);
         end
         
     end
     
-    % make symmetric version
-    % symAdjMAt = triangle(adjMat)
-    
     % name martrix
     if countMat == 1
-        adjMatAll = adjMat;
+        wMatAll = wMat;
     elseif countMat == 2
-        adjMatChem = adjMat;
+        wMatChem = wMat;
     else
-        adjMatElect = adjMat;
+        wMatElect = wMat;
     end
-    
-    % set colormap
-    colormap(flipud(bone))
     
     %  plot
     figure(countMat)
-    imagesc(adjMat)
+    imagesc(wMat)
     colorbar
+    
+    % set colormap
+    colormap(flipud(bone))
 end
 
 % make undirected versions
-adjMatAllUndirected = adjMatAll + adjMatAll' - adjMatElect;% electric synapses are taken as single links
-adjMatChemUndirected = adjMatChem + adjMatChem';
-adjMatElectUndirected = adjMatElect;% this was already undirected
+wMatAllUndirected = wMatAll + wMatAll' - wMatElect;% electric synapses are taken as single links
+wMatChemUndirected = wMatChem + wMatChem';
+wMatElectUndirected = wMatElect;% this was already undirected
 
 
 
 %% save
-% adjacency matrices as directed networks
-save('cElegAdjMatAllSynap.mat', 'adjMatAll')% all synapses
-save('cElegAdjMatChemSynap.mat', 'adjMatChem')% only chemical
-save('cElegAdjMatElectSynap.mat', 'adjMatElect')% only electrical
-% adjacency matrices as undirected networks
-save('cElegAdjMatAllSynapUndirected.mat', 'adjMatAllUndirected')% all synapses
-save('cElegAdjMatChemSynapUndirected.mat', 'adjMatChemUndirected')% only chemical
-save('cElegAdjMatElectSynapUndirected.mat', 'adjMatElectUndirected')% only electrical
+% weight matrices as directed networks
+save('cElegWeightMatAllSynap.mat', 'wMatAll')% all synapses
+save('cElegWeightMatChemSynap.mat', 'wMatChem')% only chemical
+save('cElegWeightMatElectSynap.mat', 'wMatElect')% only electrical
+% weight matrices as undirected networks
+save('cElegWeightMatAllSynapUndirected.mat', 'wMatAllUndirected')% all synapses
+save('cElegWeightMatChemSynapUndirected.mat', 'wMatChemUndirected')% only chemical
+save('cElegWeightMatElectSynapUndirected.mat', 'wMatElectUndirected')% only electrical
 % ordered names of neurons
 save('cElegNeuronList.mat', 'neuronNames')
 
