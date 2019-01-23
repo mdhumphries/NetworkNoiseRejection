@@ -3,7 +3,7 @@ Network Noise Rejection
 
 MATLAB toolbox for finding and rejecting noise in networks
 
-Accompanies the paper "Spectral rejection for testing hypotheses of structure in networks" [URL to follow]
+Accompanies the paper "Spectral rejection for testing hypotheses of structure in networks": https://arxiv.org/abs/1901.04747
 
 ## Code
 The core functions are in the folder Network_Spectra_Functions/
