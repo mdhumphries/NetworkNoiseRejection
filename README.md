@@ -1,9 +1,9 @@
-Network Noise Rejection
+Spectral estimation for detecting network structure
 ============================
 
-MATLAB toolbox for finding and rejecting noise in networks
+MATLAB toolbox for finding low-dimensional structure in networks using spectral estimation
 
-Accompanies the paper "Spectral rejection for testing hypotheses of structure in networks": https://arxiv.org/abs/1901.04747
+Accompanies the paper "Spectral estimation for detecting low-dimensional structure in networks using arbitrary null models": https://arxiv.org/abs/1901.04747
 
 ## Code
 The core functions are in the folder Network_Spectra_Functions/
@@ -28,6 +28,8 @@ We demonstrate its use in the script *Negative_Eigenvalues* (in Scripts_For_Pape
 
 #### Estimating the maximum eigenvalue
 In the paper, we use the expectation over all sampled null models as our estimate of the maximum and minimum predicted eigenvalues. The function _LowDSpace_ (and so also _NodeRejection_) contains options for instead specifying an upper confidence interval on that maximum, computed over all sampled models. It also contains an option for [non-parametric prediction intervals](https://en.wikipedia.org/wiki/Prediction_interval). 
+
+In the Supplementary Material, as a suggestion for future work we describe briefly three approaches to statistical testing of the data network eigenvalues, given the sample of null model maxium eigenvalues. Demonstrations of these are in the script *demo_of_statistical_tests* (in Scripts_For_Paper/)
 
 ##### Node projection
 In the paper, we project nodes into a low-dimensional space using their L2-norm weighted by the eigenvalue of each dimension. We also test for node rejection using the expectation of the projections over all sampled null models. Function _NodeRejection_ has options for different weightings of the projections, and also for setting confidence and prediction intervals, as above.
