@@ -144,7 +144,7 @@ set(gca,'XLim',[-lim lim])
 % ylabel('P(max model eigenvalue)')
 xlabel('Eigenvalues')
 
-% (2) projection of nodes into first on or two dimensions
+% (2) projection of nodes into first one or two dimensions
 nodeIDs = 1:size(Data.A,1);
 ixReject = [Rejection.ixNoise; Data.ixSignal_Leaves];
 
