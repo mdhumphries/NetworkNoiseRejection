@@ -89,6 +89,9 @@ if nargin >= 3
         % the scale so that minimum non-zero weight is 1
         conversion = 1./minW;
     end
+    if conversion < 0 || rem(conversion,1) ~= 0
+        error('Conversion factor must be a positive integer')
+    end
 else
     conversion = 100; % into integer number of edges
 end
@@ -99,7 +102,16 @@ if ~any(rem(A(:),1))  % then is integers for all weights
 end
 
 % convert network into multi-edge version
-A_int = round(A*conversion); 
+A_int = A*conversion; 
+
+% check how many entries will be set to 0 by conversion
+idxs = find(A_int> 0 & A_int < 0.5);
+nZeros = numel(idxs);
+if nZeros > 0 warning(['Using a conversion factor of ' num2str(conversion) ' will set ' num2str(nZeros) ' links in your data network to zero']); end
+
+% create integer edge counts
+A_int = round(A_int);
+
 nLinks = round(sum(sum(A_int))/2);  % total unique links to place
 
 % weighted configuration model [expectation]

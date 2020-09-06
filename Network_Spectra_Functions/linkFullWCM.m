@@ -43,20 +43,24 @@ kA = sum(A);  % original degree distribution
 minW = min(min(A(A>0)));
 maxW = max(max(A));
 
+blnAll = 0;
+if nargout >= 4
+    blnAll = 1;
+end
+
 % quantisation steps
 if nargin >= 3
     conversion = varargin{1};
+    if isempty(conversion) conversion = 1; end
     if strfind(conversion,'all')
         % the scale so that minimum non-zero weight is 1
         conversion = 1./minW;
     end
+    if conversion < 0 || rem(conversion,1) ~= 0
+        error('Conversion factor must be a positive integer')
+    end
 else
     conversion = 100; % into integer number of edges
-end
-
-blnAll = 0;
-if nargout >= 4
-    blnAll = 1;
 end
 
 % check if weights are already integers
@@ -64,8 +68,17 @@ if ~any(rem(A(:),1))  % then is integers for all weights
     conversion = 1;
 end
 
+% convert network into multi-edge version
+A_int = A*conversion; 
 
-A_int = round(A*conversion);  % rough guide: multi-edge network
+% check how many entries will be set to 0 by conversion
+idxs = find(A_int> 0 & A_int < 0.5);
+nZeros = numel(idxs);
+if nZeros > 0 warning(['Using a conversion factor of ' num2str(conversion) ' will set ' num2str(nZeros) ' links in your data network to zero']); end
+
+% create integer edge counts
+A_int = round(A_int);
+
 
 stubs = sum(A_int);  % how many stubs?
 m_int = sum(stubs)/2; % so how many loops to match all stubs?

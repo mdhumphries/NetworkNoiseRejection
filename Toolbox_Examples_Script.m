@@ -14,7 +14,6 @@ addpath('Helper_Functions/')
 % network to analyse
 fname = 'LesMis'; 
 
-
 % analysis parameters: weight conversion is set dynamically, see below
 pars.N = 100;           % repeats of permutation
 % pars.alpha = 0; %0.95; % 0.95; % 0;         % confidence interval on estimate of maxiumum eigenvalue for null model; set to 0 for mean
@@ -96,6 +95,8 @@ switch pars.Model
     otherwise
         error('Unrecognised null model specified')
 end
+
+keyboard
 
 %% decompose nodes into signal and noise
 B = Data.A - Data.ExpA;  % modularity matrix using chosen null model
