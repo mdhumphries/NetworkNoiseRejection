@@ -7,12 +7,13 @@ function [blnExpectedError,varargout] = doUnitTest(fcn,pars)
 % Returns:
 %   B: boolean flag (0,1) indicating whether an expected error was thrown
 %   or not
-%   V: the set of output arguments from function F; V is a cell array of
+%   V: the set of output arguments from function F; V is defined as a cell array, of
 %   the length of output arguments expected from function F (which is 
 %   defined by the number of output arguments in the call to this function).
+%   Each cell will be copied to one output argument.
 %   For example, calling [B,x1,x2] = feval(F,P) will expect 2 output
 %   arguments from F, and return them in x1 and x2.
-%       If B=1, then all arguments are empty ([]).
+%       If B=1, then all arguments are empty ([]). 
 %
 % IMPORTANT:
 %   Within each function, the expected error messages must be identified by
@@ -20,7 +21,10 @@ function [blnExpectedError,varargout] = doUnitTest(fcn,pars)
 %   DOUNITTEST searches for the name of error message within the Message
 %   Identifier to know that this was an expected error.
 %
-% Mark Humphries 7/3/2017
+% 7/3/2017 Initial version
+% 8/9/2020 Updated HELP
+%
+% Mark Humphries 
 
 blnExpectedError = 0;
 V = {};
@@ -29,10 +33,9 @@ nout = nargout-1;
 try
     %V = feval(fcn,pars{:});
     [V{1:nout}] = feval(fcn,pars{:});
-    % assign outputs according to whether the function executed or not
-
+    % assign all expected outputs
     for iN = 1:nout
-        varargout(iN) = V(iN);
+        varargout{iN} = V{iN};  % copy cells into appropriate outputs
     end
 catch ME
     if any(strfind(ME.identifier,fcn))
@@ -58,7 +61,9 @@ catch ME
         msg = sprintf(['\n ' fcn ' Error: \n' ME.message ' \n Thrown by: \n ' strPars]); 
         disp(msg)
         blnExpectedError = 1;
+        % assign empty arguments to all expected outputs
         varargout = cell(nout,1);
+
     else
        rethrow(ME); 
     end

@@ -53,8 +53,7 @@ function [E,varargout] = linkSparseWCM(A,N,varargin)
 %            Returns eigenvectors for all generated null models
 % 30/8/2016: Option to return expected network
 %            Option to eliminate self-loops
-% 04/09/2020: catch for when a conversion factor (C) will remove existing
-% links
+% 08/09/2020: added full function of conversion of weights
 %
 % Mark Humphries 
 
@@ -99,40 +98,15 @@ if nargout >= 5
     blnAll = 1;
 end
 
-% values for diagnostic checking
-minW = min(min(A(A>0)));
-maxW = max(max(A));
-
-% quantisation steps
+% quantise weighted network: convert to multi-edge network
+conversion = 100;  % default conversion into integers
 if nargin >= 3
     conversion = varargin{1};
-    if isempty(conversion) conversion = 1; end
-    if strfind(conversion,'all')
-        % the scale so that minimum non-zero weight is 1
-        conversion = 1./minW;
+    if isempty(conversion) 
+        conversion = 1; 
     end
-    if conversion < 0 || rem(conversion,1) ~= 0
-        error('Conversion factor must be a positive integer')
-    end
-else
-    conversion = 100; % into integer number of edges
 end
-
-% check if weights are already integers
-if ~any(rem(A(:),1))  % then is integers for all weights
-    conversion = 1;
-end
-
-% convert network into multi-edge version
-A_int = A*conversion; 
-
-% check how many entries will be set to 0 by conversion
-idxs = find(A_int> 0 & A_int < 0.5);
-nZeros = numel(idxs);
-if nZeros > 0 warning(['Using a conversion factor of ' num2str(conversion) ' will set ' num2str(nZeros) ' links in your data network to zero']); end
-
-% create integer edge counts
-A_int = round(A_int);
+[A_int,conversion] = ConvertToMultiEdges(A, conversion);  % returns the actual conversion value used
 
 
 % weighted configuration model [expectation]

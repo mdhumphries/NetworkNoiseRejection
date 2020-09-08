@@ -33,11 +33,11 @@ function [E,varargout] = poissonSparseWCM(A,N,varargin)
 %   
 % [..,D,V,X,ALL] = POISSONSPARSEWCM(...) returns:
 %           D: a struct, containing diagnostic measurements of the accuracy of the null model 
-%           for each of the N repeats, with fields
-%           D(i).sAp = strength distribution of the ith repeat
-%           D(i).dS = absolute difference between data and ith model strength distributions 
-%           D(i).dSN = absolute difference, normalised per node to its strength
-%               in the data (i.e. to measure the error relative to magnitude)
+%           for each of the N repeats, including fields (see DiagnosticsOfModelFit.m for more)
+%               D(i).sAp = strength distribution of the ith repeat
+%               D(i).dS = absolute difference between data and ith model strength distributions 
+%               D(i).dSN = absolute difference, normalised per node to its strength
+%                   in the data (i.e. to measure the error relative to magnitude)
 %           V: an nxnxN matrix, containing all of the nxn eigenvector matrices of the N repeats            
 %           X: the nxn matrix for the expected null model: only
 %           returned if Options.Expected = 1;
@@ -57,8 +57,7 @@ function [E,varargout] = poissonSparseWCM(A,N,varargin)
 % WCM model [MH]
 % 13/07/2017: better diagnostics, aligned code with other similiar
 % functions
-% 04/09/2020: catch for when a conversion factor (C) will remove existing
-% links
+% 08/09/2020: added full function of conversion of weights
 %
 % Silvia Maggi & Mark Humphries
 addpath('../Helper_Functions/')  % for emptyStruct
@@ -102,36 +101,16 @@ if nargout >= 5
     blnAll = 1;
 end
 
-% quantisation steps
+% quantise weighted network: convert to multi-edge network
+conversion = 100;  % default conversion into integers
 if nargin >= 3
     conversion = varargin{1};
-    if isempty(conversion) conversion = 1; end
-    if strfind(conversion,'all')
-        % the scale so that minimum non-zero weight is 1
-        conversion = 1./minW;
+    if isempty(conversion) 
+        conversion = 1; 
     end
-    if conversion < 0 || rem(conversion,1) ~= 0
-        error('Conversion factor must be a positive integer')
-    end
-else
-    conversion = 100; % into integer number of edges
 end
+[A_int,conversion] = ConvertToMultiEdges(A, conversion);  % returns the actual conversion value used
 
-% check if weights are already integers
-if ~any(rem(A(:),1))  % then is integers for all weights
-    conversion = 1;
-end
-
-% convert network into multi-edge version
-A_int = A*conversion; 
-
-% check how many entries will be set to 0 by conversion
-idxs = find(A_int> 0 & A_int < 0.5);
-nZeros = numel(idxs);
-if nZeros > 0 warning(['Using a conversion factor of ' num2str(conversion) ' will set ' num2str(nZeros) ' links in your data network to zero']); end
-
-% create integer edge counts
-A_int = round(A_int);
 
 % weighted configuration model [expectation]
 P = expectedA(A_int);  
@@ -145,6 +124,10 @@ diagnostics = emptyStruct(fields, [N,1]);
 
 % detect parallel toolbox, and enable if present
 blnParallel = autoParallel;
+
+if strcmp(conversion,'all')
+keyboard
+end
 
 parfor iN = 1:N
 % for iN = 1:N
