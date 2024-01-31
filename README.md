@@ -5,6 +5,8 @@ MATLAB toolbox for finding low-dimensional structure in networks using spectral 
 
 Accompanies the paper "Spectral estimation for detecting low-dimensional structure in networks using arbitrary null models": https://arxiv.org/abs/1901.04747
 
+A Python port of this toolbox by Thomas Delaney is here: https://github.com/thomasjdelaney/Network_Noise_Rejection_Python
+
 ## Code
 The core functions are in the folder Network_Spectra_Functions/
 The top-level script *Toolbox_Examples_Script* illustrates calling these functions on an example network, and visualising some of the results
