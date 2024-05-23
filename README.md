@@ -8,9 +8,9 @@ Accompanies the paper "Spectral estimation for detecting low-dimensional structu
 A Python port of this toolbox by Thomas Delaney is here: https://github.com/thomasjdelaney/Network_Noise_Rejection_Python
 
 The main tools here are:
-(1) spectral estimation algorithm to find a network's low-dimensional subspace, if one exists
-(2) node rejection in that subspace, to detect network nodes that do not contribute to the low-dimensional network description
-(3) consensus clustering to find network communities/modules in that subspace
+1. spectral estimation algorithm to find a network's low-dimensional subspace, if one exists
+2. node rejection in that subspace, to detect network nodes that do not contribute to the low-dimensional network description
+3. consensus clustering to find network communities/modules in that subspace
 
 How to apply this code to a NxN correlation matrix or other matrices of pairwise comparisons to study e.g. time-series correlations:
 - we interpret the correlation values as weights of links in the network between the N nodes: so any comparison measure must be a measure of similarity between the N items
